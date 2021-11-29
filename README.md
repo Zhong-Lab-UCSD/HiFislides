@@ -14,3 +14,5 @@ Genome and junction annotation: Ensembl release 140, Homo Sapiens
 
 
 Pipeline:
+
+piepline.sh
