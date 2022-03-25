@@ -47,4 +47,7 @@ date
 n1=`ps x | grep "testGeneToTileByL2_step0.pl" | wc -l`
 done
 
-R CMD BATCH --no-save --no-restore "--args MatrixL00$L\_geneXtile.o" test2.R
+infile=MatrixL00$L\_geneXtile.o
+# the output would be MatrixL00$L\_geneXtile.o.RData
+R CMD BATCH --no-save --no-restore "--args $infile" test2.R
+
