@@ -16,6 +16,14 @@
 #include <vector>
 #include <algorithm>
 
+# Reference: 
+# https://doi.org/10.1093/bioinformatics/btaa112
+# https://genome.cshlp.org/content/30/9/1364
+
+# codes from https://github.com/daihang16/nubeamdedup
+# were used and revised to print out the number of occurrence of each raw read in L1 library.
+
+
 using namespace std; 
 
 void operation(double prod[][2], bool yes) 
