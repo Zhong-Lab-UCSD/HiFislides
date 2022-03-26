@@ -1,7 +1,7 @@
 # HiFislides
 /*
 
-Works by Stanley, Pie, Brianne and many others in Zhong Lab
+Works by Stanley, Ekko, Pie, Brianne and many others in Zhong Lab
 
 Hello world!
 
