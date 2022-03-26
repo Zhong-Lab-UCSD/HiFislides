@@ -17,11 +17,12 @@
 #include <algorithm>
 
 # Reference: 
+# Nubeam-dedup: a fast and RAM-efficient tool to de-duplicate sequencing reads without mapping
 # https://doi.org/10.1093/bioinformatics/btaa112
+# The Nubeam reference-free approach to analyze metagenomic sequencing reads
 # https://genome.cshlp.org/content/30/9/1364
 
-# codes from https://github.com/daihang16/nubeamdedup
-# were used and revised to print out the number of occurrence of each raw read in L1 library.
+# codes from https://github.com/daihang16/nubeamdedup were used and revised to print out the number of occurrence of each raw read in L1 library.
 
 
 using namespace std; 
