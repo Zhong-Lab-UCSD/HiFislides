@@ -5,6 +5,26 @@
 
 L=$1
 k=$2
+############### the frst step: align HiFi Reads to Library 1 raw reads
+for j in `cut -f 1 ur.L`
+do
+date
+fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
+fq1=$j\_L00$L\_R1_001.fastq
+gunzip -c $fq0 > $fq1
+bwa mem L2R1 $fq1 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
+rm $fq1
+echo "Done" $j $L
+done
+
+j=Undetermined_S0
+fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
+fq1=$j\_L00$L\_R1_001.fastq
+gunzip -c $fq0 > $fq1
+bwa mem L2R1 $fq1 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
+rm $fq1
+echo "Done" $j $L
+#############################################
 for j in `cut -f 1 ur.L`
 do
 nohup getBWAL2R1bytile.pl $j\_L00$L\_R1_ak$k.sam wholefastq_R1nonredundant.L > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
