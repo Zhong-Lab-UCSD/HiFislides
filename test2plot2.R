@@ -36,6 +36,9 @@ names(mains) = c("hi500","hi1000","hi2000")
 #cololist[["hi"]] = hcl.colors(5,palette = "Reds 3")[2:5]
 #cololist[["lo"]] = hcl.colors(5,palette = "Blues 3")[2:5]
 
+# a resource for color:
+# https://developer.r-project.org/Blog/public/2019/04/01/hcl-based-color-palettes-in-grdevices/
+
 cololist=list()
 cololist[["hi"]] = c("#CC1C2F","#FF7078","#FFBEC1")
 cololist[["lo"]] = c("#0072B4","#79ABE2","#C3DBFD")
