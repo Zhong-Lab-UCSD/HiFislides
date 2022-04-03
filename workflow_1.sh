@@ -10,10 +10,9 @@ for j in `cut -f 1 ur.L`
 do
 date
 fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
-fq1=$j\_L00$L\_R1_001.fastq
-gunzip -c $fq0 > $fq1
-bwa mem L2R1 $fq1 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
-rm $fq1
+# -a: report all alignments. this is necessary as multiple L2 reads (R1) could be aligned at one coordinate, whose L1 read used as query for BWA.
+# -k: Minimum seed length. Matches shorter than INT will be missed.default: 19 bps.
+bwa mem L2R1 $fq0 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
 echo "Done" $j $L
 done
 
