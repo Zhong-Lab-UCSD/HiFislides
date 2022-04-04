@@ -2,6 +2,8 @@
 # For a HiFi library of 17,523,315 read pairs (R1 length: 100 bps)
 # it takes bwa 35 mins to run the indexing process. 
 
+# it took ~80 mins to finish mapping Library 1 R1 reads (NextSeq 2000, Lane 1) to our Library 2 R1 by bwa-mem using 48 cores
+
 L2R1RAWGZ=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 bwa index -p L2R1 $L2R1RAWGZ > bwaindexo 2>bwaindexe
 
