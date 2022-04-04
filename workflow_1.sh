@@ -4,7 +4,7 @@
 
 # it took ~80 mins to finish mapping Library 1 R1 reads (NextSeq 2000, Lane 1) to our Library 2 R1 by bwa-mem using 48 thread.
 
-# it took ~8h to read all the raw Library 1 R1 reads (1,427,451,711 raw reads,101 bps long, NextSeq 2000, two lanes) by 1 thread.
+# it took ~8h to read and handle all the raw Library 1 R1 reads (1,427,451,711 raw reads,101 bps long, NextSeq 2000, two lanes) by 1 thread.
 # after collapased redundant Library 1 R1 reads, a total of 505,137,607 non-redundant L1R1 reads were found.
 # among these, 337,392,125 L1R1 reads occured only once in the raw sequencing data.
 
