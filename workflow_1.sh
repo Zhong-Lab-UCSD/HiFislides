@@ -19,7 +19,7 @@ bwa index -p L2R1 $L2R1RAWGZ > bwaindexo 2>bwaindexe
 
 L=$1
 k=$2
-############### the frst step: align HiFi Reads to Library 1 raw reads
+################################################################## the frst step: align HiFi Reads to Library 1 raw reads
 for j in `cut -f 1 ur.L`
 do
 date
@@ -32,12 +32,11 @@ done
 
 j=Undetermined_S0
 fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
-fq1=$j\_L00$L\_R1_001.fastq
-gunzip -c $fq0 > $fq1
-bwa mem L2R1 $fq1 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
+bwa mem L2R1 $fq0 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
 rm $fq1
 echo "Done" $j $L
-#############################################
+
+##################################################################
 for j in `cut -f 1 ur.L`
 do
 nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bycoord_ak$k\o 2>>anye &
@@ -60,6 +59,16 @@ for j in `cut -f 1 ur.L`;
 do
 cat $j\_L00$L\_L2R1bycoord_ak$k\o >> L2R1bycoordL00$L\_ak$k\o 
 done
+
+#
+# the below cmd was very quick on 
+# cut -f 1 L2R1bycoordL001_ak95o > L2R1bycoordL001_ak95_column1_o
+# sort L2R1bycoordL001_ak95_column1_o > L2R1bycoordL001_ak95_column1_sortedo
+# uniq -c L2R1bycoordL001_ak95_column1_sortedo > L2R1bycoordL001_ak95_column1_sorted_uniqized.o
+#
+# grep -P "^\s+1\sMN00185:" L2R1bycoordL001_ak95_column1_sorted_uniqized.o | wc -l
+# 1382471
+
 ##################################################################
 filetag=bwaL2RAW2tomm39
 sam=$filetag.sam
