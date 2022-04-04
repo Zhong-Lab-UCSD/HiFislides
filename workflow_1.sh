@@ -40,25 +40,25 @@ echo "Done" $j $L
 #############################################
 for j in `cut -f 1 ur.L`
 do
-nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
+nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bycoord_ak$k\o 2>>anye &
 done
 
 j=Undetermined_S0
-nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
+nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bycoord_ak$k\o 2>>anye &
 
-n=`ps x | grep "getBWAL2R1bytile.pl" | wc -l`
+n=`ps x | grep "getBWAL2R1uniqcoord.pl" | wc -l`
 echo $n
 while [ $n -gt 1 ]
 do
 sleep 600
 date
-n=`ps x | grep "getBWAL2R1bytile.pl" | wc -l`
+n=`ps x | grep "getBWAL2R1uniqcoord.pl" | wc -l`
 done
 
-cat Undetermined_S0_L00$L\_L2R1bytile_ak$k\o > L2R1bytileL00$L\_ak$k\o
+cat Undetermined_S0_L00$L\_L2R1bycoord_ak$k\o > L2R1bycoordL00$L\_ak$k\o
 for j in `cut -f 1 ur.L`;
 do
-cat $j\_L00$L\_L2R1bytile_ak$k\o >> L2R1bytileL00$L\_ak$k\o 
+cat $j\_L00$L\_L2R1bycoord_ak$k\o >> L2R1bycoordL00$L\_ak$k\o 
 done
 
 filetag=bwaL2RAW2tomm39
