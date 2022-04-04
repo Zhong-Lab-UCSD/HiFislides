@@ -70,6 +70,9 @@ done
 # 1382471
 
 ##################################################################
+L2R2RAWGZ=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+bwa mem ../../../../genome/release105/DNAMM39 $L2R2RAWGZ -t 64 > bwaL2RAW2tomm39.sam 2>>anye
+
 filetag=bwaL2RAW2tomm39
 sam=$filetag.sam
 bam=$filetag.bam
