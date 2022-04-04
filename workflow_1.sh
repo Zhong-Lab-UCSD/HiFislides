@@ -61,7 +61,7 @@ cat $j\_L00$L\_L2R1bycoord_ak$k\o >> L2R1bycoordL00$L\_ak$k\o
 done
 
 #
-# the below cmd was very quick on 
+# the below cmd run quickly. 
 # cut -f 1 L2R1bycoordL001_ak95o > L2R1bycoordL001_ak95_column1_o
 # sort L2R1bycoordL001_ak95_column1_o > L2R1bycoordL001_ak95_column1_sortedo
 # uniq -c L2R1bycoordL001_ak95_column1_sortedo > L2R1bycoordL001_ak95_column1_sorted_uniqized.o
