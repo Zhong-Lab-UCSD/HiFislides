@@ -78,6 +78,7 @@ sam=$filetag.sam
 bam=$filetag.bam
 genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
+# getgenefromgtf.pl Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
 
 # nohup GeneRankedBySpatialReadCount.pl L2R1bytileL00$L\_ak$k\o $genicreadfile > GenelistBySpatialRdCount.L 2>GenelistBySpatialRdCount.errmsg &
