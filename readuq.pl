@@ -2,7 +2,6 @@
 use strict;
 
 my @fq = @ARGV;
-
 my %hd;
 my %rd;
 
