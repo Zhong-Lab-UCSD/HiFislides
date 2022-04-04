@@ -60,7 +60,7 @@ for j in `cut -f 1 ur.L`;
 do
 cat $j\_L00$L\_L2R1bycoord_ak$k\o >> L2R1bycoordL00$L\_ak$k\o 
 done
-
+##################################################################
 filetag=bwaL2RAW2tomm39
 sam=$filetag.sam
 bam=$filetag.bam
