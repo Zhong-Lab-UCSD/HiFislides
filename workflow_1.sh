@@ -81,7 +81,11 @@ samtools view -S -b $sam --threads 16 > $bam 2>>anye
 # getgenefromgtf.pl Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
 
-nohup testGeneToTileByL2_step0.pl L2R1bycoordL00$L\_ak$k\o $genicreadfile > MatrixL00$L\_geneXtile.o 2>MatrixL00$L\_geneXtile.errmsg &
+# old script generate a large file which record a large sparse matrix 
+# nohup testGeneToTileByL2_step0.pl L2R1bycoordL00$L\_ak$k\o $genicreadfile > MatrixL00$L\_geneXtile.o 2>MatrixL00$L\_geneXtile.errmsg &
+#
+#
+testGeneToTile_writemtx.pl L2R1bycoordL00$L\_ak$k\o $genicreadfile > MatrixL00$L\_geneXtile.mtx 2>> anye
 
 n1=`ps x | grep "testGeneToTileByL2_step0.pl" | wc -l`
 while [ $n1 -gt 1 ]
