@@ -40,11 +40,11 @@ echo "Done" $j $L
 #############################################
 for j in `cut -f 1 ur.L`
 do
-nohup getBWAL2R1bytile.pl $j\_L00$L\_R1_ak$k.sam wholefastq_R1nonredundant.L > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
+nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
 done
 
 j=Undetermined_S0
-nohup getBWAL2R1bytile.pl $j\_L00$L\_R1_ak$k.sam wholefastq_R1nonredundant.L > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
+nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bytile_ak$k\o 2>>anye &
 
 n=`ps x | grep "getBWAL2R1bytile.pl" | wc -l`
 echo $n
