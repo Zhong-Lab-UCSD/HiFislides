@@ -94,5 +94,8 @@ date
 n1=`ps x | grep "testGeneToTileByL2_step0.pl" | wc -l`
 done
 
-R CMD BATCH --no-save --no-restore "--args MatrixL00$L\_geneXtile.mtx 8 1000 64" testGeneToTile_1.R 
-
+for ng in 500 1000 2000;
+do
+filein=MatrixL00$L\_geneXtile.mtx
+nohup R CMD BATCH --no-save --no-restore "--args $filein 8 $ng 64" testGeneToTile_1.R 2>>testGeneToTile_1.Rerr &
+done
