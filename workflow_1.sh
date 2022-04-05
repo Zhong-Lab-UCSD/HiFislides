@@ -97,6 +97,6 @@ done
 
 for ng in 500 1000 2000;
 do
-filein=MatrixL00$L\_geneXtile.mtx
+filein=MatrixL00$L\_L2ReadXtile.mtx
 nohup R CMD BATCH --no-save --no-restore "--args $filein 8 $ng 64" testGeneToTile_1.R 2>>testGeneToTile_1.Rerr &
 done
