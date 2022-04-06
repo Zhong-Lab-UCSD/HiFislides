@@ -16,6 +16,7 @@ two parameters use non-default setting for a less stringent criteria: --outFilte
 Genome and junction annotation: Ensembl release 104, Homo sapiens
 
 
-Pipeline:
-
-piepline.sh
+# compile the c++ source code count_read_occurrence_in_Library_1.cpp:
+# -lz is important for using zlib which allow c++ to read compressed fastq gz files
+g++ -o count_read_occurrence_in_Library_1 count_read_occurrence_in_Library_1.cpp -lz
+cp ./count_read_occurrence_in_Library_1 ~/bin
