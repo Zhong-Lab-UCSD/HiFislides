@@ -8,5 +8,8 @@
 # cp ./cro ~/bin
 
 cro *_*_L00*_R1_001.fastq.gz > Library1_readundancy_check.o 2>Library1_readundancy_check.e
+# two columns in Library1_readundancy_check.o:
+# Read ID, Number of occurrence in library 1
+# if a read occured more than once, only one read ID would be present.
+# the sequence of the read was not shown here.
 
-# then we used R to plot the distribution
