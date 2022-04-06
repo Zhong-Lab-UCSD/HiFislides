@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 
+# this script works more SLOWLY than c++.
+
 my @fq = @ARGV;
 my %hd;
 my %rd;
