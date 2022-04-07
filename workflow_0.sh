@@ -13,3 +13,7 @@ cro *_*_L00*_R1_001.fastq.gz > Library1_readundancy_check.o 2>Library1_readundan
 # if a read occured more than once, only one read ID would be present.
 # the sequence of the read was not shown here.
 
+# add parameters:
+# 1: which tile would be examined for redundancy
+g++ -o crr1 countreadundancy_1.cpp -lz
+./crr1 1:1102: C*_*_L00*_R1_001.fastq.gz > 1102o 2>1102e;
