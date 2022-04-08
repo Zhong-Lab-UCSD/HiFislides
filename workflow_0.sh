@@ -3,10 +3,11 @@
 #
 # -lz is important for using zlib which allow c++ to read compressed fastq gz files
 #
+# cd ~/bin
+# lstoday
+# ls -cltr countreadundanc*
 # g++ -o countreadundancy countreadundancy.cpp -lz
-# cp ./countreadundancy ~/bin
 # g++ -o countreadundancx countreadundancy_1.cpp -lz
-# cp ./countreadundancx ~/bin
 
 # L: lane
 # T: tile
