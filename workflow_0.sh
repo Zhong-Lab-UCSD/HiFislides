@@ -23,7 +23,7 @@ then
 else
 	date
 	tile=:$L:$T:
-	# this binary executable will also find the maximum coordinate (X-axis and Y-axis), which is useful for deriving the resolution.
+	# this binary executable will also find out the maximum coordinate (X-axis and Y-axis), which is useful for deriving the resolution.
 	countreadundancx $tile *_*_L00$L\_R1_001.fastq.gz > Library1_readundancy_checkLane$L\_Tile$T.o 2>Library1_readundancy_checkLane$L\_Tile$T.e
 	date
 fi
