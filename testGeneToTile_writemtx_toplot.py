@@ -58,7 +58,7 @@ for i, rowi in mat.iterrows():
 		spot = rowi["L1Coord"];
 		gene = rowi["Gene"];
 		if gene in genex:
-			next
+			pass
 		else:
 			L1coord = spot.split(':');
 			if len(spot2gene[spot]) == 1:
