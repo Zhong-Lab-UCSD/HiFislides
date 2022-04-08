@@ -3,17 +3,26 @@
 #
 # -lz is important for using zlib which allow c++ to read compressed fastq gz files
 #
-#
-# g++ -o cro count_read_occurrence_in_Library_1.cpp -lz
-# cp ./cro ~/bin
+# g++ -o countreadundancy countreadundancy.cpp -lz
+# cp ./countreadundancy ~/bin
+# g++ -o countreadundancx countreadundancy_1.cpp -lz
+# cp ./countreadundancx ~/bin
 
-cro *_*_L00*_R1_001.fastq.gz > Library1_readundancy_check.o 2>Library1_readundancy_check.e
-# two columns in Library1_readundancy_check.o:
-# Read ID, Number of occurrence in library 1
-# if a read occured more than once, only one read ID would be present.
-# the sequence of the read was not shown here.
+# L: lane
+# T: tile
 
-# add parameters:
-# 1: which tile would be examined for redundancy
-g++ -o crr1 countreadundancy_1.cpp -lz
-./crr1 1:1102: C*_*_L00*_R1_001.fastq.gz > 1102o 2>1102e;
+L=$1
+T=$2
+
+if [ $T eq 0 ]
+then
+	date;
+	countreadundancy *_*_L00*_R1_001.fastq.gz > Library1_readundancy_check.o 2>Library1_readundancy_check.e
+	date
+else
+	date
+	tile=:$L:$T:
+	countreadundancx $tile *_*_L00$L\_R1_001.fastq.gz > Library1_readundancy_checkLane$L\_Tile$T.o 2>Library1_readundancy_checkLane$L\_Tile$T.e
+	date
+fi
+
