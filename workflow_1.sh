@@ -92,8 +92,14 @@ bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
 testGeneToTile_writemtx.pl L2R1bycoordL00$L\_ak$k\o $genicreadfile MatrixL00$L\_L2ReadXtile.mtx MatrixL00$L\_geneXtile.mtx
 # parameter: tile
 # this python script will get coord on the given tile and give color to the top-10 genes which had highest number of spots on the tile
-testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 
-
+###
+##
+#
+testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 > gene2spot 2>top10gene_for_legend
+testGeneToTile_plot_genes_on_1_tile.R
+#
+##
+###
 n1=`ps x | grep "testGeneToTileByL2_step0.pl" | wc -l`
 while [ $n1 -gt 1 ]
 do
