@@ -37,6 +37,16 @@ bwa mem L2R1 $fq0 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\b
 echo "Done" $j $L
 
 ##################################################################
+#####
+####
+###
+##
+#
+# the script, getBWAL2R1uniqcoord.pl, uses the second column (flag) in sam for information.
+# https://en.wikipedia.org/wiki/SAM_(file_format)#Bitwise_flags
+# if the value in second column is 0 or 256, the L1 reads in the first column would be assigned to the L2 reads in the third column.
+# a L2 read would be outputed if it has only 1 coordinates.
+
 for j in `cut -f 1 ur.L`
 do
 nohup getBWAL2R1uniqcoord.pl $j\_L00$L\_R1_ak$k.sam > $j\_L00$L\_L2R1bycoord_ak$k\o 2>>anye &
