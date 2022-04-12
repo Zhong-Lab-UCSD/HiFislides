@@ -106,7 +106,9 @@ testGeneToTile_writemtx.pl L2R1bycoordL00$L\_ak$k\o $genicreadfile MatrixL00$L\_
 ###
 ##
 #
-testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 > gene2spot 2>top10gene_for_legend
+# testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 > gene2spot 2>top10gene_for_legend
+testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 A_FILE_TO_MAP_ENSEMBL_GENE_ID_TO_GENE_SYMBOL > tmpo 2>tmpe
+
 testGeneToTile_plot_genes_on_1_tile.R
 #
 ##
