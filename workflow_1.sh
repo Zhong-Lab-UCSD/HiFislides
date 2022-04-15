@@ -109,7 +109,8 @@ testGeneToTile_writemtx_twolanes.pl L2R1bycoordL001_ak80o L2R1bycoordL002_ak80o 
 ##
 #
 # testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 > gene2spot 2>top10gene_for_legend
-testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 A_FILE_TO_MAP_ENSEMBL_GENE_ID_TO_GENE_SYMBOL > tmpo 2>tmpe
+# testGeneToTile_writemtx_toplot.py MatrixL00$L\_L2ReadXtile.mtx T1208 A_FILE_TO_MAP_ENSEMBL_GENE_ID_TO_GENE_SYMBOL > tmpo 2>tmpe
+  testGeneToTile_writemtx_toplot.py L2ReadXtile.mtx L1 T$tile mousegenename.L > L2ReadonLane1T$tile\o 2>L2ReadonLane1T$tile\e &
 
 testGeneToTile_plot_genes_on_1_tile.R
 #
