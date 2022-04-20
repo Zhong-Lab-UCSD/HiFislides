@@ -1,3 +1,4 @@
+# https://www.geeksforgeeks.org/displaying-the-coordinates-of-the-points-clicked-on-the-image-using-python-opencv/
 import cv2
   
 # function to display the coordinates of
