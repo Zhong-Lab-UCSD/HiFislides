@@ -1,4 +1,3 @@
-
 # For a HiFi library of 17,523,315 read pairs (R1 length: 100 bps)
 # it takes bwa 35 mins to run the indexing process. 
 #
@@ -9,9 +8,8 @@
 # after collapased redundant Library 1 R1 reads, a total of 505,137,607 non-redundant L1R1 reads were found.
 # among these, 337,392,125 L1R1 reads occured only once in the raw sequencing data.
 
-L2R1RAWGZ=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-bwa index -p L2R1 $L2R1RAWGZ > bwaindexo 2>bwaindexe
-
+L2R1=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+bwa index -p L2R1 $L2R1 > bwaindexo 2>bwaindexe
 
 # linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/raw3$ grep "|1|L" wholefastq_R1_unique.L > wholefastq_R1nonredundant.L
 # linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/raw3$ ls -cltr wholefastq_R1_unique.L wholefastq_R1nonredundant.L
@@ -24,18 +22,12 @@ k=$2
 for j in `cut -f 1 ur.L`
 do
 date
-fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
+L1R1=../../lib1/$j\_L00$L\_R1_001.fastq.gz
 # -a: report all alignments. this is necessary as multiple L2 reads (R1) could be aligned at one coordinate, whose L1 read used as query for BWA.
 # -k: Minimum seed length. Matches shorter than INT will be missed.default: 19 bps.
-bwa mem L2R1 $fq0 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
+bwa mem L2R1 $L1R1 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
 echo "Done" $j $L
 done
-
-j=Undetermined_S0
-fq0=../../lib1/$j\_L00$L\_R1_001.fastq.gz
-bwa mem L2R1 $fq0 -a -k $k -t 48 > $j\_L00$L\_R1_ak$k.sam 2>$j\_L00$L\_R1_ak$k\bwae
-echo "Done" $j $L
-
 ##################################################################
 # count the number of HiFi read pairs per tile:
 
@@ -59,14 +51,14 @@ echo "MN00185" > hifispot_on_Tile$i.L
 for j in `cut -f 1 ur.L`
 do
 grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak80.sam | grep -P "\t0\tMN00185" | cut -f 1 >> hifispot_on_Tile$i.L
-grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak80.sam | grep -P "\t256\tMN00185" | cut -f 1 >> hifispot_on_Tile$i.L
 done
 date
 
-n=`sort hifiread_on_Tile$i.L | uniq | wc -l`
-echo $i $n
 
-cut -f 1 hifispot_on_Tile$i.L | perl -p -e "s/:/\t/g" | cut -f 6,7 > Tile$i\_hifir1tocoord.xy
+cut -f 1 hifispot_on_Tile$i.L | perl -p -e "s/:/\t/g" | cut -f 6,7 > hifispot_on_Tile$i.xy
+n=`cat hifispot_on_Tile$i.L | wc -l`
+calcdist hifispot_on_Tile$i.xy $n 0 $n > hifispot_on_Tile$i.dist
+
 
 ##################################################################
 
