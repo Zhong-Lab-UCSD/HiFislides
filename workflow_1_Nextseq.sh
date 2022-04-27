@@ -33,38 +33,58 @@ done
 
 i=$1
 k=$2
-echo "MN00185" > hifiread_on_k$k\_Tile$i.L
+echo "MN00185" > hifiread_on_Tile$i.L
 for j in `cut -f 1 ur.L`
 do
-grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak$k\.sam | grep -P "\t0\tMN00185" | cut -f 3 >> hifiread_on_k$k\_Tile$i.L
-grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak$k\.sam | grep -P "\t256\tMN00185" | cut -f 3 >> hifiread_on_k$k\_Tile$i.L
+grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak$k\.sam | grep -P "\t0\tMN00185" | cut -f 3 >> hifiread_on_Tile$i.L
+grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak$k\.sam | grep -P "\t256\tMN00185" | cut -f 3 >> hifiread_on_Tile$i.L
 done
 
-n=`sort hifiread_on_k$k\_Tile$i.L | uniq | wc -l`
-echo $i $n
+sort hifiread_on_Tile$i.L | uniq > hifiread_on_Tile$i\_uniq.L
+rm hifiread_on_Tile$i.L
 
-##################################################################
-# count the number of spots mapped by HiFi R1 read per tile:
+# count the number of HiFi read pairs on one lane:
+
+k=80
+echo "MN00185" > hifiread_on_Lane.L
+
+for j in `cut -f 1 ur.L`
+do
+  grep -P "\t0\tMN00185:" ../raw4/$j\_L001_R1_ak$k\.sam | cut -f 3 >> hifiread_on_Lane.L
+grep -P "\t256\tMN00185:" ../raw4/$j\_L001_R1_ak$k\.sam | cut -f 3 >> hifiread_on_Lane.L
+done
+
+sort hifiread_on_Lane.L | uniq > hifiread_on_Lane_uniq.L
+  rm hifiread_on_Lane.L
+
+# count the number of HiFi-resolved spots on tile:
+# this can be merged with codes above into one shell script.
+# by definition, we only consider lines with bit score = 0
+
 i=$1
-date
-echo "MN00185" > hifispot_on_Tile$i.L
+k=$2
+
+if [ -e hifispot_on_Tile$i.L ]
+then
+rm hifispot_on_Tile$i.L
+fi
+
 for j in `cut -f 1 ur.L`
 do
-grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak80.sam | grep -P "\t0\tMN00185" | cut -f 1 >> hifispot_on_Tile$i.L
+grep -P "AAAHT5KHV:1:$i:" ../raw4/$j\_L001_R1_ak$k\.sam | grep -P "\t0\tMN00185" | cut -f 1 >> hifispot_on_Tile$i.L
 done
-date
 
-
-cut -f 1 hifispot_on_Tile$i.L | perl -p -e "s/:/\t/g" | cut -f 6,7 > hifispot_on_Tile$i.xy
-n=`cat hifispot_on_Tile$i.L | wc -l`
-calcdist hifispot_on_Tile$i.xy $n 0 $n > hifispot_on_Tile$i.dist
-
+sort hifispot_on_Tile$i.L | uniq > hifispot_on_Tile$i\_uniq.L
+  rm hifispot_on_Tile$i.L
+  
+cut -f 1 hifispot_on_Tile$i\_uniq.L | perl -p -e "s/:/\t/g" | cut -f 6,7 > hifispot_on_Tile$i\_uniq.xy
+n=`cat hifispot_on_Tile$i\_uniq.L | wc -l`
+calcdist hifispot_on_Tile$i\_uniq.xy $n 0 $n > hifispot_on_Tile$i\_uniq.dist;
 
 ##################################################################
-
-
-L2R2RAWGZ=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
-bwa mem ../../../../genome/release105/DNAMM39 $L2R2RAWGZ -t 64 > bwaL2RAW2tomm39.sam 2>>anye
+# align HiFi R2 reads to genome
+L2R2=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+bwa mem ../../../../genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2RAW2tomm39.sam 2>>anye
 
 filetag=bwaL2RAW2tomm39
 sam=$filetag.sam
@@ -73,6 +93,17 @@ genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
 # getgenefromgtf.pl Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+
+##################################################################
+
+
+
+
+
+
+
+
+
 
 
 ##################################################################
