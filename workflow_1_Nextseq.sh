@@ -80,6 +80,7 @@ sort hifispot_on_Tile$i.L | uniq > hifispot_on_Tile$i\_uniq.L
 cut -f 1 hifispot_on_Tile$i\_uniq.L | perl -p -e "s/:/\t/g" | cut -f 6,7 > hifispot_on_Tile$i\_uniq.xy
 n=`cat hifispot_on_Tile$i\_uniq.L | wc -l`
 calcdist hifispot_on_Tile$i\_uniq.xy $n 0 $n > hifispot_on_Tile$i\_uniq.dist;
+rm hifispot_on_Tile$i\_uniq.xy
 
 ##################################################################
 # align HiFi R2 reads to genome
