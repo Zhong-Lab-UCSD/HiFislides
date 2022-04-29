@@ -2,6 +2,18 @@
 L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R1=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 
+#
+bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
+getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
+filetag=bwaL2R2tomm39
+sam=$filetag.sam
+bam=$filetag.bam
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+genicreadfile=$filetag\gene.L
+bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+cut -f 4 bwaL2R2tomm39gene.L | sort | uniq > hifireads_biologically_resolved.L
+#
+#
 # gunzip -c $L1R1 | grep "MN00185" | cut -d " " -f 1 | cut -d ":" -f 5 | sort | uniq
 
 nohup bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe &
@@ -60,15 +72,8 @@ grep -P "^MN00185:260:000H3W2LL:1:\d+:\d+:\d+\t256\t" L2R1toL1_k$k.sam | cut -f 
 gethificoord.py L2R1toL1_k$k.hits L1R1good48.L L2R1good48.L > one_hit_hifi_reads_nspot2tiles_k$k.L 2>n_hits_hifi_reads_k$k.L
 
 # 2: how many "good" hifi can be mapped to genes?
-#
-bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
-getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
-filetag=bwaL2R2tomm39
-sam=$filetag.sam
-bam=$filetag.bam
-samtools view -S -b $sam --threads 16 > $bam 2>>anye
- genicreadfile=$filetag\gene.L
- bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+
+
 
 cut -f 4 $genicreadfile | sort | uniq > bwaL2R2tomm39genicread.L
 cut -f 1 L2R1good48.L | sort | uniq > L2R1good48_uniq.L
