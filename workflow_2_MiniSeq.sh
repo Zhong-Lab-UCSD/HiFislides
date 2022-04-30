@@ -1,8 +1,20 @@
 
 L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R1=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 #
+gunzip -c $L1R1 | grep "MN00185" | wc -l
+readedup $L1R1 > L1R1dedup.fasta 2>L1R1dedup.e
+grep "MN00185" L1R1dedup.fasta | wc -l
+
+gunzip -c $L2R1 | grep "MN00185" | wc -l
+readedup $L2R1 > L2R1dedup.fasta 2>L2R1dedup.e
+grep "MN00185" L2R1dedup.fasta | wc -l
+
+#
+
+
 bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
 getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 filetag=bwaL2R2tomm39
@@ -11,18 +23,76 @@ bam=$filetag.bam
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
 genicreadfile=$filetag\gene.L
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+
 cut -f 4 bwaL2R2tomm39gene.L | sort | uniq > hifireads_biologically_resolved.L
+cut -f 16 bwaL2R2tomm39gene.L | sort | uniq > hifireads_biologically_resolved_genes.L
+grep "protein_coding" hifireads_biologically_resolved_genes.L | wc -l
+grep "lncRNA" hifireads_biologically_resolved_genes.L | wc -l
+
+##
 #
+perl readcheck.pl L1R1.fastq > L1R1barcodesurvey.o
+perl readcheck.pl L2R1.fastq > L2R1barcodesurvey.o
+
+###
+##
+#
+for k in 24 48
+do 
+grep -P "\t0\tMN00185:" L2R1toL1_k$k.sam | cut -f 1,2,3 > L2R1toL1_k$k\_0256.cleansam 
+grep -P "\t256\tMN00185:" L2R1toL1_k$k.sam | cut -f 1,2,3 >> L2R1toL1_k$k\_0256.cleansam 
+cut -f 1 L2R1toL1_k$k\_0256.cleansam | sort | uniq -c > hifireads_spatially_resolved_n_spot_k$k.L
+n1=`grep -P "\s1\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
+n2=`grep -P "\s2\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
+nn=`grep -P "\s\d+\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
+let "n3=nn-n1-n2"
+echo $k $n1 $n2 $n3 $nn
+done
+#
+##
+###
+###
+##
+#
+L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+if [ -e n_raw_spots_per_tile.L ]
+then
+rm n_raw_spots_per_tile.L
+fi
+for i in `cut -f 1 Tiles.L`
+do
+n=`gunzip -c $L1R1 | grep "MN00185:251:000H3VFVV:1:$i:" | wc -l`
+echo $i $n >> n_raw_spots_per_tile.L
+done
+if [ -e n_hifi_per_tile.L ]
+then
+rm n_hifi_per_tile.L
+fi
+for i in `cut -f 1 Tiles.L`
+do
+  grep -P "\t0\tMN00185:251:000H3VFVV:1:$i:" L2R1toL1_k24.sam | cut -f 1 >  n_hifi_reads_spatially_resolved_per_Tile$i.L
+grep -P "\t256\tMN00185:251:000H3VFVV:1:$i:" L2R1toL1_k24.sam | cut -f 1 >> n_hifi_reads_spatially_resolved_per_Tile$i.L
+sort n_hifi_reads_spatially_resolved_per_Tile$i.L | uniq > hifi_reads_spatially_resolved_per_Tile$i.L
+rm n_hifi_reads_spatially_resolved_per_Tile$i.L
+n=`cat hifi_reads_spatially_resolved_per_Tile$i.L | wc -l`
+echo $i $n >> n_hifi_per_tile.L
+rm hifi_reads_spatially_resolved_per_Tile$i.L
+done
+#
+##
+###
+
+
+
+
 #
 # gunzip -c $L1R1 | grep "MN00185" | cut -d " " -f 1 | cut -d ":" -f 5 | sort | uniq
 
 nohup bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe &
 
-k=54
-
-date
+k=24
 bwa mem L1R1 $L2R1 -a -k $k -t 64 > L2R1toL1_k$k.sam 2>L2R1toL1_k$k.e;
-date
+
 
 grep -P "^MN00185:260:000H3W2LL:\d:\d+:\d+:\d+\t0\t" L2R1toL1_k$k.sam | cut -f 1,2,3 > L2R1toL1_k$k.hits
 grep -P "^MN00185:260:000H3W2LL:\d:\d+:\d+:\d+\t256\t" L2R1toL1_k$k.sam | cut -f 1,2,3 >> L2R1toL1_k$k.hits
