@@ -78,6 +78,10 @@ done
 #
 ##
 ###
+if [ -e n_hifi_genic_per_tile.L ]
+then
+rm n_hifi_genic_per_tile.L
+fi
 
 n1=`cat L2R1toL1_k24_0256.cleansam | wc -l`
 n2=`cat bwaL2R2tomm39gene.fivecolumn.L | wc -l`
@@ -86,6 +90,8 @@ do
 tile=000H3VFVV:1:$i: 
 date; 
 ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
+nn=`grep -P "\t\d+\tMN00185" HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | cut -f 1 | sort | uniq | wc -l`
+echo $i $nn >> n_hifi_genic_per_tile.L
 date; 
 done
 ###
@@ -94,8 +100,10 @@ done
 # input:
 # (1) n_hifi_per_tile.L
 # (2) n_raw_spots_per_tile.L
-plot_Xnspot_Ynhifi_per_tile.R
+# (3) n_hifi_genic_per_tile.L
 
+plot_Xnspot_Ynhifi_per_tile.R
+# 
 
 
 
