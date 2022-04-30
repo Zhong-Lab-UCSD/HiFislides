@@ -11,10 +11,7 @@ grep "MN00185" L1R1dedup.fasta | wc -l
 gunzip -c $L2R1 | grep "MN00185" | wc -l
 readedup $L2R1 > L2R1dedup.fasta 2>L2R1dedup.e
 grep "MN00185" L2R1dedup.fasta | wc -l
-
 #
-
-
 bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
 getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 filetag=bwaL2R2tomm39
@@ -81,6 +78,11 @@ done
 #
 ##
 ###
+
+# input:
+# (1) n_hifi_per_tile.L
+# (2) n_raw_spots_per_tile.L
+plot_Xnspot_Ynhifi_per_tile.R
 
 
 
