@@ -43,7 +43,7 @@ n1=`grep -P "\s1\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
 n2=`grep -P "\s2\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
 nn=`grep -P "\s\d+\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
 let "n3=nn-n1-n2"
-echo $k $n1 $n2 $n3 $nn
+echo $k $nn $n1 $n2 $n3
 done
 #
 ##
