@@ -3,14 +3,24 @@ L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R1=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
+###
+nohup bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe &
+###
+for k in 24 48
+do
+bwa mem L1R1 $L2R1 -a -k $k -t 64 > L2R1toL1_k$k.sam 2>L2R1toL1_k$k.e;
+done
+
+# count raw reads and deduplicated reads
 #
 gunzip -c $L1R1 | grep "MN00185" | wc -l
 readedup $L1R1 > L1R1dedup.fasta 2>L1R1dedup.e
 grep "MN00185" L1R1dedup.fasta | wc -l
-
 gunzip -c $L2R1 | grep "MN00185" | wc -l
 readedup $L2R1 > L2R1dedup.fasta 2>L2R1dedup.e
 grep "MN00185" L2R1dedup.fasta | wc -l
+#
+# map hifi reads (R2) to genes
 #
 bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
 getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
@@ -51,6 +61,7 @@ done
 ###
 ##
 #
+
 L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 if [ -e n_raw_spots_per_tile.L ]
 then
@@ -106,7 +117,7 @@ plot_Xnspot_Ynhifi_per_tile.R
 # 
 
 
-
+###################################################################################################################
 #
 # gunzip -c $L1R1 | grep "MN00185" | cut -d " " -f 1 | cut -d ":" -f 5 | sort | uniq
 
