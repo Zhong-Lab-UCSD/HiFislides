@@ -126,12 +126,15 @@ for i in `cut -f 1 Tiles.L`;
 do 
 tile=000H3VFVV:1:$i: 
 date; 
+# the output in HiFiSlide_hifi_to_Tile$i\_by_gene.cpp has 4 columns:
+# HiFi read, number of mapped spots on tile $i, spot read (from the used flow cell), gene
 ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
 nn=`grep -P "\t\d+\tMN00185" HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | cut -f 1 | sort | uniq | wc -l`
 echo $i $nn >> n_hifi_genic_per_tile.L
 date; 
 done
-###
+### source code: HiFianalysis.cpp in /mnt/extraids/OceanStor-0/linpei/hifi/data_10
+## compile: g++ -o hifia HiFianalysis.cpp -lz
 ##
 # working dir:
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_10
