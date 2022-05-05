@@ -31,8 +31,8 @@ samtools view -S -b $sam --threads 16 > $bam 2>>anye
 genicreadfile=$filetag\gene.L
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
 
-cut -f 4 bwaL2R2tomm39gene.L | sort | uniq > hifireads_biologically_resolved.L
-cut -f 16 bwaL2R2tomm39gene.L | sort | uniq > hifireads_biologically_resolved_genes.L
+cut -f 4 $genicreadfile | sort | uniq > hifireads_biologically_resolved.L
+cut -f 16 $genicreadfile | sort | uniq > hifireads_biologically_resolved_genes.L
 grep "protein_coding" hifireads_biologically_resolved_genes.L | wc -l
 grep "lncRNA" hifireads_biologically_resolved_genes.L | wc -l
 
