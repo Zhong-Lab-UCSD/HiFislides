@@ -17,7 +17,7 @@ bwa mem L1R1 $L2R1 -a -k $k -t 64 > L2R1toL1_k$k.sam 2>L2R1toL1_k$k.e;
 done
 
 # count raw reads and deduplicated reads
-#
+# readedup: ~/bin
 gunzip -c $L1R1 | grep "MN00185" | wc -l
 readedup $L1R1 > L1R1dedup.fasta 2>L1R1dedup.e
 grep "MN00185" L1R1dedup.fasta | wc -l
@@ -43,6 +43,7 @@ grep "lncRNA" hifireads_biologically_resolved_genes.L | wc -l
 
 ##
 # examine the occurrence of 48 bps lab-made barcode in HiFi R1 reads and used flow cell R1 reads.
+#
 perl readcheck.pl L1R1.fastq > L1R1barcodesurvey.o
 perl readcheck.pl L2R1.fastq > L2R1barcodesurvey.o
 
@@ -54,7 +55,8 @@ nohup perl readcheck_v2.pl barcode5 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_5
 nohup perl readcheck_v2.pl barcode3 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_3_dedup.o 2>L$i\R1barcodesurvey_v2_3.e &
 done
 
-
+#
+#
 ###
 ##
 # map HiFi R1 reads to used flow cell R1 reads using BWA MEM
