@@ -37,15 +37,25 @@ grep "protein_coding" hifireads_biologically_resolved_genes.L | wc -l
 grep "lncRNA" hifireads_biologically_resolved_genes.L | wc -l
 
 ##
-#
+# examine the occurrence of 48 bps lab-made barcode in HiFi R1 reads and used flow cell R1 reads.
 perl readcheck.pl L1R1.fastq > L1R1barcodesurvey.o
 perl readcheck.pl L2R1.fastq > L2R1barcodesurvey.o
 
+for i in 1 2
+do
+nohup perl readcheck_v2.pl barcode5 L$i\R1.fastq > L$i\R1barcodesurvey_v2_5.o 2>L$i\R1barcodesurvey_v2_5.e &
+nohup perl readcheck_v2.pl barcode3 L$i\R1.fastq > L$i\R1barcodesurvey_v2_3.o 2>L$i\R1barcodesurvey_v2_3.e &
+nohup perl readcheck_v2.pl barcode5 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_5_dedup.o 2>L$i\R1barcodesurvey_v2_5.e &
+nohup perl readcheck_v2.pl barcode3 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_3_dedup.o 2>L$i\R1barcodesurvey_v2_3.e &
+done
+
+
 ###
 ##
-#
+# map HiFi R1 reads to used flow cell R1 reads using BWA MEM
 for k in 24 48
-do 
+do
+bwa mem L1R1 $L2R1 -a -k $k -t 64 > L2R1toL1_k$k.sam
 grep -P "\t0\tMN00185:" L2R1toL1_k$k.sam | cut -f 1,2,3 > L2R1toL1_k$k\_0256.cleansam 
 grep -P "\t256\tMN00185:" L2R1toL1_k$k.sam | cut -f 1,2,3 >> L2R1toL1_k$k\_0256.cleansam 
 cut -f 1 L2R1toL1_k$k\_0256.cleansam | sort | uniq -c > hifireads_spatially_resolved_n_spot_k$k.L
@@ -55,7 +65,10 @@ nn=`grep -P "\s\d+\sMN00185" hifireads_spatially_resolved_n_spot_k$k.L | wc -l`
 let "n3=nn-n1-n2"
 echo $k $nn $n1 $n2 $n3
 done
-#
+# nn: number of hifi reads (R1) could be mapped to any spot on the used flow cell.
+# n1: same as nn, but only hifi reads mapped to 1 spot.
+# n2: 2 spot
+# n3: >= 3 spot
 ##
 ###
 ###
@@ -76,6 +89,9 @@ if [ -e n_hifi_per_tile.L ]
 then
 rm n_hifi_per_tile.L
 fi
+
+# i: the ID of each tile. 
+# in this case,000H3VFVV is the ID of the used flow cell.
 for i in `cut -f 1 Tiles.L`
 do
   grep -P "\t0\tMN00185:251:000H3VFVV:1:$i:" L2R1toL1_k24.sam | cut -f 1 >  n_hifi_reads_spatially_resolved_per_Tile$i.L
@@ -94,6 +110,8 @@ then
 rm n_hifi_genic_per_tile.L
 fi
 
+# working dir:
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_10
 n1=`cat L2R1toL1_k24_0256.cleansam | wc -l`
 n2=`cat bwaL2R2tomm39gene.fivecolumn.L | wc -l`
 for i in `cut -f 1 Tiles.L`; 
@@ -107,16 +125,21 @@ date;
 done
 ###
 ##
-#
-# input:
-# (1) n_hifi_per_tile.L
-# (2) n_raw_spots_per_tile.L
-# (3) n_hifi_genic_per_tile.L
-
+# working dir:
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_10
 plot_Xnspot_Ynhifi_per_tile.R
+
+# input for plot_Xnspot_Ynhifi_per_tile.R:
+# (1) n_hifi_per_tile.L: number of hifi read pairs whose R1 could be mapped to any spot on each tile
+# (2) n_raw_spots_per_tile.L: number of raw spots on each tile
+# (3) n_hifi_genic_per_tile.L: same as (1) but only considered hifi read pairs whose R2 could be mapped to any genes.
+
+#
+# TO BE CONTINUE
+#
 # 
-
-
+#
+##############################################
 ###################################################################################################################
 #
 # gunzip -c $L1R1 | grep "MN00185" | cut -d " " -f 1 | cut -d ":" -f 5 | sort | uniq
