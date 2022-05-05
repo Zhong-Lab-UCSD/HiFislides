@@ -85,6 +85,7 @@ do
 n=`gunzip -c $L1R1 | grep "MN00185:251:000H3VFVV:1:$i:" | wc -l`
 echo $i $n >> n_raw_spots_per_tile.L
 done
+
 if [ -e n_hifi_per_tile.L ]
 then
 rm n_hifi_per_tile.L
@@ -135,7 +136,7 @@ plot_Xnspot_Ynhifi_per_tile.R
 # (3) n_hifi_genic_per_tile.L: same as (1) but only considered hifi read pairs whose R2 could be mapped to any genes.
 
 #
-# TO BE CONTINUE
+# TO BE CONTINUED
 #
 # 
 #
