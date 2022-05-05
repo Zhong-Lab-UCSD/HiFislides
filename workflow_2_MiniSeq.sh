@@ -3,6 +3,11 @@ L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R1=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
+
+# We had a 48 bps lab-made barcode
+# ATVNNNNBATAVNNNNBTTAVNNNNBATTVNNNNBTATVNNNNVBNNN
+# which should be present in HiFi R1 reads and used flow cell R1 reads.
+# 
 ###
 nohup bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe &
 ###
