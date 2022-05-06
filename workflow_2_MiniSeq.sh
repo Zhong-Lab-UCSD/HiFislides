@@ -35,6 +35,7 @@ bam=$filetag.bam
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
 genicreadfile=$filetag\gene.L
 bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene.fivecolumn.L
 
 cut -f 4 $genicreadfile | sort | uniq > hifireads_biologically_resolved.L
 cut -f 16 $genicreadfile | sort | uniq > hifireads_biologically_resolved_genes.L
