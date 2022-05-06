@@ -129,6 +129,9 @@ date;
 # the output in HiFiSlide_hifi_to_Tile$i\_by_gene.cpp has 4 columns:
 # HiFi read, number of mapped spots on tile $i, spot read (from the used flow cell), gene
 ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
+# reform the output to plot dots of genes on the tile.
+# cut -f 3,4 HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | perl -p -e "s/:/\t/g" | cut -f 1,2,3,5,6,7,8,13 > HiFiSlide_hifi_to_Tile$i\_by_gene.dot
+#
 nn=`grep -P "\t\d+\tMN00185" HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | cut -f 1 | sort | uniq | wc -l`
 echo $i $nn >> n_hifi_genic_per_tile.L
 date; 
