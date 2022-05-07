@@ -139,7 +139,8 @@ tile=000H3VFVV:1:$i:
 date; 
 # the output in HiFiSlide_hifi_to_Tile$i\_by_gene.cpp has 4 columns:
 # HiFi read, number of mapped spots on tile $i, spot read (from the used flow cell), gene
-./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
+# ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
+./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.o 2>HiFiSlide_hifi_to_Tile$i\_by_gene.e
 # reform the output to plot dots of genes on the tile.
 # cut -f 3,4 HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | perl -p -e "s/:/\t/g" | cut -f 1,2,3,5,6,7,8,13 > HiFiSlide_hifi_to_Tile$i\_by_gene.dot
 #
