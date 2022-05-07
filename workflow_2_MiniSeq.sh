@@ -27,6 +27,7 @@ grep "MN00185" L2R1dedup.fasta | wc -l
 #
 # map hifi reads (R2) to genes
 #
+# only used genes with gene name in gtf.
 bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2R2tomm39.sam 2>anye;
 getgenefromgtf.pl $mwd/genome/release105/Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
 filetag=bwaL2R2tomm39
@@ -121,6 +122,15 @@ fi
 
 # working dir:
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_10
+
+# the follow counted the number of gene-mapped spatially resolved HiFi reads.
+grep -P "\t0\tMN00185:251:000H3VFVV:1:" L2R1toL1_k24.sam | cut -f 1 > spatResolved_hifi.L
+grep -P "\t256\tMN00185:251:000H3VFVV:1:" L2R1toL1_k24.sam | cut -f 1 >> spatResolved_hifi.L
+sort spatResolved_hifi.L | uniq > spatResolved_hifi_unique.L
+cut -f 4 bwaL2R2tomm39gene.fivecolumn.L | sort | uniq > geneMapped_hifi_uniq.L
+cat spatResolved_hifi_unique.L geneMapped_hifi_uniq.L | sort | uniq -c | grep -P "2\sMN" | wc -l
+rm spatResolved_hifi.L spatResolved_hifi_unique.L geneMapped_hifi_uniq.L
+
 n1=`cat L2R1toL1_k24_0256.cleansam | wc -l`
 n2=`cat bwaL2R2tomm39gene.fivecolumn.L | wc -l`
 for i in `cut -f 1 Tiles.L`; 
