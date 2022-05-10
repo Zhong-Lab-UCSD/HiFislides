@@ -25,24 +25,19 @@ gunzip -c $L2R1 | grep "MN00185" | wc -l
 ##
 # examine the occurrence of 48 bps lab-made barcode in HiFi R1 reads and used flow cell R1 reads.
 #
-perl readcheck.pl L1R1.fastq > L1R1barcodesurvey.o
-perl readcheck.pl L2R1.fastq > L2R1barcodesurvey.o
-
 for i in 1 2
 do
 nohup perl readcheck_v2.pl barcode5 L$i\R1.fastq > L$i\R1barcodesurvey_v2_5.o 2>L$i\R1barcodesurvey_v2_5.e &
 nohup perl readcheck_v2.pl barcode3 L$i\R1.fastq > L$i\R1barcodesurvey_v2_3.o 2>L$i\R1barcodesurvey_v2_3.e &
-nohup perl readcheck_v2.pl barcode5 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_5_dedup.o 2>L$i\R1barcodesurvey_v2_5.e &
-nohup perl readcheck_v2.pl barcode3 L$i\R1dedup.fasta > L$i\R1barcodesurvey_v2_3_dedup.o 2>L$i\R1barcodesurvey_v2_3.e &
 done
 
 #
-
+#
 readedup $L1R1 > L1R1dedup.fasta 2>L1R1dedup.e
 grep "MN00185" L1R1dedup.fasta | wc -l
-
 readedup $L2R1 > L2R1dedup.fasta 2>L2R1dedup.e
 grep "MN00185" L2R1dedup.fasta | wc -l
+#
 #
 # map hifi reads (R2) to genes
 #
@@ -142,14 +137,13 @@ for i in `cut -f 1 Tiles.L`;
 do 
 tile=000H3VFVV:1:$i: 
 date; 
-# the output in HiFiSlide_hifi_to_Tile$i\_by_gene.cpp has 4 columns:
+# the output in HiFiSlide_hifi_to_Tile$i\_by_gene.o has 4 columns:
 # HiFi read, number of mapped spots on tile $i, spot read (from the used flow cell), gene
-# ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.cpp
 ./hifia L2R1toL1_k24_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 $tile > HiFiSlide_hifi_to_Tile$i\_by_gene.o 2>HiFiSlide_hifi_to_Tile$i\_by_gene.e
 # reform the output to plot dots of genes on the tile.
 # cut -f 3,4 HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | perl -p -e "s/:/\t/g" | cut -f 1,2,3,5,6,7,8,13 > HiFiSlide_hifi_to_Tile$i\_by_gene.dot
 #
-nn=`grep -P "\t\d+\tMN00185" HiFiSlide_hifi_to_Tile$i\_by_gene.cpp | cut -f 1 | sort | uniq | wc -l`
+nn=`grep -P "\t\d+\tMN00185" HiFiSlide_hifi_to_Tile$i\_by_gene.o | cut -f 1 | sort | uniq | wc -l`
 echo $i $nn >> n_hifi_genic_per_tile.L
 date; 
 done
