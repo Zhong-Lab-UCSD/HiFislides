@@ -1,7 +1,7 @@
 
-L1R1=./lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R1=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2=./lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+L1R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 
 # We had a 48 bps lab-made barcode
