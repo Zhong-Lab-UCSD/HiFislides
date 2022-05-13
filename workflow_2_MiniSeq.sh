@@ -147,6 +147,7 @@ do
 tile=000H3VFVV:1:$i: 
 ./hifia2 L2R1toL1_k24_0256_$C.cleansam $n1 bwaL2R2tomm39_L2R2maskedgene.fivecolumn.L $n2 $tile >> hifia2_v0513_$C.o
 done
+done
 ################################################
 
 
