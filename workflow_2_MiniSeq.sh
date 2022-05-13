@@ -132,7 +132,7 @@ cat spatResolved_hifi_unique.L geneMapped_hifi_uniq.L | sort | uniq -c | grep -P
 rm spatResolved_hifi.L spatResolved_hifi_unique.L geneMapped_hifi_uniq.L
 
 ################################################
-################################################
+################################################ stringent: barcoded or uniquely spatially resolved
 ################################################
 n2=`cat bwaL2R2tomm39_L2R2maskedgene.fivecolumn.L | wc -l`
 k=48
