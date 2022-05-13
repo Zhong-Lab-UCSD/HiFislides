@@ -131,6 +131,26 @@ cut -f 4 bwaL2R2tomm39gene.fivecolumn.L | sort | uniq > geneMapped_hifi_uniq.L
 cat spatResolved_hifi_unique.L geneMapped_hifi_uniq.L | sort | uniq -c | grep -P "2\sMN" | wc -l
 rm spatResolved_hifi.L spatResolved_hifi_unique.L geneMapped_hifi_uniq.L
 
+################################################
+################################################
+################################################
+n2=`cat bwaL2R2tomm39_L2R2maskedgene.fivecolumn.L | wc -l`
+for C in barcoded hifi1spot
+do
+n1=`cat L2R1toL1_k24_0256_$C.cleansam | wc -l`
+if [ -e hifia2_v0513_$C.o ]
+then
+rm hifia2_v0513_$C.o
+fi
+for i in `cut -f 1 Tiles.L`; 
+do 
+tile=000H3VFVV:1:$i: 
+./hifia2 L2R1toL1_k24_0256_$C.cleansam $n1 bwaL2R2tomm39_L2R2maskedgene.fivecolumn.L $n2 $tile >> hifia2_v0513_$C.o
+done
+################################################
+
+
+
 n1=`cat L2R1toL1_k24_0256.cleansam | wc -l`
 n2=`cat bwaL2R2tomm39gene.fivecolumn.L | wc -l`
 for i in `cut -f 1 Tiles.L`; 
