@@ -19,26 +19,20 @@ grep -P "^MN00185:" L2R1toL1R1_k0.sam | cut -f 1,2,3 > L2R1toL1R1_k0.sam.column1
 checkbarcode.pl L2R1.fastq > L2R1RAW_barcoded_check_result.txt
 checkbarcode.pl L1R1.fastq > L1R1RAW_barcoded_check_result.txt
 
-
 # R codes:
-sam = read.table("L2R1toL1R1_k0.sam.column123.L",sep="\t")
-spot2barcode = read.table("L1R1RAW_barcoded_check_result.txt",sep="\t");hifi2barcode = read.table("L2R1RAW_barcoded_check_result.txt",sep="\t")
-unique(sam[,2])
-for(i in unique(sam[,2])) {
-cat(i,sum(sam[,2] == i),"\n")
-}
-hifi2spot_1 = unique(sam[which(sam[,2] == 0 | sam[,2] == 256),1])
-hifi0spot_1 = unique(sam[which(sam[,2] == 4),1])
-sum(hifi0spot_1 %in% hifi2spot_1)
-sum(hifi2spot_1 %in% hifi2barcode[,1])/length(hifi2spot_1)
-sum(hifi0spot_1 %in% hifi2barcode[,1])/length(hifi0spot_1)
+  sam = read.table("L2R1toL1R1_k0.sam.column123.L",sep="\t")
+  spot2barcode = read.table("L1R1RAW_barcoded_check_result.txt",sep="\t");
+  hifi2barcode = read.table("L2R1RAW_barcoded_check_result.txt",sep="\t")
+  unique(sam[,2])
+  for(i in unique(sam[,2])) {
+    cat(i,sum(sam[,2] == i),"\n")
+  }
+  hifi2spot_1 = unique(sam[which(sam[,2] == 0 | sam[,2] == 256),1])
+  hifi0spot_1 = unique(sam[which(sam[,2] == 4),1])
+  sum(hifi0spot_1 %in% hifi2spot_1)
+  sum(hifi2spot_1 %in% hifi2barcode[,1])/length(hifi2spot_1)
+  sum(hifi0spot_1 %in% hifi2barcode[,1])/length(hifi0spot_1)
 ###
-
-
-
-
-
-
 ###
 for k in 24 48
 do
