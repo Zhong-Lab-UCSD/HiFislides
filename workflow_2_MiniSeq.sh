@@ -1,15 +1,44 @@
 
-L1R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_10/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+run=10
+rcc=
 
+L1R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 # We had a 48 bps lab-made barcode
 # ATVNNNNBATAVNNNNBTTAVNNNNBATTVNNNNBTATVNNNNVBNNN
 # which should be present in HiFi R1 reads and used flow cell R1 reads.
 # 
 ###
-nohup bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe &
+bwa index -p L1R1 $L1R1 > bwaindexo 2>bwaindexe
+bwa mem L1R1 $L2R1 -a -t 64 > L2R1toL1R1_k0.sam 2>L2R1toL1_k0.e
+
+grep -P "^MN00185:" L2R1toL1R1_k0.sam | cut -f 1,2,3 > L2R1toL1R1_k0.sam.column123.L
+
+checkbarcode.pl L2R1.fastq > L2R1RAW_barcoded_check_result.txt
+checkbarcode.pl L1R1.fastq > L1R1RAW_barcoded_check_result.txt
+
+
+# R codes:
+sam = read.table("L2R1toL1R1_k0.sam.column123.L",sep="\t")
+spot2barcode = read.table("L1R1RAW_barcoded_check_result.txt",sep="\t");hifi2barcode = read.table("L2R1RAW_barcoded_check_result.txt",sep="\t")
+unique(sam[,2])
+for(i in unique(sam[,2])) {
+cat(i,sum(sam[,2] == i),"\n")
+}
+hifi2spot_1 = unique(sam[which(sam[,2] == 0 | sam[,2] == 256),1])
+hifi0spot_1 = unique(sam[which(sam[,2] == 4),1])
+sum(hifi0spot_1 %in% hifi2spot_1)
+sum(hifi2spot_1 %in% hifi2barcode[,1])/length(hifi2spot_1)
+sum(hifi0spot_1 %in% hifi2barcode[,1])/length(hifi0spot_1)
+###
+
+
+
+
+
+
 ###
 for k in 24 48
 do
