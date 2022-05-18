@@ -1,7 +1,5 @@
 
 run=10
-rcc=
-
 L1R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
