@@ -1,9 +1,30 @@
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
 
 date
 readedup *_L00*_R1_001.fastq.gz > Nextseq_dedup.fasta
 date
-# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
+
 # flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
+
+
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2
+L=1
+date
+grep -P "\t0\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 > L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam
+grep -P "\t256\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 >> L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam
+date
+# g++ -o hifia HiFianalysis3.cpp -lz
+# linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2$ date;./hifia L2R1bwatoL1R1LANE1_ak80_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 > tmpo;date
+# Sat May 21 11:00:40 PDT 2022
+# Sat May 21 11:06:27 PDT 2022
+date
+cut -f 1 L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam | sort | uniq -c > L2R1bwatoL1R1LANE$L\_ak80_0256_hifi2spot.o
+
+
+# cp /mnt/extraids/OceanStor-0/linpei/hifi/data_10/HiFianalysis2.cpp HiFianalysis3.cpp
+
+
+
 
 
 
