@@ -6,8 +6,6 @@ date
 # flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
 
 
-# for each read, we used its primary mapped genomic locus only.
-
 
 # For a HiFi library of 17,523,315 read pairs (R1 length: 100 bps)
 # it takes bwa 35 mins to run the indexing process. 
