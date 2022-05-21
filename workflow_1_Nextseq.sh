@@ -14,7 +14,8 @@ grep -P "\t0\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 > L2R1bwatoL1R1LA
 grep -P "\t256\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 >> L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam
 date
 # g++ -o hifia HiFianalysis3.cpp -lz
-# linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2$ date;./hifia L2R1bwatoL1R1LANE1_ak80_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 > tmpo;date
+# linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2$ date;
+./hifia L2R1bwatoL1R1LANE1_ak80_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 > tmpo;date
 # Sat May 21 11:00:40 PDT 2022
 # Sat May 21 11:06:27 PDT 2022
 date
