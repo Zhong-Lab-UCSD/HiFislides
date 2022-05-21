@@ -1,3 +1,14 @@
+
+date
+readedup *_L00*_R1_001.fastq.gz > Nextseq_dedup.fasta
+date
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
+# flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
+
+
+
+
+
 # For a HiFi library of 17,523,315 read pairs (R1 length: 100 bps)
 # it takes bwa 35 mins to run the indexing process. 
 #
@@ -15,6 +26,10 @@ bwa index -p L2R1 $L2R1 > bwaindexo 2>bwaindexe
 # linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/raw3$ ls -cltr wholefastq_R1_unique.L wholefastq_R1nonredundant.L
 # -rw-rw-r-- 1 linpei linpei 100980703760 Mar 24 14:05 wholefastq_R1_unique.L
 # -rw-rw-r-- 1 linpei linpei  20800191594 Mar 24  2022 wholefastq_R1nonredundant.L
+
+
+
+
 
 L=$1
 k=$2
