@@ -119,16 +119,18 @@ rm hifispot_on_Tile$i\_uniq.xy
 
 ##################################################################
 # align HiFi R2 reads to genome
-L2R2=../raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
-bwa mem ../../../../genome/release105/DNAMM39 $L2R2 -t 64 > bwaL2RAW2tomm39.sam 2>>anye
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -a -t 64 > bwaL2R2tomm39.sam 2>>anye
 
-filetag=bwaL2RAW2tomm39
+filetag=bwaL2R2tomm39
 sam=$filetag.sam
 bam=$filetag.bam
 genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
 # getgenefromgtf.pl Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
-bedtools intersect -a $bam -b genensmusg105.b -wb -bed > $genicreadfile
+cat genensmusg105.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensmusg105clean.b
+bedtools intersect -a $bam -b genensmusg105clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 bwaL2R2tomm39gene.L > bwaL2R2tomm39gene.fivecolumn.L
 
 ##################################################################
 
