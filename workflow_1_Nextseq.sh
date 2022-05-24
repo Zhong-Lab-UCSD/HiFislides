@@ -6,13 +6,37 @@ date
 
 # flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
 
-
+#################################################################
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2
 L=1
 date
 grep -P "\t0\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 > L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam
 grep -P "\t256\tVH" L2R1bwatoL1R1LANE$L\_ak80.sam | cut -f 1,2,3 >> L2R1bwatoL1R1LANE$L\_ak80_0256.cleansam
 date
+##################################################################
+# align HiFi R2 reads to genome
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+bwa mem $mwd/genome/release105/DNAMM39 $L2R2 -a -t 64 > bwaL2R2tomm39.sam 2>>anye
+
+filetag=bwaL2R2tomm39
+sam=$filetag.sam
+bam=$filetag.bam
+genicreadfile=$filetag\gene.L
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+# getgenefromgtf.pl Mus_musculus.GRCm39.105.gtf ENSMUSG > genensmusg105.b 2>>anye
+cat genensmusg105.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensmusg105clean.b
+bedtools intersect -a $bam -b genensmusg105clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 bwaL2R2tomm39gene.L > bwaL2R2tomm39gene.fivecolumn.L
+
+##################################################################
+file1=L2R1bwatoL1R1LANE1_ak80_0256.cleansam 
+n1=`cat $file1 | wc -l`
+file2=bwaL2R2tomm39gene.fivecolumn.L
+n2=`cat $file2 | wc -l`
+file3=$mwd/genome/release105/pericytes_cluster_genenamelist_2.L
+n3=`cat $file3 | wc -l`
+##################################################################
+
 # g++ -o hifia HiFianalysis3.cpp -lz
 # linpei@sysbiocomp:/mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2$ date;
 ./hifia L2R1bwatoL1R1LANE1_ak80_0256.cleansam $n1 bwaL2R2tomm39gene.fivecolumn.L $n2 > tmpo;date
