@@ -25,10 +25,22 @@ date;
 bwa mem L2R1 $L1R1 -a -k $k -t 48 > $i\_L2R1_ak$k.sam 2>$i\_L2R1_ak$k.same;
 date
 done
-
-
 #################################################################
+date
+grep "SN:" L2R2_010_Aligned.out.sam > L2R2_010_Aligned.NH1.sam
+grep ":STAR" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
+grep -P "NH:i:1\t" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
+date
 
+filetag=L2R2_010_Aligned.NH1
+sam=$filetag.sam
+bam=$filetag.bam
+genicreadfile=$filetag\gene.L
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
+cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
+bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
 
 
 
