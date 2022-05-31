@@ -15,7 +15,7 @@ date
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 date
-
+### Read 1
 for i in `grep "L001" ../lib1/raw4/filelistL1R1.L`;
 do
 L1R1=../lib1/raw4/$i\_R1_001.fastq.gz
@@ -25,7 +25,25 @@ date;
 bwa mem L2R1 $L1R1 -a -k $k -t 48 > $i\_L2R1_ak$k.sam 2>$i\_L2R1_ak$k.same;
 date
 done
+
+if [ -e spotoL2R1_ak90_0256.cleansam ]
+then
+rm spotoL2R1_ak90_0256.cleansam
+fi
+
+# Tue May 31 14:45:24 PDT 2022 roughly time spending
+for j in `ls *L2R1_ak90.sam`;
+do
+grep -P "\t0\tMN00185:" $j | cut -f 1,2,3 >> spotoL2R1_ak90_0256.cleansam
+grep -P "\t256\tMN00185:" $j | cut -f 1,2,3 >> spotoL2R1_ak90_0256.cleansam
+done
+# Tue May 31 15:21:40 PDT 2022 (roughly time spending)
 #################################################################
+# Read 2
+#
+hg38=$mwd/imc/HG38
+STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat --outFileNamePrefix L2R2_010_ --outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
+ 
 date
 grep "SN:" L2R2_010_Aligned.out.sam > L2R2_010_Aligned.NH1.sam
 grep ":STAR" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
