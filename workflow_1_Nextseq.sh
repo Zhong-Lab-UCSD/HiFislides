@@ -1,10 +1,36 @@
+#
+#################################################################
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
-
+# run this as background process
 date
 readedup *_L00*_R1_001.fastq.gz > Nextseq_dedup.fasta
 date
-
+#
 # flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
+#################################################################
+L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+date
+# Tue May 31 11:56:44 PDT 2022
+bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
+# Tue May 31 12:02:05 PDT 2022
+date
+
+for i in `grep "L001" ../lib1/raw4/filelistL1R1.L`;
+do
+L1R1=../lib1/raw4/$i\_R1_001.fastq.gz
+# i=CZ929_S3_L001
+k=90
+date;
+bwa mem L2R1 $L1R1 -a -k $k -t 48 > $i\_L2R1_ak$k.sam 2>$i\_L2R1_ak$k.same;
+date
+done
+
+
+#################################################################
+
+
+
 
 #################################################################
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2
