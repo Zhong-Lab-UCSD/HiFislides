@@ -14,6 +14,33 @@ date
 # Tue May 31 11:56:44 PDT 2022
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
+
+
+for k in 50 70 
+do
+bwa mem L2R1 ../lib1/raw4/L1R1uniq.fasta -a -k $k -t 64 > L1R1UNIQ_L2R1_ak$k.sam 2>L1R1UNIQ_L2R1_ak$k.same;date
+done
+
+k=70
+grep -P "\t0\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 > L1R1UNIQ_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 >> L1R1UNIQ_L2R1_ak$k\_mappedspot.L
+n=`cat L1R1UNIQ_L2R1_ak$k\_mappedspot.L | wc -l`
+
+
+
+L=$1
+i=$2
+n=$3
+tile=AAAHT3CHV:$L:$i:
+# n=`cat L1R1UNIQ_L2R1_ak50_mappedspot.L | wc -l`
+date;
+./hifia1 L1R1UNIQ_L2R1_ak70_mappedspot.L $n $tile > output_$L\_$i\.o
+date
+
+
+
+
+
 date
 ### Read 1
 for i in `grep "L001" ../lib1/raw4/filelistL1R1.L`;
@@ -56,8 +83,6 @@ n=`cat spotoL2R1_ak90_0256.cleansam | wc -l`
 
 
 
-
-
 #################################################################
 # Read 2
 #
@@ -81,6 +106,7 @@ gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
 getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
 cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
 bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 $filetag\gene.L > $filetag\gene5columns.L
 
 
 #################################################################
