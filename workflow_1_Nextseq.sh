@@ -39,21 +39,24 @@ grep -P "\t256\tMN00185:" $j | cut -f 1,2,3 >> spotoL2R1_ak90_0256.cleansam
 done
 # Tue May 31 15:21:40 PDT 2022 (roughly time spending)
 
-
-for i in `cut -f 1 ../lib1/raw4/filelistL1R1.L`; 
-do 
-k=90; 
-grep -P "\t0\tMN00185:" $i\_L2R1_ak$k.sam | cut -f 1,2,3 > spotoL2R1_ak90_0256$i.cleansam; 
-grep -P "\t256\tMN00185:" $i\_L2R1_ak$k.sam | cut -f 1,2,3 >> spotoL2R1_ak90_0256$i.cleansam; 
-n=`cat spotoL2R1_ak90_0256$i.cleansam | wc -l`; 
-nohup ./hifia1 spotoL2R1_ak90_0256$i.cleansam $n > hifia1_$i.o 2>hifia1_$i.e &
-echo $i
-date
-done
-
-
-
 n=`cat spotoL2R1_ak90_0256.cleansam | wc -l`
+./hifia1 spotoL2R1_ak90_0256.cleansam $n
+
+
+#for i in `cut -f 1 ../lib1/raw4/filelistL1R1.L`; 
+#do 
+#k=90; 
+#grep -P "\t0\tMN00185:" $i\_L2R1_ak$k.sam | cut -f 1,2,3 > spotoL2R1_ak90_0256$i.cleansam; 
+#grep -P "\t256\tMN00185:" $i\_L2R1_ak$k.sam | cut -f 1,2,3 >> spotoL2R1_ak90_0256$i.cleansam; 
+#n=`cat spotoL2R1_ak90_0256$i.cleansam | wc -l`; 
+#nohup ./hifia1 spotoL2R1_ak90_0256$i.cleansam $n > hifia1_$i.o 2>hifia1_$i.e &
+#echo $i
+#date
+#done
+
+
+
+
 
 #################################################################
 # Read 2
