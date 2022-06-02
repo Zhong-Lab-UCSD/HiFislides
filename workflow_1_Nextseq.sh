@@ -36,24 +36,19 @@ done
 
 # g++ -o hifia_1 HiFianalysis_nspot_per_hifi.cpp
 # g++ -o hifia_2 HiFianalysis_nhifi_per_tile.cpp
-
 #################################################################
-k=70
-grep -P "\t0\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 > L1R1UNIQ_L2R1_ak$k\_mappedspot.L
-grep -P "\t256\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 >> L1R1UNIQ_L2R1_ak$k\_mappedspot.L
-         n=`cat L1R1UNIQ_L2R1_ak$k\_mappedspot.L | wc -l`
-nohup ./hifia_1 L1R1UNIQ_L2R1_ak$k\_mappedspot.L $n > L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o 2>anyeee &
-
-n2=`cat L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o | wc -l`
-
+L=1
+i=1
 for j in 1 2 3 4 5 6; 
 do 
-for k in 01 02 03 04 05 06 07 08 09 10 11 12 13 14; 
+for y in 01 02 03 04 05 06 07 08 09 10 11 12 13 14; 
 do 
-nohup bash job6.sh $L $i$j$k $n $n2 > output_$L\_$i$j$k.o 2>>anye &
+tile=AAAHT3CHV:$L:$i$j$y; 
+nohup ./hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 $tile > hifia_2_1_$i$j$y.o 2>>hifia_2e & 
+done 
 done
-done
-#################################################################
+###################################################################
+###################################################################
 # Read 2
 #
 hg38=$mwd/imc/HG38
