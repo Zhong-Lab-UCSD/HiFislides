@@ -15,15 +15,29 @@ date
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 
-for k in 50 70 
+################### Read 1
+seq=L1R1Uniq_11
+
+for k in 40 55 70
 do
-bwa mem L2R1 ../lib1/raw4/L1R1uniq.fasta -a -k $k -t 64 > L1R1UNIQ_L2R1_ak$k.sam 2>L1R1UNIQ_L2R1_ak$k.same;date
+bwa mem L2R1 ../lib1/raw4/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+sam=$seq\_L2R1_ak$k.sam
+
+grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+
+n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+
+./hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
+
+n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
+echo $seq $k $n1 $n2
 done
 
 # g++ -o hifia_1 HiFianalysis_nspot_per_hifi.cpp
 # g++ -o hifia_2 HiFianalysis_nhifi_per_tile.cpp
 
-
+#################################################################
 k=70
 grep -P "\t0\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 > L1R1UNIQ_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 >> L1R1UNIQ_L2R1_ak$k\_mappedspot.L
@@ -32,7 +46,6 @@ nohup ./hifia_1 L1R1UNIQ_L2R1_ak$k\_mappedspot.L $n > L1R1UNIQ_L2R1_ak$k\_nspot_
 
 n2=`cat L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o | wc -l`
 
-
 for j in 1 2 3 4 5 6; 
 do 
 for k in 01 02 03 04 05 06 07 08 09 10 11 12 13 14; 
@@ -40,6 +53,35 @@ do
 nohup bash job6.sh $L $i$j$k $n $n2 > output_$L\_$i$j$k.o 2>>anye &
 done
 done
+#################################################################
+# Read 2
+#
+hg38=$mwd/imc/HG38
+STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
+--outFileNamePrefix L2R2_010_ \ 
+--outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
+ 
+date
+grep "SN:" L2R2_010_Aligned.out.sam > L2R2_010_Aligned.NH1.sam
+grep ":STAR" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
+grep -P "NH:i:1\t" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
+date
+
+filetag=L2R2_010_Aligned.NH1
+sam=$filetag.sam
+bam=$filetag.bam
+genicreadfile=$filetag\gene.L
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
+cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
+bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 $filetag\gene.L > $filetag\gene5columns.L
+
+
+#################################################################
+
+
 
 # cat job6.sh
 L=$1
@@ -109,34 +151,6 @@ n=`cat spotoL2R1_ak90_0256.cleansam | wc -l`
 #done
 
 
-
-#################################################################
-# Read 2
-#
-hg38=$mwd/imc/HG38
-STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
---outFileNamePrefix L2R2_010_ \ 
---outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
- 
-date
-grep "SN:" L2R2_010_Aligned.out.sam > L2R2_010_Aligned.NH1.sam
-grep ":STAR" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
-grep -P "NH:i:1\t" L2R2_010_Aligned.out.sam >> L2R2_010_Aligned.NH1.sam 
-date
-
-filetag=L2R2_010_Aligned.NH1
-sam=$filetag.sam
-bam=$filetag.bam
-genicreadfile=$filetag\gene.L
-samtools view -S -b $sam --threads 16 > $bam 2>>anye
-gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
-getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
-cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
-bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
-cut -f 1,2,3,4,16 $filetag\gene.L > $filetag\gene5columns.L
-
-
-#################################################################
 
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2
 L=1
