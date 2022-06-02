@@ -20,6 +20,10 @@ do
 bwa mem L2R1 ../lib1/raw4/L1R1uniq.fasta -a -k $k -t 64 > L1R1UNIQ_L2R1_ak$k.sam 2>L1R1UNIQ_L2R1_ak$k.same;date
 done
 
+# g++ -o hifia_1 HiFianalysis_nspot_per_hifi.cpp
+# g++ -o hifia_2 HiFianalysis_nhifi_per_tile.cpp
+
+
 k=70
 grep -P "\t0\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 > L1R1UNIQ_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 >> L1R1UNIQ_L2R1_ak$k\_mappedspot.L
