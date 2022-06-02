@@ -15,7 +15,6 @@ date
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 
-
 for k in 50 70 
 do
 bwa mem L2R1 ../lib1/raw4/L1R1uniq.fasta -a -k $k -t 64 > L1R1UNIQ_L2R1_ak$k.sam 2>L1R1UNIQ_L2R1_ak$k.same;date
@@ -24,7 +23,31 @@ done
 k=70
 grep -P "\t0\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 > L1R1UNIQ_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" L1R1UNIQ_L2R1_ak$k.sam | cut -f 1,2,3 >> L1R1UNIQ_L2R1_ak$k\_mappedspot.L
-n=`cat L1R1UNIQ_L2R1_ak$k\_mappedspot.L | wc -l`
+         n=`cat L1R1UNIQ_L2R1_ak$k\_mappedspot.L | wc -l`
+nohup ./hifia_1 L1R1UNIQ_L2R1_ak$k\_mappedspot.L $n > L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o 2>anyeee &
+
+n2=`cat L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o | wc -l`
+
+
+for j in 1 2 3 4 5 6; 
+do 
+for k in 01 02 03 04 05 06 07 08 09 10 11 12 13 14; 
+do 
+nohup bash job6.sh $L $i$j$k $n $n2 > output_$L\_$i$j$k.o 2>>anye &
+done
+done
+
+# cat job6.sh
+L=$1
+i=$2
+n1=$3
+n2=$4
+
+tile=AAAHT3CHV:$L:$i:
+k=50
+./hifia_2 L1R1UNIQ_L2R1_ak$k\_mappedspot.L $n1 L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o $n2 $tile
+
+## ./hifia_2 L1R1UNIQ_L2R1_ak$k\_mappedspot.L $n L1R1UNIQ_L2R1_ak$k\_nspot_per_hifi.o $n2 AAAHT3CHV:1:1114 2>some
 
 
 
