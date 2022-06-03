@@ -28,7 +28,7 @@ grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
 
 n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
 
-./hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
+hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
 
 n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
 echo $seq $k $n1 $n2
@@ -37,6 +37,29 @@ done
 # g++ -o hifia_1 HiFianalysis_nspot_per_hifi.cpp
 # g++ -o hifia_2 HiFianalysis_nhifi_per_tile.cpp
 #################################################################
+
+k=70
+L=2
+seq=L1R1Uniq_$L\1
+n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
+
+for i in 1 2 3 4 5 6; 
+do 
+for j in 01 02 03 04 05 06 07 08 09 10 11 12 13 14; 
+do 
+hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 AAAHT3CHV:$L:1$i$j >> hifiOn$seq\_k$k.L; 
+done; 
+date; 
+done
+
+#################################################################
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2
+mappedbarcode_per_tile.R
+# Output: hifiOnL1R1Uniq_21_k70.pdf
+#################################################################
+
+
 L=1
 i=1
 for j in 1 2 3 4 5 6; 
