@@ -52,13 +52,24 @@ hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 AAAHT3C
 done; 
 date; 
 done
+# the output in hifiOn$seq\_k$k.L
+# the sum of evenly-distributed HiFi read count per tile
+# the num of data rows per tile
+# the num of uniquely-resolved hifi reads per tile
+# the num of all resolved hifi per tile
+# the num of all mapped barcode per tile
+# cout << surf << "\t" << x2 << "\t" << nline << "\t" << uniqmappedhifi2tile.size() << "\t" << hifi2tile.size() << "\t" << spot2tile.size() << "\n";
 
 #################################################################
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2
 mappedbarcode_per_tile.R
 # Output: hifiOnL1R1Uniq_21_k70.pdf
-#################################################################
 
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+#################################################################
 
 L=1
 i=1
