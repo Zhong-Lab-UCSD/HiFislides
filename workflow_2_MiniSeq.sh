@@ -1,3 +1,65 @@
+################################################
+### 06-09-2022
+##
+#
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_6/lib1
+L1R1=./raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+flowcell=000H3NWWM
+i=1
+for j in 1 2
+do
+surf=$flowcell:$i:$j
+date
+surfdedup $surf $L1R1 > L1R1Dedup_$i$j.fasta
+date
+finduniqread.pl L1R1Dedup_$i$j.fasta > L1R1Uniq_$i$j.fasta
+done
+###
+L2R1=./raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+nohup bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e &
+###
+flowcell=000H3NWWM
+for seq in L1R1Uniq_11 L1R1Uniq_12
+do
+bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+sam=$seq\_L2R1_ak$k.sam
+grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
+n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
+i=1
+if [ -e hifia_2_$seq\_L2R1_ak$k\_mappedspot_out ]
+then 
+rm hifia_2_$seq\_L2R1_ak$k\_mappedspot_out
+fi
+for j in 1 2
+do
+for column in 1 2 3
+do
+for row in 101 102 103 104
+do
+tile=$flowcell:$i:$j$column$row
+hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 $tile >> hifia_2_$seq\_L2R1_ak$k\_mappedspot_out 2>>anye
+done
+done
+done
+done
+
+
+
+
+
+
+
+
+
+
+#
+##
+##
+################################################
+
 
 run=10
 L1R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_$run/lib1/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
