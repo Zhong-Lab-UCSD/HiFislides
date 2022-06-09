@@ -20,6 +20,7 @@ nohup bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e &
 ###
 flowcell=000H3NWWM
 i=1
+# Mini-seq has one lane, on which there is top(j = 1) and bottom(j = 2) surfaces.
 for j in 1 2
 do
 seq=L1R1Uniq_1$j
