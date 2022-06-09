@@ -2,9 +2,21 @@
 #################################################################
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
 # run this as background process
+#
+flowcell=AAAHT5KHV
+#
+for i in 1 2
+do
+for j in 1 2
+do
+surf=$flowcell:$i:$j
 date
-readedup *_L00*_R1_001.fastq.gz > Nextseq_dedup.fasta
+surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 date
+finduniqread.pl L1R1Dedup_$i$j.fasta > L1R1Uniq_$i$j.fasta
+done
+done
+#
 #
 # flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
 #################################################################
