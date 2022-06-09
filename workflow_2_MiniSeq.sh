@@ -19,8 +19,10 @@ L2R1=./raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 nohup bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e &
 ###
 flowcell=000H3NWWM
-for seq in L1R1Uniq_11 L1R1Uniq_12
+i=1
+for j in 1 2
 do
+seq=L1R1Uniq_1$j
 bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
 sam=$seq\_L2R1_ak$k.sam
 grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
@@ -33,15 +35,12 @@ if [ -e hifia_2_$seq\_L2R1_ak$k\_mappedspot_out ]
 then 
 rm hifia_2_$seq\_L2R1_ak$k\_mappedspot_out
 fi
-for j in 1 2
-do
 for column in 1 2 3
 do
 for row in 101 102 103 104
 do
 tile=$flowcell:$i:$j$column$row
 hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 $tile >> hifia_2_$seq\_L2R1_ak$k\_mappedspot_out 2>>anye
-done
 done
 done
 done
