@@ -28,7 +28,7 @@ bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 
 ################### Read 1
 k=70
-for seq in L1R1Uniq_21 L1R1Uniq_22
+for seq in L1R1Uniq_11 L1R1Uniq_12 L1R1Uniq_21 L1R1Uniq_22
 do
 bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
 sam=$seq\_L2R1_ak$k.sam
