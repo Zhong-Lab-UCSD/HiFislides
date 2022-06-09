@@ -30,7 +30,6 @@ grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
 n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
 hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
 n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
-i=1
 if [ -e hifia_2_$seq\_L2R1_ak$k\_mappedspot_out ]
 then 
 rm hifia_2_$seq\_L2R1_ak$k\_mappedspot_out
