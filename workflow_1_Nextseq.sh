@@ -18,7 +18,6 @@ done
 done
 #
 #
-# flowcellsplit.pl: hereafetr only de-duplicated reads were used. (unique reads)
 #################################################################
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
@@ -28,6 +27,46 @@ bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 
 ################### Read 1
+k=70
+for seq in L1R1Uniq_21 L1R1Uniq_22
+do
+bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+sam=$seq\_L2R1_ak$k.sam
+grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+hifia_1 $seq\_L2R1_ak$k\_mappedspot.L $n1 > $seq\_L2R1_ak$k\_hifia_1.o
+n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
+echo $seq $k $n1 $n2
+done
+###
+flowcell=AAAHT5KHV
+k=70
+for i in 1 2
+do
+for j in 1 2
+do
+seq=L1R1Uniq_$i$j
+n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+n2=`cat $seq\_L2R1_ak$k\_hifia_1.o | wc -l`
+if [ -e hifia_2_$seq\_L2R1_ak$k\_mappedspot_out ]
+then
+rm hifia_2_$seq\_L2R1_ak$k\_mappedspot_out
+fi
+for column in 1 2 3 4 5 6
+do
+for row in 01 02 03 04 05 06 07 08 09 10 11 12 13 14
+do
+tile=$flowcell:$i:$j$column$row
+hifia_2 $seq\_L2R1_ak$k\_mappedspot.L $n1 $seq\_L2R1_ak$k\_hifia_1.o $n2 $tile >> hifia_2_$seq\_L2R1_ak$k\_mappedspot_out 2>>anye
+done
+done
+date
+done
+done
+##########################
+
+
 seq=L1R1Uniq_11
 
 for k in 40 55 70
