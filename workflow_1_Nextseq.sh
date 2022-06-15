@@ -67,6 +67,39 @@ date
 done
 done
 ####################################################
+
+###################################################################
+###################################################################
+# Read 2
+#
+prefix=L2R2_015_
+
+hg38=$mwd/imc/HG38
+STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
+--outFileNamePrefix $prefix \ 
+--outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
+ 
+date
+grep "SN:" $prefix\Aligned.out.sam > $prefix\Aligned.NH1.sam
+grep ":STAR" $prefix\Aligned.out.sam >> $prefix\Aligned.NH1.sam 
+grep -P "NH:i:1\t" $prefix\Aligned.out.sam >> $prefix\Aligned.NH1.sam 
+date
+
+filetag=$prefix\Aligned.NH1
+sam=$filetag.sam
+bam=$filetag.bam
+genicreadfile=$filetag\gene.L
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
+cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
+bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 $filetag\gene.L > $filetag\gene5columns.L
+
+
+#################################################################
+
+
 ####################################################
 ####################################################
 
