@@ -94,7 +94,7 @@ gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
 getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
 cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
 bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
-cut -f 1,2,3,4,16 $filetag\gene.L > $filetag\gene5columns.L
+cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 
 #################################################################
