@@ -101,17 +101,22 @@ cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 n1=`cat L1R1Uniq_11_L2R1_ak70_mappedspot.L | wc -l`
 
-g=ENSMUSG00000023886
-grep $g L2R2_015_Aligned.NH1gene5columns.L > hifi2$g.L
-n2=`cat hifi2$g.L | wc -l`
+grep -v "ENSG00000230876" L2R2_010_Aligned.NH1gene5columns.L > G
+n2=`cat G | wc -l`
+
+# g=ENSMUSG00000023886
+# grep $g L2R2_015_Aligned.NH1gene5columns.L > hifi2$g.L
+# n2=`cat hifi2$g.L | wc -l`
 
 for i in  1 2 3 4 5 6;
 do
 for j in 01 02 03 04 05 06 07 08 09 10 11 12 13 14;
 do
-nohup ./hifiapg L1R1Uniq_11_L2R1_ak70_mappedspot.L $n1 AAAHT5KHV:1:1$i$j hifi2$g.L $n2 >> hifi2$g\_onTile.o 2>>anye &
+nohup ./hifiapg L1R1Uniq_11_L2R1_ak70_mappedspot.L $n1 AAAHT3CHV:1:1$i$j G $n2 > genicspotTile1$i$j.o 2>>anye &
 done
 done
+
+cat genicspotTile1* > genicspotovertiles.o
 
 
 ####################################################
