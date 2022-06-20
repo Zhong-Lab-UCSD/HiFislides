@@ -101,6 +101,8 @@ cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 n1=`cat L1R1Uniq_11_L2R1_ak70_mappedspot.L | wc -l`
 
+# for mouse, it is ENSMUSG00000099364
+
 grep -v "ENSG00000230876" L2R2_010_Aligned.NH1gene5columns.L > G
 n2=`cat G | wc -l`
 
