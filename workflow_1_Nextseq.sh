@@ -26,6 +26,24 @@ date
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 
+# ~/bin
+# HiFianalysis_nmappedbarcode_per_tile.cpp
+# hifianmbc
+# HiFianalysis_ngenicbarcode_per_tile.cpp
+# hifiangbc
+# hifiangr2.pl: to reproduce data_8 results.
+# input: 
+# n1=`cat $seq\_L2R1_ak$k\_mappedspot.L | wc -l`
+# $seq\_L2R1_ak$k\_mappedspot.L $n1
+# n2=`cat L2R2_010_Aligned.NH1gene5columns.L | wc -l`
+# L2R2_010_Aligned.NH1gene5columns.L
+
+# cmd:
+# out=hifi2gene2tile_06202022.o
+# hifiangr2.pl L1R1Uniq_11_L2R1_ak70_mappedspot.L L2R2_015_Aligned.NH1gene5columns.L $out
+# R CMD BATCH --no-save --no-restore "--args hifi2gene2tile_06202022.o 8 1000 64" testGeneToTile_1.R
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/plot_pval_per_tile.R
+
 ################### Read 1
 k=70
 for seq in L1R1Uniq_11 L1R1Uniq_12 L1R1Uniq_21 L1R1Uniq_22
