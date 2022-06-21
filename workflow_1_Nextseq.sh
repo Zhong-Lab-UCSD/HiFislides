@@ -44,6 +44,46 @@ bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # R CMD BATCH --no-save --no-restore "--args hifi2gene2tile_06202022.o 8 1000 64" testGeneToTile_1.R
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib2/plot_pval_per_tile.R
 
+
+k=70
+for seq in L1R1Uniq_11 L1R1Uniq_12 L1R1Uniq_21 L1R1Uniq_22
+do
+bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+sam=$seq\_L2R1_ak$k.sam
+grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+done
+
+for i in 1 2 3
+do
+for j in 01 02 03 04 05 06 07 08 09 10 11 12 13 14
+do
+nohup hifiangbc L1R1Uniq_11_L2R1_ak70_mappedspot.L $n1 AAAHT3CHV:1:1$i$j G $n2 > genicspotTile1$i$j.o 2>>anye &
+done
+done
+
+if [ -e n_genic_spot_per_tile.o ]
+then
+rm n_genic_spot_per_tile.o
+fi
+
+for i in 1 2 3 4 5 6
+do
+for j in 01 02 03 04 05 06 07 08 09 10 11 12 13 14
+do
+tile=1$i$j
+n=`cut -f 2 genicspotTile1$i$j.o | sort | uniq | wc -l`
+echo $tile $n >> n_genic_spot_per_tile.o
+done
+done
+
+##################################################################################################################################
+##################################################################################################################################
+##################################################################################################################################
+##################################################################################################################################
+##################################################################################################################################
+##################################################################################################################################
+
 ################### Read 1
 k=70
 for seq in L1R1Uniq_11 L1R1Uniq_12 L1R1Uniq_21 L1R1Uniq_22
