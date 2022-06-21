@@ -54,6 +54,7 @@ grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
 done
 
+# grep -v "ENSG00000230876" L2R2_010_Aligned.NH1gene5columns.L > G
 for i in 1 2 3
 do
 for j in 01 02 03 04 05 06 07 08 09 10 11 12 13 14
