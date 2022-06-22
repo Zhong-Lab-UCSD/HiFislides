@@ -1,9 +1,9 @@
 #
 #################################################################
-# /mnt/extraids/OceanStor-0/linpei/hifi/data_8/lib1
+# /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2
 # run this as background process
 #
-flowcell=AAAHT5KHV
+flowcell=AAAHT3CHV
 #
 for i in 1 2
 do
