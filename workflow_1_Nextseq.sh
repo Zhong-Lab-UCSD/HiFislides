@@ -14,6 +14,7 @@ date
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 date
 finduniqread.pl L1R1Dedup_$i$j.fasta > L1R1Uniq_$i$j.fasta
+finduniqread.pl L1R1Dedup_$i$j.fasta $tile > L1R1Uniq_$i$j\T$tile.fasta
 done
 done
 #
