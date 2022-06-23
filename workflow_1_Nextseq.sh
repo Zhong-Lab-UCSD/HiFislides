@@ -50,6 +50,11 @@ k=70
 for seq in L1R1Uniq_11 L1R1Uniq_12 L1R1Uniq_21 L1R1Uniq_22
 do
 bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+tile=1314
+seq=L1R1Uniq_11T$tile
+bwa mem L2R1 $seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+hifi2bestalignedspot.pl $seq\_L2R1_ak$k.sam L2R2_010_Aligned.NH1.2column $tile > $seq\_L2R1_ak$k_spot_per_hifi.o1 2>$seq\_L2R1_ak$k_spot_per_hifi.o2
+
 sam=$seq\_L2R1_ak$k.sam
 grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
