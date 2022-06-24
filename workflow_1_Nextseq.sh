@@ -14,18 +14,54 @@ date
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 date
 finduniqread.pl L1R1Dedup_$i$j.fasta > L1R1Uniq_$i$j.fasta
+done
+done
+
+for tile in 1314 1414 1514 1614 
+do
 finduniqread.pl L1R1Dedup_$i$j.fasta $tile > L1R1Uniq_$i$j\T$tile.fasta
+echo $tile
 done
-done
+
 #
-#
+# hifia_2_L1R1Uniq_11_L2R1_ak70_mappedspot_out
 #################################################################
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+
 date
 # Tue May 31 11:56:44 PDT 2022
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
+
+k=45
+seq=L1R1Uniq_11
+sam=$seq\_L2R1_ak$k.sam
+bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $sam 2>$seq\_L2R1_ak$k.same
+
+grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
+grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+
+
+
+for tile in 1314 1414 1514 1614
+do
+seq=L1R1Uniq_11T$tile
+bwa mem L2R1 $seq.fasta -a -k $k -t 64 > $seq\_L2R1_ak$k.sam 2>$seq\_L2R1_ak$k.same
+hifi2bestalignedspot.pl $seq\_L2R1_ak$k.sam L2R2_010_Aligned.NH1.2column $tile > hifi2coord_$tile.o1 2>hifi2coord_$tile.o2
+n=`cat hifi2coord_$tile.o1 | wc -l`
+calcdist hifi2coord_$tile.o1 $n > hifi2dist_$tile.o
+done
+
+
+
+
+
+
+
+
+
+
 
 # ~/bin
 # HiFianalysis_nmappedbarcode_per_tile.cpp
