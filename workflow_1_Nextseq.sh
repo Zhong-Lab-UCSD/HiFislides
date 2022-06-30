@@ -26,8 +26,8 @@ done
 #
 # hifia_2_L1R1Uniq_11_L2R1_ak70_mappedspot_out
 #################################################################
-L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_13/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_13/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 date
 # Tue May 31 11:56:44 PDT 2022
