@@ -173,7 +173,7 @@ done
 ###################################################################
 # Read 2
 #
-prefix=L2R2_015_
+prefix=L2R2_010_
 
 hg38=$mwd/imc/HG38
 STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
