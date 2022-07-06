@@ -26,21 +26,63 @@ done
 #
 # hifia_2_L1R1Uniq_11_L2R1_ak70_mappedspot_out
 #################################################################
-L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_13/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_13/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+
+L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
+
 
 date
 # Tue May 31 11:56:44 PDT 2022
 bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 # Tue May 31 12:02:05 PDT 2022
 
-k=45
+k=40
 seq=L1R1Uniq_11
 sam=$seq\_L2R1_ak$k.sam
 bwa mem L2R1 ../lib1/$seq.fasta -a -k $k -t 64 > $sam 2>$seq\_L2R1_ak$k.same
 
 grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
+
+###########
+prefix=L2R2_000_
+
+hg38=$mwd/imc/HG38
+STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
+--outFileNamePrefix $prefix \ 
+--outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
+ 
+date
+grep "SN:" $prefix\Aligned.out.sam > $prefix\Aligned.NH1.sam
+grep ":STAR" $prefix\Aligned.out.sam >> $prefix\Aligned.NH1.sam 
+grep -P "NH:i:1\t" $prefix\Aligned.out.sam >> $prefix\Aligned.NH1.sam 
+date
+
+filetag=$prefix\Aligned.NH1
+sam=$filetag.sam
+bam=$filetag.bam
+genicreadfile=$filetag\gene.L
+samtools view -S -b $sam --threads 16 > $bam 2>>anye
+gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
+cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
+bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
+cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
+###########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
