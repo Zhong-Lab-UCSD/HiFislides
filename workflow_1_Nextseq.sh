@@ -72,7 +72,11 @@ cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 
 
+nohup hifia_nmappedbc.pl $seq\_L2R1_ak$k\_mappedspot.L $flowcell > bc_per_tile.o 2>bc_per_tile.e &
+nohup hifia_nmappedhifi.pl $seq\_L2R1_ak$k\_mappedspot.L $flowcell > hifi_per_tile.o 2>hifi_per_tile.e &
 
+nohup hifia_ngenomichifir2_per_tile.pl $seq\_L2R1_ak$k\_mappedspot.L L2R2_000_Aligned.NH1.sam $flowcell > hifia_ngenomichifir2_per_tile.o &
+nohup hifia_ngenichifir2_per_tile.pl $seq\_L2R1_ak$k\_mappedspot.L L2R2_000_Aligned.NH1gene5columns.L $flowcell > hifia_ngenichifir2_per_tile.o &
 
 
 
