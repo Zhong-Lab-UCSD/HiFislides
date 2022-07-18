@@ -50,7 +50,7 @@ prefix=L2R2_000_
 hg38=$mwd/imc/HG38
 STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \ 
 --outFileNamePrefix $prefix \ 
---outFilterScoreMinOverLread 0.1 --outFilterMatchNminOverLread 0.1 > starlogo 2>starlogoe
+--outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 > starlogo 2>starlogoe
  
 date
 grep "SN:" $prefix\Aligned.out.sam > $prefix\Aligned.NH1.sam
