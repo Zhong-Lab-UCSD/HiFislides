@@ -68,6 +68,16 @@ getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
 cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
 bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
 cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
+
+hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
+flowcell=AAAL33WM5
+seq=L1R1Uniq_11
+k=40
+
+sam=$seq\_L2R1_ak$k.sam
+hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L;
+hifia_1n_marker_per_spot.pl L1R1Uniq_11_L2R1_ak40_mappedspot_1n.L $hifi2gene $flowcell cell_type_marker_$i.txt $ensgname > Output_spot_to_gene_for_$i.txt
+
 ###########
 
 
