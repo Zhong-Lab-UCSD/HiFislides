@@ -76,6 +76,8 @@ k=40
 
 sam=$seq\_L2R1_ak$k.sam
 hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L;
+
+
 hifia_1n_marker_per_spot.pl $seq\_L2R1_ak$k\_mappedspot_1n.L $hifi2gene $flowcell cell_type_marker_$i.txt $ensgname > Output_spot_to_gene_for_$i.txt
 
 ###########
