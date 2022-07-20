@@ -17,11 +17,17 @@ surf=$flowcell:$i:$j
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 finduniqread.pl L1R1Dedup_$i$j.fasta > /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib1/L1R1Uniq_$i$j.fasta
 
+# in L1R1Dedup_$i$j.fasta, 
+# reads whose sequence was found N times on the surface were shown.
+# in L1R1Uniq_$i$j.fasta, 
+# only reads whose sequence was found 1 time on the surface were shown.
+
 # Part 2
 # working dir:
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2
-
+# R1 reads of HiFi sequencing
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+# R2 reads of HiFi sequencing
 L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 ### work with the coordinate end, i.e., R1 of HiFi slides read pairs
@@ -38,13 +44,15 @@ k=40
 sam=$seq\_L2R1_ak$k.sam
 bwa mem L2R1 $spatialbarcode -a -k $k -t 64 > $sam 2>$seq\_L2R1_ak$k.same
 
+# these two following steps are now less useful.
 grep -P "\t0\tMN00185:" $sam | cut -f 1,2,3 > $seq\_L2R1_ak$k\_mappedspot.L
 grep -P "\t256\tMN00185:" $sam | cut -f 1,2,3 >> $seq\_L2R1_ak$k\_mappedspot.L
 
 ### work with the RNA end, i.e., R2 of HiFi slides read pairs
 #
 
-# mwd=/mnt/extraids/OceanStor-0/linpei
+# 
+mwd=/mnt/extraids/OceanStor-0/linpei
 hg38=$mwd/imc/HG38
 prefix=L2R2_000_
 STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \
@@ -103,14 +111,14 @@ ensgname=/mnt/extraids/OceanStor-0/linpei/genome/release104/ensg2name38104.txt
 hifia_1n_marker_per_spot.pl $seq\_L2R1_ak$k\_mappedspot_1n.L $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A 
 # columns in Output_spot_to_gene.A were:
 (1) ID of Tile
-(2) X: columns
-(3) Y: rows:
+(2) X: columns - coordinate for a spot/spatial barcode
+(3) Y: rows - coordinante for a spot/spatial barcode
 (4) ID of spatial barcode
 (5) Ensembl Gene ID
 (6) official gene symbol
-(7) 
-(8) ID of Hifi read pair - 
-multiple HiFi read pairs could be mapped to 1 gene at the same coordiante, for such cases, one read pairs would be shown randomly.
+(7) sum of read counts that mapped to each gene at each spot
+(8) ID of Hifi read pair. Multiple HiFi read pairs could be mapped to 1 gene at the same coordiante. 
+For such cases, one of these read pairs would be shown randomly.
 
 
 In Output_spot_to_gene.A, 
@@ -119,10 +127,10 @@ In Output_spot_to_gene.A,
 if one coordinate C1 was assigned with gene G1 and G2,
 there would be 2 lines about C1, one for G1 and one for G2.
 if 
-R2 of read pairs A,B,C were mapped to G1 and 
-R1 of read pairs A,B,C mapped to C1,
-the read count of A,B,C would be summed up.
-However, if R1 of A,B,c were mapped to NA,NB,NC spatial coordiantes on the surface,
+R2 of hifi read pairs A,B,C were mapped to G1 and 
+R1 of hifi read pairs A,B,C mapped to C1,
+the read count of A,B,C would be summed up and shown in column 7th.
+If R1 of A,B,c were mapped to NA,NB,NC spatial coordiantes on the surface, each one would be counted as 1/NA, 1/NB and 1/NC.
 
 
 
