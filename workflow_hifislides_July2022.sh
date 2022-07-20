@@ -25,9 +25,9 @@ finduniqread.pl L1R1Dedup_$i$j.fasta > /mnt/extraids/OceanStor-0/linpei/hifi/dat
 # Part 2
 # working dir:
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2
-# R1 reads of HiFi sequencing
+# R1 reads of HiFi sequencing - spatial end/coordiante end
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
-# R2 reads of HiFi sequencing
+# R2 reads of HiFi sequencing - RNA end
 L2R2=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 ### work with the coordinate end, i.e., R1 of HiFi slides read pairs
