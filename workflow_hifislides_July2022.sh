@@ -1,24 +1,35 @@
 # Part 1
-# do the de-duplication of raw reads from recycled flow cell.
+# we first do the de-duplication of raw reads from recycled flow cell.
 # then the unique raw reads from recycled flow cell would be used as spatial barcodes.
 
 # working dir:
 # /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib1/raw2 
 
+# the ID of flowcell will be appeared in the ID of each illumina sequence read.
 flowcell=AAAL33WM5
 
 # i=1 means Lane 1
 # j=1 means top surface. (1:top, 2:bottom)
 # both surfdedup(C++) and finduniqread.pl are executable programs at /home/linpei/bin
 
+# i can be 1 or 2 for lane 1 or lane 2.
 i=1
+# j can be 1 or 2 for top or bottome surface.
 j=1
 surf=$flowcell:$i:$j
+
+# this step read in raw reads from recycled flow cell and add "_N" to the identifier of each read.
+# N represent number of times for a read whose sequence was found on the surface.
+# only reads whose identifier contain a string $surf would be taken in consideration.
+#
+
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
+
+# this step will obtain all raw reads with "_1" added to the original read identifier.
 finduniqread.pl L1R1Dedup_$i$j.fasta > /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib1/L1R1Uniq_$i$j.fasta
 
 # in L1R1Dedup_$i$j.fasta, 
-# reads whose sequence was found N times on the surface were shown.
+# 
 # in L1R1Uniq_$i$j.fasta, 
 # only reads whose sequence was found 1 time on the surface were shown.
 
