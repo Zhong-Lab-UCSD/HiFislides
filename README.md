@@ -1,7 +1,13 @@
-# **HiFi-Slides Sequencing**
+# **HiFi-Slides Spatial Sequencing**
 
 
 Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
+
+# **About**  
+# **Dependencies**  
+# **Usage**  
+
+
 
 
 # **environmental variables**
