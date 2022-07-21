@@ -4,12 +4,13 @@
 # Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
 
 
-# variable
+# variables
 flowcell=AAAL33WM5  
 i=1  
 j=1  
 surf=$flowcell:$i:$j   
 
+# custom external scripts
 
 
 surfdedup  
