@@ -16,7 +16,6 @@ bwa index -p L2R1 $L2R1 > bwaindexL2R1o 2>bwaindexL2R1e
 
 spatialbarcode=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/L1R1Uniq_$i$j.fasta
 
-flowcell=AAAL33WM5
 seq=L1R1Uniq_11
 k=40
 sam=$seq\_L2R1_ak$k.sam
@@ -41,10 +40,6 @@ genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
 gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
 
-# getgenefromgtf.pl is an executable file at /home/linpei/bin.
-# this script read a GTF format gene annotation and print 4 columns: 
-# (1) chromsome, (2) start, (3) end, (4) gene ID + gene symbol + gene type (coding or lncRNA)
-
 getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
 
 cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
@@ -53,12 +48,6 @@ cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 # hifi2gene: assign each HiFi read pairs to genes
 hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
-
-
-seq=L1R1Uniq_11
-k=40
-sam=$seq\_L2R1_ak$k.sam
-flowcell=AAAL33WM5
 
 hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L
 ensgname=/mnt/extraids/OceanStor-0/linpei/genome/release104/ensg2name38104.txt
