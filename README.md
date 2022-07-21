@@ -15,14 +15,14 @@ surf=$flowcell:$i:$j
 
 **surfdedup**  
 (1) two arguments  
-argument - 1: identifier of the surface  
-argument - 2: fastqs of raw reads  
-(2) Goal: this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". Only reads whose identifier contain a string matched argument 1 would be used for counting N. 
+argument - 1: identifier of the surface. A nextseq flowcell could provide four surfaces. This argument specify which surface would be examined.   
+argument - 2: >= 1 fastq files of raw reads  
+(2) Goal: this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads whose identifier contain a string matched argument 1. 
 
 
 **finduniqread.pl**  
-(1) 1 argument: the output fasta from surfdedup  
-(2) Goal: this script will extract all raw reads whose identifiers labeled with a "_1". In this way,  reads whose raw sequence found only once on the surface would be output. 
+(1) argument - 1: the output fasta from surfdedup  
+(2) Goal: this script will extract and print out all raw reads whose identifiers labeled with a "_1". In this way,  reads whose raw sequence found only once on the surface would be output. 
 
 **getgenefromgtf.pl**  
 creat bed format of gene annotation.
@@ -41,12 +41,12 @@ column 4 - the number of aligned spatial coordinates for this HiFi R1 read
 
 **hifia_1n_marker_per_spot.pl**  
 (1)   
-argument - 1: output from hifia_asort.pl   
+argument - 1: output from **hifia_asort.pl**   
 argument - 2: a tables assign genes to HiFi read pairs.  
 argument - 3: ID of the flowcell  
 argument - 4: a txt provides Ensembl Gene ID for those interesting genes. In this workflow, all genes found by HIFI sequencing were used.  
 argument - 5: a txt provides gene official symbl for each Ensembl Gene ID.  
-(2) Goal: for each hifi read pair,hifia_1n_marker_per_spot.pl read the spatial barcodes aligned to R1, and genes aligned to R2. Then iterated on each spatial coordiante and print all related hifi reads and related genes, creating a spot-to-gene table.  
+(2) Goal: for each hifi read pair, **hifia_1n_marker_per_spot.pl** read the spatial barcodes aligned to R1, and genes aligned to R2. Then iterated on each spatial coordiante and print all related hifi reads and related genes, creating a spot-to-gene table.  
 (3) Output:  
 column 1 - ID of tile  
 column 2 - X axis coordinate (columns)  
