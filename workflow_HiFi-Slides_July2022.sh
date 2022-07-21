@@ -3,7 +3,7 @@ i=1
 j=1
 surf=$flowcell:$i:$j
 
-# Object - do deduplication of raw reads from the recycled flow cell and provide unique raw reads on the recycle flow cell as spatial barcodes.
+# Object - do deduplication of raw reads from the recycled flow cell and provide unique raw reads as spatial barcodes.
 
 cd /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib1/raw2
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
