@@ -38,7 +38,7 @@ argument - 2: >= 1 fastq files of raw reads
 (2) Goal: this script will extract and print out all raw reads whose identifiers labeled with a "_1". In this way,  reads whose raw sequence found only once on the surface would be output. 
 
 **getgenefromgtf.pl**  
-creat bed format of gene annotation.
+create a bed format text file for gene annotation.
 
 **hifia_asort.pl**  
 (1) two arguments  
