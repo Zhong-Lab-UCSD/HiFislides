@@ -3,8 +3,6 @@ i=1
 j=1
 surf=$flowcell:$i:$j
 
-
-
 cd /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib1/raw2
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 finduniqread.pl L1R1Dedup_$i$j.fasta > /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/L1R1Uniq_$i$j.fasta
@@ -26,10 +24,10 @@ bwa mem L2R1 $spatialbarcode -a -k $k -t 64 > $sam 2>$seq\_L2R1_ak$k.same
 mwd=/mnt/extraids/OceanStor-0/linpei
 hg38=$mwd/imc/HG38
 prefix=L2R2_000_
+
 STAR --runThreadN 32 --genomeDir $hg38 --readFilesIn $L2R2 --quantMode GeneCounts --readFilesCommand zcat \
 --outFileNamePrefix $prefix \
 --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 > starlogo 2>starlogoe
-
 
 grep "SN:" $prefix\Aligned.out.sam > $prefix\Aligned.NH1.sam
 grep ":STAR" $prefix\Aligned.out.sam >> $prefix\Aligned.NH1.sam 
