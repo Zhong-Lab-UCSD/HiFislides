@@ -1,16 +1,23 @@
-# HiFi-Slides Sequencing
+# **HiFi-Slides Sequencing**
 
 
-# Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
+Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
 
 
-# variables
+# **environmental variables**
 flowcell=AAAL33WM5  
 i=1  
 j=1  
-surf=$flowcell:$i:$j   
+surf=$flowcell:$i:$j  
+k=40  
+seq=L1R1Uniq_11  
+mwd=/mnt/extraids/OceanStor-0/linpei  
+hg38=$mwd/imc/HG38  
+gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf  
+ensgname=$mwd/genome/release104/ensg2name38104.txt  
 
-# custom external scripts
+
+# **custom external scripts**
 
 
 **surfdedup**  
