@@ -29,12 +29,11 @@ fastqs of raw reads
 **hifia_asort.pl**  
 (1) input:  output sam file from BWA and ID of the flowcell  
 (2) Goal: read the sam file and output spatial barcode/coordinates that aligned to each HiFi R1 read.  
-(3) Ouput:  
-the 4 columns in the output would be:  
-spatial barcodes,  
-a useless number as placeholder,  
-identifiers of HiFi read pairs,  
-the number of aligned spatial coordinates for this HiFi R1 read  
+(3) Ouput:   
+column 1 - spatial barcodes,  
+column 2 - a useless number as placeholder,  
+column 3 - identifiers of HiFi read pairs,  
+column 4 - the number of aligned spatial coordinates for this HiFi R1 read  
 
 
 **hifia_1n_marker_per_spot.pl**  
