@@ -3,13 +3,15 @@ i=1
 j=1
 surf=$flowcell:$i:$j
 
-# Object - do deduplication of raw reads from the recycled flow cell and provide unique raw reads as spatial barcodes.
+# the Object of surfdedup and finduniqread.pl:
+# deduplication of raw reads from the recycled flow cell and provide unique raw reads as spatial barcodes.
 
 cd /mnt/extraids/OceanStor-0/linpei/hifi/data_12/lib1/raw2
 surfdedup $surf *_L00$i\_R1_001.fastq.gz > L1R1Dedup_$i$j.fasta
 finduniqread.pl L1R1Dedup_$i$j.fasta > /mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/L1R1Uniq_$i$j.fasta
 
-# Object - Align spatial barcodes to HiFi R1 reads in order to obtain spatial coordinates for HiFi read pairs.
+# the object of using BWA:
+# Align spatial barcodes to HiFi R1 reads in order to obtain spatial coordinates for HiFi read pairs.
 
 # raw reads of HiFi Slides sequencing.
 L2R1=/mnt/extraids/OceanStor-0/linpei/hifi/data_14/lib2/raw/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
@@ -53,7 +55,8 @@ cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
 hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
 
-# Object - provide a table of spot-to-gene by combining information from previous steps.
+# the object of using hifia_asort.pl and hifia_1n_marker_per_spot.pl
+# provide a table of spot-to-gene by combining information from previous steps.
 
 hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L
 ensgname=/mnt/extraids/OceanStor-0/linpei/genome/release104/ensg2name38104.txt
