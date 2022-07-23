@@ -27,6 +27,9 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 
 
 **surfdedup**  
+```
+surfdedup AAAL33WM5:1:1
+```
 (1) two arguments  
 argument - 1: identifier of the surface, e.g. AAAL33WM5:1:1. A nextseq flowcell could provide four surfaces. This argument specify which surface would be examined.   
 argument - 2: >= 1 fastq files of raw reads  
