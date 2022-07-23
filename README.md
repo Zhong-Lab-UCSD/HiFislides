@@ -26,7 +26,7 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 # **custom external scripts**
 
 
-**surfdedup**  
+We first do deduplication by surfdedup and finduniqread.pl
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
@@ -36,8 +36,7 @@ argument \#2: >= 1 fastq files of raw reads.
 (2) **Purpose**  
 this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads whose identifier contain a string matched argument \#1. 
 
-
-**finduniqread.pl**  
+  
 ```
 finduniqread.pl Output_fasta_from_surfdedup
 ```
@@ -46,10 +45,10 @@ the output fasta from surfdedup
 (2) **Purpose**  
 this script will extract and print out all raw reads whose identifiers labeled with a "_1". In this way, reads whose raw sequence found only once on the surface would be output. 
 
-**getgenefromgtf.pl**  
+We used a script getgenefromgtf.pl to extract gene annotation from GTF.
 create a bed format text file for gene annotation.
 
-**hifia_asort.pl**  
+We used hifia_asort.pl to count the number of aligned spots per HiFi R1 reads.  
 ```
 hifia_asort.pl output_sam_file_by_BWA AAAL33WM5
 ```
@@ -65,7 +64,7 @@ column 3 - identifiers of HiFi read pairs
 column 4 - the number of aligned spatial coordinates for this HiFi R1 read  
 
 
-**hifia_1n_marker_per_spot.pl**  
+We used hifia_1n_marker_per_spot.pl to integrate spatial coordinates and mapped gene for each HiFi read pairs.
 ```
 hifia_1n_marker_per_spot.pl Output_from_hifia_asort.pl $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A
 ```
