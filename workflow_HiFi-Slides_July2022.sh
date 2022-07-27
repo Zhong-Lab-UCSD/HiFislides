@@ -58,6 +58,9 @@ hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
 # the object of using hifia_asort.pl and hifia_1n_marker_per_spot.pl
 # provide a table of spot-to-gene by combining information from previous steps.
 
+seq=L1R1Uniq_11
+k=40
+sam=$seq\_L2R1_ak$k.sam
 hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L
 ensgname=/mnt/extraids/OceanStor-0/linpei/genome/release104/ensg2name38104.txt
 hifia_1n_marker_per_spot.pl $seq\_L2R1_ak$k\_mappedspot_1n.L $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A
