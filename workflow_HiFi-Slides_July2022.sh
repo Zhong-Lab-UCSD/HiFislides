@@ -65,3 +65,19 @@ hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L
 ensgname=/mnt/extraids/OceanStor-0/linpei/genome/release104/ensg2name38104.txt
 hifia_1n_marker_per_spot.pl $seq\_L2R1_ak$k\_mappedspot_1n.L $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A
 
+flowcell=AAAL33WM5
+i=1
+for k in 100 95 90 85 80 70
+do
+for j in 1 2
+do
+seq=L1R1Uniq_$i$j
+spatialbarcode=L1R1Uniq_$i$j.fasta
+sam=$seq\_L2R1_ak$k.sam
+if [ ! -f $sam ]
+then
+bwa mem L2R1 $spatialbarcode -a -k $k -t 64 > $sam 2>$seq\_L2R1_ak$k.same
+fi
+hifia_asort.pl $sam $flowcell > $seq\_L2R1_ak$k\_mappedspot_1n.L 2>$seq\_L2R1_ak$k\_mappedspot_1n.metric 
+done
+done
