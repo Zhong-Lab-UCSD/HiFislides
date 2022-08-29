@@ -45,7 +45,7 @@ sam=$filetag.sam
 bam=$filetag.bam
 genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
-gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+gtf=$sdsc/genome/HG38/Homo_sapiens.GRCh38.107.gtf
 
 getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
 
