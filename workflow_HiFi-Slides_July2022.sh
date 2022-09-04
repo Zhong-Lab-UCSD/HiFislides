@@ -53,7 +53,7 @@ cat genensg107.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg107clean.b
 bedtools intersect -a $bam -b genensg107clean.b -wb -bed > $genicreadfile
 cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
-hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
+hifi2gene=$filetag\gene5columns.L
 
 # the object of using hifia_asort.pl and hifia_1n_marker_per_spot.pl
 # provide a table of spot-to-gene by combining information from previous steps.
