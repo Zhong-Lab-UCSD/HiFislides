@@ -43,13 +43,12 @@ the output of surfdedup includes two files: (1) a fasta of deduplicated Read seq
 Note that when N reads shared the same sequence, only 1 of N read identifiers would be printed to (1) and the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
 
-## We extract gene annotation from GTF.  
+## Extract gene annotation from GTF.  
 
 
 
 
-
-## We count the number of aligned spots per HiFi R1 reads.  
+## Aligne spatial barcodes to HiFiSLIDE R1 reads.  
 ```
 hifia_asort.pl output_sam_file_by_BWA AAAL33WM5
 ```
