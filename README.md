@@ -43,23 +43,34 @@ the output of surfdedup includes two files: (1) a fasta of deduplicated Read seq
 Note that when N reads shared the same sequence, only 1 of N read identifiers would be printed to (1) and the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
 
-## Extract gene annotation from GTF.  
+## Extract gene annotation from GTF 
 
 
 
 
-## Aligne spatial barcodes to HiFiSLIDE R1 reads.  
+## Align spatial barcodes to HiFiSLIDE R1 reads
+
+Aligner bwa was used to map HIFISLIDE R1 reads to spatial barcodes (i.e. R1 reads from recycled flowcell)
+
 ```
-hifia_asort.pl output_sam_file_by_BWA AAAL33WM5
+bwa index L1R1 L1R1Dedup.fasta
+```
+
+```
+bwa mem -a -k 40 -t 32 L1R1 HIFISLIDE_R1.fastq
+```
+
+
+```
+hifia_asort.pl output_sam_file_by_BWA
 ```
 
 (1) **Arguments**  
 argument \#1: output sam file from BWA  
 
-argument \#2: ID of the flowcell  
 
 (2) **Purpose**   
-This script read the sam file and output spatial barcode/coordinates that aligned to each HiFi R1 read.  
+This script read the sam file from bwa and count the number of spatial barcode aligned with each HIFISLIDE R1 with highest alignment score.
 
 (3) **Output Format**   
 column 1 - spatial barcodes  
@@ -68,7 +79,7 @@ column 3 - identifiers of HiFi read pairs
 column 4 - the number of aligned spatial coordinates for this HiFi R1 read  
 
 
-## Job 4 - We integrate spatial coordinates and mapped gene for each HiFi read pairs.
+## We integrate spatial coordinates and mapped gene for each HiFi read pairs.
 ```
 hifia_1n_marker_per_spot.pl Output_from_hifia_asort.pl $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A
 ```
