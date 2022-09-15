@@ -26,7 +26,7 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 # **Workflow invoke third-party software and custom external scripts**
 
 
-## We first do deduplication of spatial barcodes.
+## deduplication of spatial barcodes.
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
@@ -52,7 +52,7 @@ this script will extract and print out all raw reads whose identifiers labeled w
 ## We extract gene annotation from GTF.
 
 
-## Job 3 - We count the number of aligned spots per HiFi R1 reads.  
+## We count the number of aligned spots per HiFi R1 reads.  
 ```
 hifia_asort.pl output_sam_file_by_BWA AAAL33WM5
 ```
