@@ -5,6 +5,7 @@ Contributions by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong 
 
 # **About**  
 # **Dependencies**  
+All used published tools are free softwares. We installed all of them under one conda environment.
 # **Workflow**
 
 
@@ -72,6 +73,10 @@ hifislida2.pl
 (2) **Purpose**  
 Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were available on Nextseq flowcell (sometimes it could be 6 X 14). We hypothesized that spatial barcodes on tiles coverred by tissue should be mapped with more HIFISLIDE R1 thans spatial barcodes outside tissue cover region. To this end, we count the number of HIFISLIDE R1 reads per tile. To find a simplilified solution, we only considered HIFISLIDE R1 which had only one unique spatial barcode with highest alignment score on the surface.     
 (3) **Output format**  
+
+## preprocessing of HIFISLIDE R2 reads  
+By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. One issue was the read throught by HIFISLIDE R2 into the spatial barcode. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed using PEAR v0.9.6. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.
+
 
 
 ## annotate HIFISLIDE R2 reads by genes/transcripts
