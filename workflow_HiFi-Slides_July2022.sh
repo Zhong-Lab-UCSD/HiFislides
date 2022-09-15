@@ -45,15 +45,15 @@ sam=$filetag.sam
 bam=$filetag.bam
 genicreadfile=$filetag\gene.L
 samtools view -S -b $sam --threads 16 > $bam 2>>anye
-gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
+gtf=$sdsc/genome/HG38/Homo_sapiens.GRCh38.107.gtf
 
-getgenefromgtf.pl $gtf ENSG > genensg104.b 2>>anye
+getgenefromgtf.pl $gtf ENSG > genensg107.b 2>>anye
 
-cat genensg104.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg104clean.b
-bedtools intersect -a $bam -b genensg104clean.b -wb -bed > $genicreadfile
+cat genensg107.b | perl -p -e "s/:/\t/g" | cut -f 1,2,3,4 > genensg107clean.b
+bedtools intersect -a $bam -b genensg107clean.b -wb -bed > $genicreadfile
 cut -f 1,2,3,4,16 $genicreadfile > $filetag\gene5columns.L
 
-hifi2gene=L2R2_000_Aligned.NH1gene5columns.L
+hifi2gene=$filetag\gene5columns.L
 
 # the object of using hifia_asort.pl and hifia_1n_marker_per_spot.pl
 # provide a table of spot-to-gene by combining information from previous steps.
