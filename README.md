@@ -26,7 +26,7 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 # **Workflow invoke third-party software and custom external scripts**
 
 
-## deduplication of spatial barcodes.
+## **deduplication of spatial barcodes**
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
