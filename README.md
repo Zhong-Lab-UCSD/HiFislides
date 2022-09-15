@@ -5,15 +5,6 @@ Contributions by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong 
 
 # **About**  
 # **Dependencies**  
-# **Usage**  
-
-
-
-
-# **environmental variables**
-
-
-
 # **Workflow**
 
 
