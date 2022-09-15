@@ -26,7 +26,7 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 # **Workflow**
 
 
-## **deduplication of spatial barcodes**
+## deduplication of spatial barcodes
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
@@ -36,20 +36,17 @@ argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means de
 argument \#2: the names of >= 1 fastq.gz files
 
 **Purpose**  
-this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads whose identifier contain a string matched argument \#1. 
+this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads from the surface identified by argument \#1. 
 
+**Output**  
+the output of surfdedup includes two files: (1) a fasta of deduplicated Read sequence. (2)a text file listed all read identifiers that shared the same read sequence.   
+Note that when N reads shared the same sequence, only 1 of N read identifiers would be printed to (1) and the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
-```
-finduniqread.pl Output_fasta_from_surfdedup
-```
 
-**Argument**  
-the output fasta from surfdedup  
+## We extract gene annotation from GTF.  
 
-**Purpose**  
-this script will extract and print out all raw reads whose identifiers labeled with a "_1". In this way, reads whose raw sequence found only once on the surface would be output. 
 
-## We extract gene annotation from GTF.
+
 
 
 ## We count the number of aligned spots per HiFi R1 reads.  
