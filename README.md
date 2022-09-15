@@ -62,9 +62,8 @@ hifia_asort.pl output_sam_file_by_BWA
 (1) **Arguments**  
 argument \#1: output sam file from BWA  
 
-
 (2) **Purpose**   
-This script read the sam file from bwa and count the number of spatial barcode aligned with each HIFISLIDE R1 with highest alignment score.
+This script read the sam file output from bwa and collect spatial barcodes aligned with each HIFISLIDE R1 at highest alignment score. If a HIFISLIDE R1 was aligned with N spatial barcodes that tied at the highest score, all N spatial barcodes would be output except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
 
 (3) **Output Format**   
 column 1 - spatial barcodes  
@@ -72,8 +71,19 @@ column 2 - a useless number as placeholder
 column 3 - identifiers of HiFi read pairs  
 column 4 - the number of aligned spatial coordinates for this HiFi R1 read  
 
+```
+hifislida2.pl 
+```
 
-## We integrate spatial coordinates and mapped gene for each HiFi read pairs.
+(1) **Arguments**  
+
+(2) **Purpose**  
+
+(3) **Output format**  
+
+
+
+## Integrate spatial coordinates and mapped gene for each HiFi read pairs.
 ```
 hifia_1n_marker_per_spot.pl Output_from_hifia_asort.pl $hifi2gene $flowcell hifi2gene.G $ensgname > Output_spot_to_gene.A
 ```
