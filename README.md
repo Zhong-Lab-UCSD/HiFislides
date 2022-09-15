@@ -33,7 +33,7 @@ surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz
 **Arguments**  
 argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means deduplication would be performed on the top surface of lane 1 of flowell AAAL33WM5. 
 
-argument \#2: >= 1 fastq files of raw reads.   
+argument \#2: the names of >= 1 fastq.gz files
 
 **Purpose**  
 this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads whose identifier contain a string matched argument \#1. 
