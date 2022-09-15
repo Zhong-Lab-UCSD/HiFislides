@@ -26,16 +26,16 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 # **Workflow invoke third-party software and custom external scripts**
 
 
-## Job 1 - We first do deduplication of spatial barcodes.
+## We first do deduplication of spatial barcodes.
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
-(1) **Arguments**  
+**Arguments**  
 argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means deduplication would be performed on the top surface of lane 1 of flowell AAAL33WM5. To use bottom surface, AAAL33WM5:1:2 need to be invoked.  
 
 argument \#2: >= 1 fastq files of raw reads.   
 
-(2) **Purpose**  
+**Purpose**  
 this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads whose identifier contain a string matched argument \#1. 
 
   
@@ -43,13 +43,13 @@ this script read raw reads from recycled flow cell and add "_N" to the identifie
 finduniqread.pl Output_fasta_from_surfdedup
 ```
 
-(1) **Argument**  
+**Argument**  
 the output fasta from surfdedup  
 
-(2) **Purpose**  
+**Purpose**  
 this script will extract and print out all raw reads whose identifiers labeled with a "_1". In this way, reads whose raw sequence found only once on the surface would be output. 
 
-## Job 2 - We extract gene annotation from GTF.
+## We extract gene annotation from GTF.
 
 
 ## Job 3 - We count the number of aligned spots per HiFi R1 reads.  
