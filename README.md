@@ -23,7 +23,7 @@ gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf
 ensgname=$mwd/genome/release104/ensg2name38104.txt  
 
 
-# **Workflow invoke third-party software and custom external scripts**
+# **Workflow**
 
 
 ## **deduplication of spatial barcodes**
