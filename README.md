@@ -78,9 +78,17 @@ hifislida2.pl
 (1) **Arguments**  
 
 (2) **Purpose**  
-
+Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were available on Nextseq flowcell (sometimes it could be 6 X 14). We hypothesized that spatial barcodes on tiles coverred by tissue should be mapped with more HIFISLIDE R1 thans spatial barcodes outside tissue cover region. To this end, we count the number of HIFISLIDE R1 reads per tile. To find a simplilified solution, we only considered HIFISLIDE R1 which had only one unique spatial barcode with highest alignment score on the surface.     
 (3) **Output format**  
 
+
+## annotate HIFISLIDE R2 reads by genes/transcripts
+
+Two different strategies were applied here. (1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.
+(2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
+at present, we pool results from (1) and (2) to annotate each HIFISLIDE R2 read.
+For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as SeqScope.
+For BOWTIE2, we used default setting with the local alignment mode.
 
 
 ## Integrate spatial coordinates and mapped gene for each HiFi read pairs.
