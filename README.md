@@ -1,7 +1,7 @@
 # **HiFi-Slides Spatial Sequencing**
 
 
-Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
+Contributions by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
 
 # **About**  
 # **Dependencies**  
@@ -11,16 +11,7 @@ Works by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
 
 
 # **environmental variables**
-flowcell=AAAL33WM5  
-i=1  
-j=1  
-surf=$flowcell:$i:$j  
-k=40  
-seq=L1R1Uniq_11  
-mwd=/mnt/extraids/OceanStor-0/linpei  
-hg38=$mwd/imc/HG38  
-gtf=$mwd/genome/release104/Homo_sapiens.GRCh38.104.gtf  
-ensgname=$mwd/genome/release104/ensg2name38104.txt  
+
 
 
 # **Workflow**
@@ -31,16 +22,16 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
 **Arguments**  
-argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means deduplication would be performed on the top surface of lane 1 of flocell AAAL33WM5. 
+argument \#1: identifier of the surface on recycled flowcell. For example, AAAL33WM5:1:1 indicates deduplication would be performed on the top surface of lane 1 of flowcell AAAL33WM5. 
 
 argument \#2: the names of >= 1 fastq.gz files
 
 **Purpose**  
-this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This script used only reads from the surface identified by argument \#1. 
+this script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This indicates that one spatial barcode could be found at N different coordinates on the surface. This script considered only reads from the surface identified by argument \#1. 
 
 **Output**  
 the output of surfdedup includes two files: (1) a fasta of deduplicated Read sequence. (2)a text file listed all read identifiers that shared the same read sequence.   
-Note that when N reads shared the same sequence, only 1 of N read identifiers would be printed to (1) and the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
+Note that when N reads shared the same sequence, only 1 of N read identifiers would be randomly chosen and printed to (1) while the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
 
 ## Extract gene annotation from GTF 
@@ -52,9 +43,12 @@ Note that when N reads shared the same sequence, only 1 of N read identifiers wo
 
 Aligner bwa was used to map HIFISLIDE R1 reads to spatial barcodes (i.e. R1 reads from recycled flowcell)
 
+L1R1Dedup.fasta is the output fasta by surfdedup
+
 ```
 bwa index L1R1 L1R1Dedup.fasta
 ```
+HIFISLIDE_R1.fastq is the raw R1 read from HIFISLIDE sequencing.
 
 ```
 bwa mem -a -k 40 -t 32 L1R1 HIFISLIDE_R1.fastq
