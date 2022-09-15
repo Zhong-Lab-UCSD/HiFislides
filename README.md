@@ -31,7 +31,7 @@ ensgname=$mwd/genome/release104/ensg2name38104.txt
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
 ```
 **Arguments**  
-argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means deduplication would be performed on the top surface of lane 1 of flowell AAAL33WM5. 
+argument \#1: identifier of the surface. For the case AAAL33WM5:1:1, it means deduplication would be performed on the top surface of lane 1 of flocell AAAL33WM5. 
 
 argument \#2: the names of >= 1 fastq.gz files
 
