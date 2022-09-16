@@ -26,11 +26,6 @@ the output of surfdedup includes two files: (1) a fasta of deduplicated Read seq
 Note that when N reads shared the same sequence, only 1 of N read identifiers would be randomly chosen and printed to (1) while the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
 
-## Extract gene annotation from GTF 
-
-
-
-
 ## 2. Align HiFiSLIDE R1 reads to deduplicated spatial barcodes
 
 Aligner bwa was used to map HIFISLIDE R1 reads to spatial barcodes (i.e. R1 reads from recycled flowcell)
