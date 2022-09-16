@@ -30,7 +30,7 @@ the output of surfdedup includes two files: (1) a fasta of deduplicated Read seq
 Note that when N reads shared the same sequence, only 1 of N read identifiers would be randomly chosen and printed to (1) while the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
   
 
-## 2. Align HiFiSLIDE R1 reads to deduplicated spatial barcodes
+## 2. Align HIFISLIDE R1 reads to deduplicated spatial barcodes
 
 Aligner bwa was used to map HIFISLIDE R1 reads to spatial barcodes (i.e. R1 reads from recycled flowcell)
 
@@ -105,7 +105,8 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --thread 16 > $p
 p=L2R2_1x2_processed_Q2
 fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
 ```
-Here L2R2_1x2.fastq is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.
+Here L2R2_1x2.fastq is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
+If a HIFISLIDE R2 read could be mapped to any gene using any of these options,that gene was assigned to the read.
 
 
 
