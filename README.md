@@ -105,8 +105,8 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --thread 16 > $p
 p=L2R2_1x2_processed_Q2
 fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
 ```
-Here L2R2_1x2.fastq is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
-If a HIFISLIDE R2 read could be mapped to any gene using any of these options,that gene was assigned to the read.
+Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
+If a HIFISLIDE R2 read could be mapped to any gene using any of these options,that gene was assigned to the R2 read.
 
 
 
