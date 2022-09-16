@@ -79,7 +79,7 @@ Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile (ranked in d
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.
-Next, we used fastp to further process HIFISLIDE R2 reads. 
+Next, we used ``fastp`` to further process HIFISLIDE R2 reads. Below we provide different usage of ``fastp`` to process HIFISLIDE R2 reads.
 
 **Option 1**
 
@@ -115,9 +115,9 @@ If a HIFISLIDE R2 read could be mapped to any gene using any of these options,th
 Two different strategies were applied here.  
 (1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.  
 (2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
-At present, we pool results from (1) and (2) to annotate each HIFISLIDE R2 read.
 For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as SeqScope.
 For BOWTIE2, we used default setting with the local alignment mode.
+If a HIFISLIDE R2 read could be mapped to any gene using one or both options,that gene was assigned to the R2 read.
 
 
 ## 6. Integrate spatial coordinates and gene information for each HiFi read pairs.
