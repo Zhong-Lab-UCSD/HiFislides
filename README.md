@@ -77,7 +77,7 @@ Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were avail
 Column 1 - Tile ID.  
 Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile (ranked in descending order)
 
-Tiles with highest number of HIFISLIDE R1 reads and located adjacent to each other indicated they were likely covered by the tissue.
+If tiles with highest number of HIFISLIDE R1 reads tend to be located in proximity, that may indicate these tiles were likely covered by the tissue.
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
@@ -108,7 +108,7 @@ p=L2R2_1x2_processed_Q2
 fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
 ```
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
-If a HIFISLIDE R2 read could be mapped to any gene using any of these options,that gene was assigned to the R2 read.
+If a HIFISLIDE R2 read could be mapped to a  gene using any of these options,that gene was assigned to the R2 read.
 
 
 
