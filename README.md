@@ -77,6 +77,8 @@ Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were avail
 Column 1 - Tile ID.  
 Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile (ranked in descending order)
 
+Tiles with highest number of HIFISLIDE R1 reads and located adjacent to each other indicated they were likely covered by the tissue.
+
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
 Next, we used ``fastp`` to further process HIFISLIDE R2 reads.
