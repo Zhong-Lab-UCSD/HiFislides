@@ -4,8 +4,12 @@
 Contributions by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
 
 # **About**  
+HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
 # **Dependencies**  
 All used published tools are free softwares. We installed all of them under one conda environment.
+# **References**
+Rozowsky, J., Kitchen, R. R., Park, J. J., Galeev, T. R., Diao, J., Warrell, J., Thistlethwaite, W., Subramanian, S. L., Milosavljevic, A., & Gerstein, M. (2019). exceRpt: A Comprehensive Analytic Platform for Extracellular RNA Profiling. Cell systems, 8(4), 352–357.e3. https://doi.org/10.1016/j.cels.2019.03.004
+
 # **Workflow**
 
 
@@ -71,11 +75,38 @@ hifislida2.pl
 Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were available on Nextseq flowcell (sometimes it could be 6 X 14). We hypothesized that spatial barcodes on tiles coverred by tissue should be mapped with more HIFISLIDE R1 thans spatial barcodes outside tissue cover region. To this end, we count the number of HIFISLIDE R1 reads per tile. To find a simplilified solution, we only considered HIFISLIDE R1 which had only one unique spatial barcode with highest alignment score on the surface.       
 **3-3. Output format**  
 Column 1 - Tile ID.  
-Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile. 
+Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile (ranked in descending order)
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.
 Next, we used fastp to further process HIFISLIDE R2 reads. 
+
+**Option 1**
+
+```
+fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_tail1_1.fastq --trim_tail1 100 --disable_quality_filtering --thread 16
+```
+
+```
+fastp -i L2R2_1x2_trim_tail1_1.fastq -o L2R2_1x2_trim_tail1_2.fastq --trim_tail1 30 --disable_quality_filtering --thread 16
+```
+**Option 2**
+```
+p=L2R2_1x2_processed_Q0
+fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --thread 16 > $p\o 2>$p\e
+```
+**Option 3**
+```
+p=L2R2_1x2_processed_Q1
+fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --thread 16 > $p\o 2>$p\e
+```
+**Option 4**
+```
+p=L2R2_1x2_processed_Q2
+fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
+```
+Here L2R2_1x2.fastq is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.
+
 
 
 ## 5. annotate HIFISLIDE R2 reads by genes/transcripts
