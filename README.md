@@ -1,7 +1,7 @@
 # **HiFi-Slides Spatial Sequencing**
 
 
-Contributions by Stanley, Ekko, Pie, Riccardo, Brianne and many others in Zhong Lab.
+Contributions by Stanley, Ekko, Pie, Riccardo, Brianne in Zhong Lab.
 
 # **About**  
 HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
