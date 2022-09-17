@@ -6,7 +6,7 @@ Contributions by Stanley, Ekko, Pie, Riccardo, Brianne in Zhong Lab.
 # **About**  
 HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
 # **Dependencies**  
-All used published tools are free softwares. We installed all of them under one conda environment.
+All published tools we used are free softwares. We installed all of them under one conda environment.
 # **References**
 Rozowsky, J., Kitchen, R. R., Park, J. J., Galeev, T. R., Diao, J., Warrell, J., Thistlethwaite, W., Subramanian, S. L., Milosavljevic, A., & Gerstein, M. (2019). exceRpt: A Comprehensive Analytic Platform for Extracellular RNA Profiling. Cell systems, 8(4), 352–357.e3. https://doi.org/10.1016/j.cels.2019.03.004
 
@@ -81,7 +81,7 @@ If tiles with highest number of HIFISLIDE R1 reads tend to be located in proximi
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
-Next, we used ``fastp`` to further process HIFISLIDE R2 reads.
+Next, we used ``fastp`` to further process HIFISLIDE R2 reads. We had 4 different options for processing.
 
 **Option 1**
 
@@ -107,19 +107,19 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --thread 16 > $p
 p=L2R2_1x2_processed_Q2
 fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
 ```
-Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
+Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
 If a HIFISLIDE R2 read could be mapped to a  gene using any of these options,that gene was assigned to the R2 read.
 
 
 
 ## 5. annotate HIFISLIDE R2 reads by genes/transcripts
 
-Two different strategies were applied here.  
+Two different strategies were applied.  
 (1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.  
 (2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
 For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as SeqScope.
 For BOWTIE2, we used default setting with the local alignment mode.
-If a HIFISLIDE R2 read could be mapped to any gene using one or both options,that gene was assigned to the R2 read.
+If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,that gene was assigned to the R2 read.
 
 
 ## 6. Integrate spatial coordinates and gene information for each HiFi read pairs.
