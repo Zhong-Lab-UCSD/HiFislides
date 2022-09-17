@@ -112,7 +112,7 @@ If a HIFISLIDE R2 read could be mapped to a  gene using any of these options,tha
 
 
 
-## 5. annotate HIFISLIDE R2 reads by genes/transcripts
+## 5. annotate HIFISLIDE R2 reads by genes
 
 Two different strategies were applied.  
 (1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.  
