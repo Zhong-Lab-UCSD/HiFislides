@@ -130,7 +130,7 @@ Two different strategies were applied.
 (1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.  
 (2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
 For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as SeqScope.
-For BOWTIE2, we used default setting with the local alignment mode.
+For BOWTIE2, we used default setting with the local alignment mode.  
 If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
 
 
