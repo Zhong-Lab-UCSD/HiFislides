@@ -47,7 +47,7 @@ bwa mem -a -k 40 -t 32 L1R1 HIFISLIDE_R1.fastq
 
 
 ```
-hifia_asort.pl output_sam_file_by_BWA
+hifislida.pl output_sam_file_by_BWA
 ```
 
 **2-1. Arguments**  
@@ -66,10 +66,12 @@ column 5 - highest alignment score between this HIFISLIDE R1 and aligned spatial
 ## 3. identify Region Of Interest(ROI)
 
 ```
-hifislida2.pl 
+hifislida2.pl Ouput_from_hifislida output_sam_file_by_BWA
 ```
 
 **3-1. Arguments**  
+argument \#1:  Output file produced by hifislida.pl
+argument \#2:  Outout file produced by BWA
 
 **3-2. Purpose**  
 Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were available on Nextseq flowcell (sometimes it could be 6 X 14). We hypothesized that spatial barcodes on tiles coverred by tissue should be mapped with more HIFISLIDE R1 thans spatial barcodes outside tissue cover region. To this end, we count the number of HIFISLIDE R1 reads per tile. To find a simplilified solution, we only considered HIFISLIDE R1 which had only one unique spatial barcode with highest alignment score on the surface.       
@@ -81,7 +83,7 @@ If tiles with highest number of HIFISLIDE R1 reads tend to be located in proximi
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
-Next, we used ``fastp`` to further process HIFISLIDE R2 reads. We had 4 different options for processing.
+Next, we used ``fastp`` to further process HIFISLIDE R2 reads. We had 6 different options for processing.
 
 
 Option 1
