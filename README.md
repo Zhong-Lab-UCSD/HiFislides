@@ -126,5 +126,6 @@ If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,th
 Results from Step 3 and 5 would be intergrated to provide gene annotation of each spatially resolved HIFISLIDE read pair. The output of this step would be   
 column 1 - Tile ID  
 column 2 - X-coord  
-column 3 - Y-coord  
-column 4 - Gene  
+column 3 - Y-coord
+column 4 - HIFISLIDE Read ID  
+column 5 - Gene  
