@@ -122,8 +122,6 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --
 
 
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
-If a HIFISLIDE R2 read could be mapped to a  gene using any of these options,that gene was assigned to the R2 read.
-
 
 
 ## 5. annotate HIFISLIDE R2 reads by genes
@@ -133,7 +131,7 @@ Two different strategies were applied.
 (2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
 For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as SeqScope.
 For BOWTIE2, we used default setting with the local alignment mode.
-If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,that gene was assigned to the R2 read.
+If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
 
 
 ## 6. Integrate spatial coordinates and gene information for each HiFi read pairs.
