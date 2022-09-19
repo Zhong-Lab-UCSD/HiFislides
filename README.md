@@ -83,30 +83,42 @@ If tiles with highest number of HIFISLIDE R1 reads tend to be located in proximi
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
 Next, we used ``fastp`` to further process HIFISLIDE R2 reads. We had 4 different options for processing.
 
-**Option 1**
 
+Option 1
 ```
-fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_tail1_1.fastq --trim_tail1 100 --disable_quality_filtering --thread 16
+fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_tail1_1.fastq --trim_tail1 80 --disable_quality_filtering --thread 16 > someo 2>somee;date
 ```
 
+Option 2
 ```
-fastp -i L2R2_1x2_trim_tail1_1.fastq -o L2R2_1x2_trim_tail1_2.fastq --trim_tail1 30 --disable_quality_filtering --thread 16
+fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_front1_1.fastq --trim_front1 60 --disable_quality_filtering --thread 16 > someo 2>somee;date
 ```
-**Option 2**
+
+Option 3
 ```
 p=L2R2_1x2_processed_Q0
 fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --thread 16 > $p\o 2>$p\e
 ```
-**Option 3**
+
+Option 4
 ```
 p=L2R2_1x2_processed_Q1
-fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --thread 16 > $p\o 2>$p\e
+fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
 ```
-**Option 4**
+
+Option 5
 ```
 p=L2R2_1x2_processed_Q2
-fastp -i L2R2_1x2.fastq -o $p.fastq --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
+fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_front --thread 16 > $p\o 2>$p\e
 ```
+
+Option 6
+```
+p=L2R2_1x2_processed_Q3
+fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_tail --thread 16 > $p\o 2>$p\e
+```
+
+
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
 If a HIFISLIDE R2 read could be mapped to a  gene using any of these options,that gene was assigned to the R2 read.
 
