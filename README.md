@@ -6,8 +6,17 @@ Contributions by Stanley, Ekko, Pie, Riccardo, Brianne in Zhong Lab.
 # **About**  
 HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
 # **Dependencies**  
-All published tools used in HIFISLIDE data analysis are free softwares. We installed all of them under one conda environment.
+All published tools used in HIFISLIDE data analysis are free softwares. We installed all of them under one conda environment.  
+PEAR v0.9.6  
+fastp version 0.23.2  
+bwa 0.7.17-r1188  
+bowtie2 version 2.4.5  
+R packages:  
+ComplexHeatmap 2.10.0  
+
 # **References**
+PEAR: a fast and accurate Illumina Paired-End reAd mergeR
+Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/btt593  
 Rozowsky, J., Kitchen, R. R., Park, J. J., Galeev, T. R., Diao, J., Warrell, J., Thistlethwaite, W., Subramanian, S. L., Milosavljevic, A., & Gerstein, M. (2019). exceRpt: A Comprehensive Analytic Platform for Extracellular RNA Profiling. Cell systems, 8(4), 352–357.e3. https://doi.org/10.1016/j.cels.2019.03.004
 
 # **Workflow**
