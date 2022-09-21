@@ -5,14 +5,17 @@ Contributions by Stanley, Ekko, Pie, Riccardo, Brianne in Zhong Lab.
 
 # **About**  
 HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
-# **Dependencies**  
-All published computational tools used for HIFISLIDE data analysis are free softwares. We installed all of them under one conda environment.  
-[PEAR - Paired-End reAd mergeR](https://cme.h-its.org/exelixis/web/software/pear/)  
-[fastp](https://github.com/OpenGene/fastp)  
-[bwa](http://bio-bwa.sourceforge.net/bwa.shtml)  
-[Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)  
-R packages:  
-[ComplexHeatmap](http://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)  
+# **Computational tools**  
+All published computational tools used for HIFISLIDE data analysis are free softwares. We installed all of them under one conda environment.   
+
+**Required softwares**  
+- [PEAR - Paired-End reAd mergeR](https://cme.h-its.org/exelixis/web/software/pear/)  
+- [fastp](https://github.com/OpenGene/fastp)  
+- [bwa](http://bio-bwa.sourceforge.net/bwa.shtml)  
+- [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)  
+
+**R packages**  
+- [ComplexHeatmap](http://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)  
 
 # **References**
 PEAR: a fast and accurate Illumina Paired-End reAd mergeR
