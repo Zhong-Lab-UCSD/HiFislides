@@ -12,6 +12,7 @@ All published computational tools used for HIFISLIDE data analysis are free soft
 - [PEAR - Paired-End reAd mergeR](https://cme.h-its.org/exelixis/web/software/pear/)  
 - [fastp](https://github.com/OpenGene/fastp)  
 - [bwa](http://bio-bwa.sourceforge.net/bwa.shtml)  
+- [STAR](https://github.com/alexdobin/STAR)  
 - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)  
 
 **R packages**  
