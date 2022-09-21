@@ -1,29 +1,28 @@
-# **HiFi-Slides Spatial Sequencing**
+# HiFi-Slides Spatial Sequencing
+Contributions by Stanley, Ekko, Pei, Riccardo, Brianne in Zhong Lab.
 
+# About  
+HiFi-Slide is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
 
-Contributions by Stanley, Ekko, Pie, Riccardo, Brianne in Zhong Lab.
+# Computational tools
+All published computational tools used for HiFi-Slide data analysis are free software. We installed all of them under one conda environment.   
 
-# **About**  
-HiFi-Slide sequencing is a super-resolution spatial transcriptomics sequencing technology. This technique captures and spatially resolves genome-wide RNA expression in a submicron resolution for fresh-frozen tissue.  
-# **Computational tools**  
-All published computational tools used for HIFISLIDE data analysis are free softwares. We installed all of them under one conda environment.   
-
-**Required softwares**  
+**Required software:**  
 - [PEAR - Paired-End reAd mergeR](https://cme.h-its.org/exelixis/web/software/pear/)  
 - [fastp](https://github.com/OpenGene/fastp)  
 - [bwa](http://bio-bwa.sourceforge.net/bwa.shtml)  
 - [STAR](https://github.com/alexdobin/STAR)  
 - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)  
 
-**R packages**  
+**R packages:**  
 - [ComplexHeatmap](http://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)  
 
-# **References**
+# References
 - PEAR: a fast and accurate Illumina Paired-End reAd mergeR
 Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/btt593  
 - Rozowsky, J., Kitchen, R. R., Park, J. J., Galeev, T. R., Diao, J., Warrell, J., Thistlethwaite, W., Subramanian, S. L., Milosavljevic, A., & Gerstein, M. (2019). exceRpt: A Comprehensive Analytic Platform for Extracellular RNA Profiling. Cell systems, 8(4), 352–357.e3. https://doi.org/10.1016/j.cels.2019.03.004
 
-# **Workflow**
+# Workflow
 
 
 ## 1. deduplication of spatial barcodes
