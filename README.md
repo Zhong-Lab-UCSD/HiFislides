@@ -24,7 +24,6 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
-
 ## 1. deduplication of spatial barcodes
 ```
 surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
