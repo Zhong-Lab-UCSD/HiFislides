@@ -24,6 +24,8 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
+Note that here we use dummy codes just to provide and overview of the main steps of the workflow.
+
 ## 1. Deduplication of spatial barcodes (L1R1)
 ```
 surfdedup AAAL33WM5:1:1 *_L1R1.fastq.gz > L1R1_dedup.fasta 2>L1R1_dup.txt
@@ -42,56 +44,66 @@ The output of surfdedup includes two files:
 2. `L1R1_dup.txt`: txt file listing all the read identifiers that shared the same read sequence. Note that when N reads shared the same sequence, only 1 of the N read identifiers would be randomly chosen and printed to `L1R1_dedup.fasta` while the remaining N - 1 read identifiers would be shown in N - 1 rows in `L1R1_dup.txt`.
   
 
-## 2. Align HIFISLIDE R1 reads to deduplicated spatial barcodes
+## 2. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
 
-Aligner bwa was used to map HIFISLIDE R1 reads to spatial barcodes (i.e. R1 reads from recycled flowcell)
+Aligner BWA was used to map HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes `L1R1_dedup.fasta`.
 
-L1R1Dedup.fasta is the output fasta by surfdedup
+First, we create bwa index from `L1R1_dedup.fasta`:
+```
+bwa index -p L1R1_dedup L1R1_dedup.fasta
+```
+Then, we align HiFi-Slide R1 reads `L2R1.fastq` to the deduplicated spatial barcodes:
 
 ```
-bwa index L1R1 L1R1Dedup.fasta
-```
-HIFISLIDE_R1.fastq is the raw R1 read from HIFISLIDE sequencing.
-
-```
-bwa mem -a -k 40 -t 32 L1R1 HIFISLIDE_R1.fastq
+bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1__L1R1_dedup.sam 2>L2R1__L1R1_dedup.log
 ```
 
-
+# 3. Select HiFi-Slide R1 reads with highest alignment score
 ```
-hifislida.pl output_sam_file_by_BWA
-```
-
-**2-1. Arguments**  
-argument \#1: output sam file from BWA  
-
-**2-2. Purpose**   
-This script read the sam file output from bwa and collect spatial barcodes aligned with each HIFISLIDE R1 at highest alignment score. If a HIFISLIDE R1 was aligned with N spatial barcodes that tied at the highest score, all N spatial barcodes would be output except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
-
-**2-3. Output Format**   
-column 1 - HIFISLIDE Read ID   
-column 2 - spatial barcode Read ID. Each spatial barcode ID provide its spatial coordinantes explicitly.  
-column 3 - Number of non-redundant spatial barcode aligned at the highest score.  
-column 4 - Number of all spatial barcode aligned at the highest score.  
-column 5 - highest alignment score between this HIFISLIDE R1 and aligned spatial barcode.  
-
-## 3. identify Region Of Interest(ROI)
-
-```
-hifislida2.pl Ouput_from_hifislida output_sam_file_by_BWA
+hifislida.pl L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida.o 2>L2R1__L1R1_dedup.hifislida.e
 ```
 
-**3-1. Arguments**  
-argument \#1:  Output file produced by hifislida.pl
-argument \#2:  Outout file produced by BWA
+**Arguments**  
+1. Output SAM file from BWA.  
 
-**3-2. Purpose**  
-Count the number of HIFISLIDE reads per tile. A total of 6 X 11 tiles were available on Nextseq flowcell (sometimes it could be 6 X 14). We hypothesized that spatial barcodes on tiles coverred by tissue should be mapped with more HIFISLIDE R1 thans spatial barcodes outside tissue cover region. To this end, we count the number of HIFISLIDE R1 reads per tile. To find a simplilified solution, we only considered HIFISLIDE R1 which had only one unique spatial barcode with highest alignment score on the surface.       
-**3-3. Output format**  
-Column 1 - Tile ID.  
-Column 2 - Number of spatially resolved HIFISLIDE R1 reads per tile (ranked in descending order)
+**Purpose**   
+Read the SAM file output from BWA and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
 
-If tiles with highest number of HIFISLIDE R1 reads tend to be located in proximity, that may indicate these tiles were covered by the tissue.
+**Output**
+Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
+
+- Column 1: HiFi-Slide read ID. 
+- Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
+- Column 3: Number of non-redundant spatial barcodes aligned at the highest score.  
+- Column 4: Number of all the spatial barcodes aligned at the highest score.  
+- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.  
+
+
+## 4. Identify the Region of Interest (ROI)
+
+```
+hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida2.o 2>L2R1__L1R1_dedup.hifislida2.e
+```
+
+**Arguments**  
+1. Output file produced by hifislida.pl.
+2. Output file produced by BWA.
+
+**Purpose**  
+Count the number of HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface.       
+
+**Output**  
+Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
+
+- Column 1: Tile ID.  
+- Column 2: Number of spatially resolved HiFi-Slide R1 reads per tile (ranked in descending order).
+
+If tiles with high number of HiFi-Slide R1 reads tend to be located in proximity, that may indicate these tiles were covered by the tissue.
+
+
+*** updated by Riccardo until here
+
+
 
 ## 4. preprocessing of HIFISLIDE R2 reads  
 By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
