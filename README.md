@@ -24,21 +24,22 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
-## 1. deduplication of spatial barcodes
+## 1. Deduplication of spatial barcodes (L1R1)
 ```
-surfdedup AAAL33WM5:1:1 *_L00$i\_R1_001.fastq.gz  
+surfdedup AAAL33WM5:1:1 *_L1R1.fastq.gz > L1R1_dedup.fasta 2>L1R1_dup.txt
 ```
-**1-1. Arguments**  
-argument \#1: identifier of the surface on recycled flowcell. For example, AAAL33WM5:1:1 indicates deduplication would be performed on the top surface of lane 1 of flowcell AAAL33WM5. 
+**Arguments**  
+1. Identifier of the surface on recycled flowcell. For example, AAAL33WM5:1:1 indicates that the deduplication will be performed on the top surface (surface 1) of lane 1 of flowcell AAAL33WM5. 
+2. The filename identifier of several L1R1 fastq files.
 
-argument \#2: the names of >= 1 fastq.gz files
+**Purpose**  
+Remove redundant spatial barcodes. This script reads raw reads from recycled flow cell and adds "_N" to the identifier of each read, where N is the number of times the read is found on the surface (i.e. one spatial barcode could be found at N different coordinates on the surface). This script considered only reads from the surface identified by argument 1. 
 
-**1-2. Purpose**  
-Remove redundant spatial barcodes. This script read raw reads from recycled flow cell and add "_N" to the identifier of each read. For a read whose sequence could be found N times on the surface, its identifier would be labeled with "_N". This indicates that one spatial barcode could be found at N different coordinates on the surface. This script considered only reads from the surface identified by argument \#1. 
+**Output**  
+The output of surfdedup includes two files:
 
-**1-3. Output**  
-the output of surfdedup includes two files: (1) a fasta of deduplicated Read sequence. (2)a text file listed all read identifiers that shared the same read sequence.   
-Note that when N reads shared the same sequence, only 1 of N read identifiers would be randomly chosen and printed to (1) while the remaining N - 1 read identifiers would be shown in N - 1 rows in (2)
+1. `L1R1_dedup.fasta`: fasta file with deduplicated read sequences (obtained from STDOUT). 
+2. `L1R1_dup.txt`: txt file listing all the read identifiers that shared the same read sequence. Note that when N reads shared the same sequence, only 1 of the N read identifiers would be randomly chosen and printed to `L1R1_dedup.fasta` while the remaining N - 1 read identifiers would be shown in N - 1 rows in `L1R1_dup.txt`.
   
 
 ## 2. Align HIFISLIDE R1 reads to deduplicated spatial barcodes
