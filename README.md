@@ -24,7 +24,7 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
-Note that here we use dummy codes just to provide and overview of the main steps of the workflow.
+Note that here we use dummy codes just to provide and overview of the main steps of the workflow. More information can be found [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit#).
 
 ## 1. Deduplication of spatial barcodes (L1R1)
 ```
@@ -58,7 +58,7 @@ Then, we align HiFi-Slide R1 reads `L2R1.fastq` to the deduplicated spatial barc
 bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1__L1R1_dedup.sam 2>L2R1__L1R1_dedup.log
 ```
 
-# 3. Select HiFi-Slide R1 reads with highest alignment score
+## 3. Select HiFi-Slide R1 reads with highest alignment score
 ```
 hifislida.pl L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida.o 2>L2R1__L1R1_dedup.hifislida.e
 ```
@@ -93,7 +93,7 @@ hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_ded
 Count the number of HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface.       
 
 **Output**  
-Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
+Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
 
 - Column 1: Tile ID.  
 - Column 2: Number of spatially resolved HiFi-Slide R1 reads per tile (ranked in descending order).
