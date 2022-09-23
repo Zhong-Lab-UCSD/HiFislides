@@ -76,10 +76,12 @@ Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
 - Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
 - Column 3: Number of non-redundant spatial barcodes aligned at the highest score.  
 - Column 4: Number of all the spatial barcodes aligned at the highest score.  
-- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.  
+- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.
 
 
 ## 4. Identify the Region of Interest (ROI)
+
+### Rank the tiles by number of HiFi-Slide read pairs
 
 ```
 hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida2.o 2>L2R1__L1R1_dedup.hifislida2.e
@@ -90,24 +92,28 @@ hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_ded
 2. Output file produced by BWA.
 
 **Purpose**  
-Count the number of HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface.       
+Count the number of HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1__L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
 
 **Output**  
 Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
 
 - Column 1: Tile ID.  
 - Column 2: Number of spatially resolved HiFi-Slide R1 reads per tile (ranked in descending order).
+- Column 3: Number of mapped barcodes per tile.
 
 If tiles with high number of HiFi-Slide R1 reads tend to be located in proximity, that may indicate these tiles were covered by the tissue.
 
 
-*** updated by Riccardo until here
+### 
 
 
 
-## 4. preprocessing of HIFISLIDE R2 reads  
-By design, HIFISLIDE R2 sequenced the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HIFISLIDE R2 into the spatial barcode. If occurred, HIFISLIDE R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HIFISLIDE R2 and also search for the overlap between HIFISLIDE R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HIFISLIDE R2 that overlap with HIFISLIDE R1 or mapped with illumina R1 primer.  
-Next, we used ``fastp`` to further process HIFISLIDE R2 reads. We had 6 different options for processing.
+
+
+## 5. Preprocessing of Hi R2 reads  
+
+By design, HiFi-Slide R2 sequences the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HiFi-Slide R2 into the spatial barcode. If occurred, HiFi-Slide R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HiFi-Slide R2 and also search for the overlap between HiFi-Slide R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HiFi-Slide R2 that overlap with HiFi-Slide R1 or mapped with illumina R1 primer.  
+Next, we used ``fastp`` to further process HiFi-Slide R2 reads. We had 6 different options for processing.
 
 
 Option 1
@@ -145,23 +151,23 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --
 ```
 
 
-Here ``L2R2_1x2.fastq`` is the fastq of filtered HIFISLIDE R2 reads that not overlapped with HIFISLIDE R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
+Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not overlapped with HiFi-Slide R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
 
 
-## 5. annotate HIFISLIDE R2 reads by genes
+## 5. annotate HiFi-Slide R2 reads by genes
 
 Two different strategies were applied.  
-(1) we used STAR to align HIFISLIDE R2 reads to genome and then used bedtools to obtain annotated genes per HIFISLIDE-mapped genomic locus.  
-(2) we used BOWTIE2 directly map HIFISLIDE R2 to transcriptome.
+(1) we used STAR to align HiFi-Slide R2 reads to genome and then used bedtools to obtain annotated genes per HiFi-Slide-mapped genomic locus.  
+(2) we used BOWTIE2 directly map HiFi-Slide R2 to transcriptome.
 For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as [SeqScope](https://github.com/leeju-umich/Cho_Xi_Seqscope/blob/main/script/align.sh).
 For BOWTIE2, we used default setting with the local alignment mode.  
-If a HIFISLIDE R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
+If a HiFi-Slide R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
 
 
 ## 6. Integrate spatial coordinates and gene information for each HiFi read pairs.
-Results from Step 3 and 5 would be intergrated to provide gene annotation for each spatially resolved HIFISLIDE read pair. The output of this step would be   
+Results from Step 3 and 5 would be intergrated to provide gene annotation for each spatially resolved HiFi-Slide read pair. The output of this step would be   
 column 1 - Tile ID  
 column 2 - X-coord  
 column 3 - Y-coord  
-column 4 - HIFISLIDE Read ID  
+column 4 - HiFi-Slide Read ID  
 column 5 - Gene  
