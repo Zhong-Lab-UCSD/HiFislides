@@ -92,7 +92,7 @@ hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_ded
 2. Output file produced by BWA.
 
 **Purpose**  
-Count the number of HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1__L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
+Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1__L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
 
 **Output**  
 Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
@@ -101,18 +101,47 @@ Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
 - Column 2: Number of spatially resolved HiFi-Slide R1 reads per tile (ranked in descending order).
 - Column 3: Number of mapped barcodes per tile.
 
+### Select tiles under ROI
+
 If tiles with high number of HiFi-Slide R1 reads tend to be located in proximity, that may indicate these tiles were covered by the tissue.
 
-
-### 
-
+Algorithm explained in the Google Doc, script `xxx`.
 
 
+## 5. Match HiFi-Slide read pairs with spatial location 
+
+Note: output filename to be changed to something better!!
+
+```
+hifislida3.pl L2R1__L1R1_dedup.hifislida.o ROI_tiles.txt L1R1_dup.txt > hifislida3.o
+```
+
+**Arguments**  
+1. Output file produced by hifislida.pl.
+2. Output file produced by `xxx` with the IDs of the tiles under ROI.
+3. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
+
+**Purpose**  
+With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
+
+**Output**  
+Tab-separated file `hifislida3.o` with the following columns:
+
+- Column 1: HiFi-Slide read ID.
+- Column 2: Tile ID (only tiles under the ROI provided as input).
+- Column 3: X-coord on the tile (columns).
+- Column 4: Y-coord on the tile (rows).
+- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
 
 
-## 5. Preprocessing of Hi R2 reads  
+***updated by Riccardo until here***
 
-By design, HiFi-Slide R2 sequences the tissue RNA. It is the RNA end. In practice, one issue was the read throught by HiFi-Slide R2 into the spatial barcode. If occurred, HiFi-Slide R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HiFi-Slide R2 and also search for the overlap between HiFi-Slide R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HiFi-Slide R2 that overlap with HiFi-Slide R1 or mapped with illumina R1 primer.  
+
+## 5. Preprocessing of HiFi-Slide R2 reads  
+
+By design, HiFi-Slide R2 sequences the tissue RNA (RNA end of the read pair). 
+
+In practice, one issue was the read throught by HiFi-Slide R2 into the spatial barcode. If occurred, HiFi-Slide R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HiFi-Slide R2 and also search for the overlap between HiFi-Slide R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HiFi-Slide R2 that overlap with HiFi-Slide R1 or mapped with illumina R1 primer.  
 Next, we used ``fastp`` to further process HiFi-Slide R2 reads. We had 6 different options for processing.
 
 
