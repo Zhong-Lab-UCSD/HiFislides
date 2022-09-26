@@ -97,9 +97,9 @@ Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 t
 **Output**  
 Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
 
-- Column 1: Tile ID.  
-- Column 2: Number of spatially resolved HiFi-Slide R1 reads per tile (ranked in descending order).
-- Column 3: Number of mapped barcodes per tile.
+- Column 1: Tile ID (with a "T" at the beginning). *Is it useful to have the T? If so, this should be always present to identify the tile ID and also in the output of hifislida3* 
+- Column 2: Number of spatially resolved HiFi-Slide read pairs per tile (ranked in descending order).
+- Column 3: Number of mapped barcodes on the tile used for resolving the HiFi-Slide read pairs.
 
 ### Select tiles under ROI
 
@@ -107,13 +107,16 @@ If tiles with high number of HiFi-Slide R1 reads tend to be located in proximity
 
 Algorithm explained in the Google Doc, script `xxx`.
 
+**Output**
+`ROI_tile_IDs.txt`: Tile IDs under ROI.
+
 
 ## 5. Match HiFi-Slide read pairs with spatial location 
 
 Note: output filename to be changed to something better!!
 
 ```
-hifislida3.pl L2R1__L1R1_dedup.hifislida.o ROI_tiles.txt L1R1_dup.txt > hifislida3.o
+hifislida3.pl L2R1__L1R1_dedup.hifislida.o ROI_tile_IDs.txt L1R1_dup.txt > hifislida3.o
 ```
 
 **Arguments**  
