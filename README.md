@@ -144,13 +144,60 @@ Tab-separated file `hifislida3.o` with the following columns:
 
 By design, HiFi-Slide R2 reads contain the sequences of the tissue RNA (RNA end of the read pair). 
 
-Theoretically, it is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but unintendedly reads through the fragment from one end to the other end. In other words, HiFi-Slide R2 could mistakenly include a portion of R1 in the recycled flow cell. To identify such cases, we search for overlap between L2R1 and L2R2 using the software PEAR (v0.9.6, minimum overlap size = 30 bp) and for the presence of Illumina Read 1 primer (in reverse complementary form) in L2R2 using the software fastp (v0.23.2). We exclude such L2R2 reads from further analysis. Moreover, we also use fastp to remove L2R2 with poor quality and remove low complexity regions (e.g. poly-G) from L2R2.
+It is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but unintendedly reads through the fragment from one end to the other end. In other words, HiFi-Slide R2 could mistakenly include a portion of R1 in the recycled flow cell. To identify such cases, we search for overlap between L2R1 and L2R2 using the software PEAR (v0.9.6, minimum overlap size = 10 bp) and we filter out such L2R2 reads. Next, we trim the front 60 bp to remove Illumina Read 1 primers in L2R2 using the software fastp (v0.23.2). Note that besides trimming, fastp also reduces the number of reads because it filters out reads that are too short.
 
 
+### Filter out overlapping L2R1 and L2R2 (pear)
+
+```
+pear \
+-f L2R1 \
+-r L2R2 \
+-v 10 \
+-j 32 \
+-o L2R2_pear
+```
+
+**Arguments**  
+- `-f`: Name of the file with the forward paired-end reads.
+- `-r`: Name of the file with the reverse paired-end reads.
+- `-v`: Minimum overlap size (default: 10).
+- `-j`: Number of threads.
+- `-o`: Basename of the output files.
+
+**Output**  
+The software produces several fastq files with different contents. For our purposes, we are interested in `unassembled.reverse.fastq`, which contains the L2R2 reads not overlapping L2R1.
 
 
+### Trimming Illumina Read 1 primers (fastp)
 
-Option 1
+The software fastp can trim only 30 bp at the time, thus it is run twice consecutively. The first input file `-i` is the output fastq from pear, the second input file is the output file from the first round of fastp. With this step we also remove reads that are too short.
+
+```
+fastp \
+-i L2R2.pear_filter.fastq \
+-o L2R2.trim_front_temp.fastq \
+-h L2R2.trim_front_temp.log.html \
+-j L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i L2R2.trim_front_temp.fastq \
+-o L2R2.trim_front_60.fastq \
+-h L2R2.trim_front_60.log.html \
+-j L2R2.trim_front_60.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+```
+
+**Output**  
+Fastq file of preprocessed L2R2 reads `L2R2.trim_front_60.fastq` that will go into the following mapping steps.
+
+
+<!-- Option 1
 ```
 fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_tail1_1.fastq --trim_tail1 80 --disable_quality_filtering --thread 16 > someo 2>somee;date
 ```
@@ -182,7 +229,7 @@ Option 6
 ```
 p=L2R2_1x2_processed_Q3
 fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_tail --thread 16 > $p\o 2>$p\e
-```
+``` -->
 
 
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not overlapped with HiFi-Slide R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
