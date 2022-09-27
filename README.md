@@ -231,14 +231,53 @@ fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not overlapped with HiFi-Slide R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
 -->
 
-## 7. annotate HiFi-Slide R2 reads by genes
+## 7. Mapping HiFi-Slide R2 reads
 
-Two different strategies were applied.  
-(1) we used STAR to align HiFi-Slide R2 reads to genome and then used bedtools to obtain annotated genes per HiFi-Slide-mapped genomic locus.  
-(2) we used BOWTIE2 directly map HiFi-Slide R2 to transcriptome.
-For STAR usage, we set --outFilterScoreMinOverLread and --outFilterMatchNminOverLread to be 0 as [SeqScope](https://github.com/leeju-umich/Cho_Xi_Seqscope/blob/main/script/align.sh).
+1. We used STAR to align HiFi-Slide R2 reads to the genome.
+2. we used BOWTIE2 to align HiFi-Slide R2 to the transcriptome.
+
+### Mapping to the genome
+
+For STAR, we set `--outFilterScoreMinOverLread` and `--outFilterMatchNminOverLread` to be 0 as in [SeqScope](https://github.com/leeju-umich/Cho_Xi_Seqscope/blob/main/script/align.sh).
+
+```
+STAR \
+--genomeDir $STAR_INDEX \
+--readFilesIn L2R2.trim_front_60.fastq \
+--outSAMtype BAM SortedByCoordinate \
+--outReadsUnmapped Fastx \
+--outSAMattributes All \
+--outFileNamePrefix $L2_DIR/L2R2_mapping/genome/L2R2_genome. \
+--sjdbGTFfile $annotation_gtf_file \
+--outFilterScoreMinOverLread 0 \
+--outFilterMatchNminOverLread 0 \
+--runThreadN 32
+```
+
+Next, uniquely mapped reads are selected using samtools.
+
+```
+samtools view -@ 32 -b -h -q 255 \
+-o $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+$L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam 
+```
+
+Finally, uniquely mapped reads are associated with genes using bedtools. `Homo_sapiens.GRCh38.84.chr.gene.gtf` is a modified version of the original GTF file, where only full gene body coordinates are kept (column 3 equal to "gene"), the additonal information (such as exons) were discarded. The final `HiFi_L2R2_genome.bed` shows each L2R2 read associated with the corresponding gene.
+
+```
+bedtools intersect \
+-a $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+-b Homo_sapiens.GRCh38.84.chr.gene.gtf \
+-wb -bed | cut -f 1,2,3,4,21 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
+```
+
+
+### Mapping to the transcriptome
+
 For BOWTIE2, we used default setting with the local alignment mode.  
 If a HiFi-Slide R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
+
+
 
 
 ## 8. Integrate spatial coordinates and gene information for each HiFi read pairs.
