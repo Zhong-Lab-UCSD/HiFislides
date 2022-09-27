@@ -229,13 +229,12 @@ Option 6
 ```
 p=L2R2_1x2_processed_Q3
 fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_tail --thread 16 > $p\o 2>$p\e
-``` -->
-
+``` 
 
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not overlapped with HiFi-Slide R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
+-->
 
-
-## 5. annotate HiFi-Slide R2 reads by genes
+## 7. annotate HiFi-Slide R2 reads by genes
 
 Two different strategies were applied.  
 (1) we used STAR to align HiFi-Slide R2 reads to genome and then used bedtools to obtain annotated genes per HiFi-Slide-mapped genomic locus.  
@@ -245,7 +244,7 @@ For BOWTIE2, we used default setting with the local alignment mode.
 If a HiFi-Slide R2 read could be mapped to a gene using one or both strategies,it would be counted for that gene.
 
 
-## 6. Integrate spatial coordinates and gene information for each HiFi read pairs.
+## 8. Integrate spatial coordinates and gene information for each HiFi read pairs.
 Results from Step 3 and 5 would be intergrated to provide gene annotation for each spatially resolved HiFi-Slide read pair. The output of this step would be   
 column 1 - Tile ID  
 column 2 - X-coord  
