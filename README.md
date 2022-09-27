@@ -140,12 +140,14 @@ Tab-separated file `hifislida3.o` with the following columns:
 ***updated by Riccardo until here***
 
 
-## 5. Preprocessing of HiFi-Slide R2 reads  
+## 6. Preprocessing of HiFi-Slide R2 reads  
 
-By design, HiFi-Slide R2 sequences the tissue RNA (RNA end of the read pair). 
+By design, HiFi-Slide R2 reads contain the sequences of the tissue RNA (RNA end of the read pair). 
 
-In practice, one issue was the read throught by HiFi-Slide R2 into the spatial barcode. If occurred, HiFi-Slide R2 could carry sequence of the R1 from the recycled flowcell. To identify such cases, we search for the illumina R1 primer in HiFi-Slide R2 and also search for the overlap between HiFi-Slide R1 and R2 per read pair. The latter task was performed by PEAR v0.9.6 using default parameters. We excluded HiFi-Slide R2 that overlap with HiFi-Slide R1 or mapped with illumina R1 primer.  
-Next, we used ``fastp`` to further process HiFi-Slide R2 reads. We had 6 different options for processing.
+Theoretically, it is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but unintendedly reads through the fragment from one end to the other end. In other words, HiFi-Slide R2 could mistakenly include a portion of R1 in the recycled flow cell. To identify such cases, we search for overlap between L2R1 and L2R2 using the software PEAR (v0.9.6, minimum overlap size = 30 bp) and for the presence of Illumina Read 1 primer (in reverse complementary form) in L2R2 using the software fastp (v0.23.2). We exclude such L2R2 reads from further analysis. Moreover, we also use fastp to remove L2R2 with poor quality and remove low complexity regions (e.g. poly-G) from L2R2.
+
+
+
 
 
 Option 1
