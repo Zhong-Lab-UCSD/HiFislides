@@ -137,9 +137,6 @@ Tab-separated file `hifislida3.o` with the following columns:
 - Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
 
 
-***updated by Riccardo until here***
-
-
 ## 6. Preprocessing of HiFi-Slide R2 reads  
 
 By design, HiFi-Slide R2 reads contain the sequences of the tissue RNA (RNA end of the read pair). 
