@@ -278,7 +278,7 @@ Example:
 chr10   70257   70295   MN00185:308:000H3YMVH:1:11104:22416:20248       gene_id "ENSG00000261456"; gene_version "5"; gene_name "TUBB8"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000174803"; havana_gene_version "2";
 chr10   135356  135387  MN00185:308:000H3YMVH:1:22102:18602:1451        gene_id "ENSG00000015171"; gene_version "18"; gene_name "ZMYND11"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000017526"; havana_gene_version "7";
 chr10   135360  135410  MN00185:308:000H3YMVH:1:11103:2816:12628        gene_id "ENSG00000015171"; gene_version "18"; gene_name "ZMYND11"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000017526"; havana_gene_version "7";
-chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239 gene_id "ENSG00000015171"; gene_version "18"; gene_name "ZMYND11"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000017526"; havana_gene_version "7";
+chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id "ENSG00000015171"; gene_version "18"; gene_name "ZMYND11"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000017526"; havana_gene_version "7";
 ```
 
 Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns:
