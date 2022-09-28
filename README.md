@@ -271,7 +271,7 @@ bedtools intersect \
 -wb -bed | cut -f 1,2,3,4,21 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
 ```
 
-`HiFi_L2R2_genome_temp.bed` shows each L2R2 read associated with the corresponding gene where gene information are formatted as in a GTF file. Additional processing will transform the file into the final `HiFi_L2R2_genome_temp.bed` with the following columns:
+`HiFi_L2R2_genome_temp.bed` shows each L2R2 read associated with the corresponding gene where gene information are formatted as in a GTF file. Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns:
 
 - Column 1: Chromosome.
 - Column 2: L2R2 start coordinate.
@@ -292,7 +292,7 @@ chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG0000
 
 ### Mapping to the transcriptome
 
-For BOWTIE2, we used default setting with the local alignment mode.  
+For BOWTIE2, we used default settings with the local alignment mode.  
 
 
 
