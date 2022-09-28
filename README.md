@@ -258,7 +258,7 @@ STAR \
 --runThreadN 32
 ```
 
-Next, uniquely mapped reads are selected using samtools.
+Next, uniquely mapped reads are selected using samtools (NOTE: maybe here using MAPQ30 would be good enough).
 
 ```
 samtools view -@ 32 -b -h -q 255 \
