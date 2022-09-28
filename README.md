@@ -285,7 +285,7 @@ chr10   135360  135410  MN00185:308:000H3YMVH:1:11103:2816:12628        gene_id 
 chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id "ENSG00000015171"; gene_version "18"; gene_name "ZMYND11"; gene_source "ensembl_havana"; gene_biotype "protein_coding"; havana_gene "OTTHUMG00000017526"; havana_gene_version "7";
 ```
 
-Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns:
+Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns (maybe here no need for columns 1-3?):
 
 - Column 1: Chromosome.
 - Column 2: L2R2 start coordinate.
