@@ -12,7 +12,11 @@ All published computational tools used for HiFi-Slide data analysis are free sof
 - [fastp](https://github.com/OpenGene/fastp)  
 - [bwa](http://bio-bwa.sourceforge.net/bwa.shtml)  
 - [STAR](https://github.com/alexdobin/STAR)  
-- [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)  
+- [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
+- Bedtools
+- samtools
+- seqtk?
+
 
 **R packages:**  
 - [ComplexHeatmap](http://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)  
