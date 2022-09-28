@@ -262,7 +262,7 @@ samtools view -@ 32 -b -h -q 255 \
 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam 
 ```
 
-Finally, uniquely mapped reads are associated with genes using bedtools. `Homo_sapiens.GRCh38.84.chr.gene.gtf` is a modified version of the original GTF file, where only full gene body coordinates are kept (column 3 equal to "gene"), the additonal information (such as exons) were discarded.
+Finally, uniquely mapped reads are associated with genes using bedtools. `Homo_sapiens.GRCh38.84.chr.gene.gtf` is a modified version of the original GTF file, where only full gene body coordinates are kept (column 3 equal to "gene"), the additional rows (such as those related to exons for example) were discarded.
 
 ```
 bedtools intersect \
