@@ -238,7 +238,7 @@ Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not ov
 ## 7. Mapping HiFi-Slide R2 reads
 
 1. We used STAR to align HiFi-Slide R2 reads to the genome.
-2. we used BOWTIE2 to align HiFi-Slide R2 to the transcriptome.
+2. we used Bowtie 2 to align HiFi-Slide R2 to the transcriptome.
 
 ### Mapping to the genome
 
@@ -287,11 +287,11 @@ chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id 
 
 Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns (maybe here no need for columns 1-3?):
 
-- Column 1: Chromosome.
+- Column 1: L2R2 chromosome.
 - Column 2: L2R2 start coordinate.
 - Column 3: L2R2 end coordinate.
 - Column 4: L2R2 read ID.
-- Column 5: gene Ensembl ID.
+- Column 5: Gene ID.
 - Column 6: Gene name.
 - Column 7: Gene biotype.
 
@@ -306,7 +306,7 @@ chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG0000
 
 ### Mapping to the transcriptome
 
-For Bowtie 2, we used default settings with the `--local` alignment mode. We created indexes for four types of transcripts: miRNA, circRNA, piRNA, tRNA, and then for each of them:
+For Bowtie 2, we use default settings with the `--local` alignment mode. We create indexes for four types of transcripts: miRNA, circRNA, piRNA, tRNA, and then for each of them:
 
 1. We map the processed HiFi-Slide R2 reads `L2R2.trim_front_60.fastq`.
 2. We select the uniquely mapped reads using MAPQ > 10.
@@ -331,7 +331,7 @@ cut -f 1,3 L2R2_$i"_mapped.mapq10.sam" > L2R2_$i"_mapped.mapq10.txt"
 done
 ```
 
-Example of output for piRNA:
+We obtain four tab-separated txt files as output (as long as there are valid mapped HiFi-Slide reads for each of them). Example of output for piRNA:
 ```
 MN00185:308:000H3YMVH:1:11101:11533:3933        piR-hsa-2277753
 MN00185:308:000H3YMVH:1:11101:7721:4462         piR-hsa-2277753
@@ -340,19 +340,51 @@ MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
 ```
 
 
-## 8. Integrate spatial coordinates and gene information
+## 8. Integrate spatial coordinates and RNA information
+
+As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). This will produce final tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2).
+
+### Genome
+
+```
+cat hifislida3.o | sort -k 1 --parallel=32 -S 20G > hifislida3.sort.o
+
+cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
+
+join -1 1 -2 4 -t $'\t' hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
+```
+**Output**
+
+Tab-separated txt file with the following columns:
+
+- Column 1: HiFi-Slide read ID.
+- Column 2: Tile ID (only tiles under the ROI provided as input).
+- Column 3: X-coord on the tile (columns).
+- Column 4: Y-coord on the tile (rows).
+- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
+- Column 6: HiFi-Slide read chromosome.
+- Column 7: HiFi-Slide read start coordinate.
+- Column 8: HiFi-Slide read end coordinate.
+- Column 9: Gene ID.
+- Column 10: Gene name.
+- Column 11: Gene biotype.
+
+Example:
+
+```
+HiFi_readID     tileID  col     row     N       HiFi_read_chr   HiFi_read_start HiFi_read_end   geneID  geneName        geneType
+MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45545   10979   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
+MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45867   11036   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
+MN00185:308:000H3YMVH:1:11101:10015:13558       1109    13609   68183   1       chr2    32916214        32916317        ENSG00000230876.8       LINC00486       lncRNA
+MN00185:308:000H3YMVH:1:11101:10015:19288       1109    14271   75095   22      chr2    32916252        32916394        ENSG00000230876.8       LINC00486       lncRNA
+```
+
+
+
+
+### Transcriptome
 
 
 
 
 
-
-
-
-
-Results from Step 3 and 5 would be intergrated to provide gene annotation for each spatially resolved HiFi-Slide read pair. The output of this step would be   
-column 1 - Tile ID  
-column 2 - X-coord  
-column 3 - Y-coord  
-column 4 - HiFi-Slide Read ID  
-column 5 - Gene  
