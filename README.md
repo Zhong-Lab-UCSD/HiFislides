@@ -409,7 +409,7 @@ Tab-separated txt file with the following columns:
 
 Example for piRNA:
 ```
-HiFi_read_id	tile_id	col	row	N	piRNA_id
+HiFi_read_id	tile_id	col	row	N	transcript_id
 MN00185:308:000H3YMVH:1:11102:13104:11180	1109	29549	34175	15	piR-hsa-2229595
 MN00185:308:000H3YMVH:1:11102:13104:11180	1109	43425	50706	15	piR-hsa-2229595
 MN00185:308:000H3YMVH:1:11102:13104:11180	1109	47135	43472	15	piR-hsa-2229595
