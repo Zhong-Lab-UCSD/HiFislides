@@ -266,12 +266,12 @@ samtools view -@ 32 -b -h -q 255 \
 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam 
 ```
 
-Finally, uniquely mapped reads are associated with genes using bedtools. `Homo_sapiens.GRCh38.84.chr.gene.gtf` is a modified version of the original GTF file, where only full gene body coordinates are kept (column 3 equal to "gene"), the additional rows (such as those related to exons for example) were discarded.
+Finally, uniquely mapped reads are associated with genes using bedtools. `gencode.v41.annotation.gene.gtf` is a modified version of the original GTF file `gencode.v41.annotation.gtf`, where only full gene body coordinates are kept (column 3 equal to "gene"), the additional rows (such as those related to exons for example) were discarded.
 
 ```
 bedtools intersect \
 -a $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
--b Homo_sapiens.GRCh38.84.chr.gene.gtf \
+-b gencode.v41.annotation.gene.gtf \
 -wb -bed | cut -f 1,2,3,4,21 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
 ```
 
@@ -306,18 +306,49 @@ chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG0000
 
 ### Mapping to the transcriptome
 
-For BOWTIE2, we used default settings with the local alignment mode.  
+For Bowtie 2, we used default settings with the `--local` alignment mode. We created indexes for four types of transcripts: miRNA, circRNA, piRNA, tRNA, and then for each of them:
+
+1. We map the processed HiFi-Slide R2 reads `L2R2.trim_front_60.fastq`.
+2. We select the uniquely mapped reads using MAPQ > 10.
+3. We extract the fields of interest as HiFi-read identifier and transcript identifier.
+
+```
+for i in tRNA piRNA mirbase circbase; do
+
+bowtie2 \
+-x bowtie2_index_$i \
+-U L2R2.trim_front_60.fastq \
+-S L2R2_$i"_mapped.sam" \
+--un L2R2_$i"_unmapped.txt" \
+--no-unal --threads 32 --local 2> L2R2_$i_mapped.log
+
+samtools view -q 10 \
+-o L2R2_$i"_mapped.mapq10.sam" \
+L2R2_$i"_mapped.sam"
+
+cut -f 1,3 L2R2_$i"_mapped.mapq10.sam" > L2R2_$i"_mapped.mapq10.txt"
+
+done
+```
+
+Example of output for piRNA:
+```
+MN00185:308:000H3YMVH:1:11101:11533:3933        piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:7721:4462         piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:20516:4919        piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
+```
+
+
+## 8. Integrate spatial coordinates and gene information
 
 
 
-###
-
-If a HiFi-Slide R2 read could be mapped to a gene using one or both strategies, it would be counted for that gene.
 
 
 
 
-## 8. Integrate spatial coordinates and gene information for each HiFi read pairs.
+
 
 Results from Step 3 and 5 would be intergrated to provide gene annotation for each spatially resolved HiFi-Slide read pair. The output of this step would be   
 column 1 - Tile ID  
