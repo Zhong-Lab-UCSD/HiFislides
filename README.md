@@ -344,11 +344,15 @@ MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
 
 As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). This will produce final tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2).
 
-### Genome
+The file with HiFi-Slide read spatial coordinates is `hifislida3.o`, which is sorted first to obtain `hifislida3.sort.o` which is used below.
 
 ```
 cat hifislida3.o | sort -k 1 --parallel=32 -S 20G > hifislida3.sort.o
+```
 
+### Genome
+
+```
 cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
 
 join -1 1 -2 4 -t $'\t' hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
@@ -361,7 +365,7 @@ Tab-separated txt file with the following columns:
 - Column 2: Tile ID (only tiles under the ROI provided as input).
 - Column 3: X-coord on the tile (columns).
 - Column 4: Y-coord on the tile (rows).
-- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
+- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
 - Column 6: HiFi-Slide read chromosome.
 - Column 7: HiFi-Slide read start coordinate.
 - Column 8: HiFi-Slide read end coordinate.
@@ -372,7 +376,7 @@ Tab-separated txt file with the following columns:
 Example:
 
 ```
-HiFi_readID     tileID  col     row     N       HiFi_read_chr   HiFi_read_start HiFi_read_end   geneID  geneName        geneType
+HiFi_read_id     tile_id  col     row     N       HiFi_read_chr   HiFi_read_start HiFi_read_end   gene_id  gene_name        gene_type
 MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45545   10979   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
 MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45867   11036   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
 MN00185:308:000H3YMVH:1:11101:10015:13558       1109    13609   68183   1       chr2    32916214        32916317        ENSG00000230876.8       LINC00486       lncRNA
@@ -380,9 +384,41 @@ MN00185:308:000H3YMVH:1:11101:10015:19288       1109    14271   75095   22      
 ```
 
 
-
-
 ### Transcriptome
+
+```
+for i in tRNA piRNA mirbase circbase; do
+
+cat L2R2_$i"_mapped.mapq10.txt" | sort -k 1 --parallel=32 -S 20G > L2R2_$i"_mapped.mapq10.sort.txt"
+
+join -1 1 -2 1 -t $'\t' hifislida3.sort.o L2R2_$i"_mapped.mapq10.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
+
+done
+```
+
+**Output**
+
+Tab-separated txt file with the following columns:
+
+- Column 1: HiFi-Slide read ID.
+- Column 2: Tile ID (only tiles under the ROI provided as input).
+- Column 3: X-coord on the tile (columns).
+- Column 4: Y-coord on the tile (rows).
+- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
+- Column 6: Transcript identifier.
+
+Example for piRNA:
+```
+HiFi_read_id	tile_id	col	row	N	piRNA_id
+MN00185:308:000H3YMVH:1:11102:13104:11180	1109	29549	34175	15	piR-hsa-2229595
+MN00185:308:000H3YMVH:1:11102:13104:11180	1109	43425	50706	15	piR-hsa-2229595
+MN00185:308:000H3YMVH:1:11102:13104:11180	1109	47135	43472	15	piR-hsa-2229595
+MN00185:308:000H3YMVH:1:11102:13104:11180	1208	16960	53394	15	piR-hsa-2229595
+```
+
+
+
+
 
 
 
