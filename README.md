@@ -252,7 +252,7 @@ STAR \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
 --outFileNamePrefix $L2_DIR/L2R2_mapping/genome/L2R2_genome. \
---sjdbGTFfile $annotation_gtf_file \
+--sjdbGTFfile gencode.v41.annotation.gtf \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN 32
