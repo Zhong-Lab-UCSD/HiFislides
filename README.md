@@ -238,7 +238,7 @@ Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not ov
 ## 7. Mapping HiFi-Slide R2 reads
 
 1. We used STAR to align HiFi-Slide R2 reads to the genome.
-2. we used Bowtie 2 to align HiFi-Slide R2 to the transcriptome.
+2. we used Bowtie 2 to align HiFi-Slide R2 reads to the transcriptome.
 
 ### Mapping to the genome
 
