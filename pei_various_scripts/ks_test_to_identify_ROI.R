@@ -42,3 +42,6 @@ j = mat[1,3]
 d = mat[1,1]
 # print(tilm[j:(j+d),i:(i+d)])
 
+
+roi = tilm[j:(j+d),i:(i+d)]
+write.table(file="Tiles_in_ROI.txt",col.names=F,row.names=F,sep="",quote=F,as.vector(unlist(roi)))
