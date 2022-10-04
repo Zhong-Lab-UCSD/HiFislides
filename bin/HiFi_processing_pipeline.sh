@@ -74,15 +74,18 @@ $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" \
 $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".sam" > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.o" 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.e"
 
 ### Select tiles under ROI
-
-# Output: ROI_tile_IDs.txt
+$BIN_DIR/select_tiles_in_ROI.r \
+-i $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.o" \
+-o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+--max_size_ROI 4 \
+--min_size_ROI 2 \
+--p_value 0.05
 
 ### Match HiFi-Slide read pairs with spatial location (TBD filenames)
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" \
-ROI_tile_IDs.txt \
+$L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
 $L1_DIR/L1R1_dup_$i"_"$j.txt > $L2_DIR/L2R1_mapping/hifislida3.o
-
 
 
 

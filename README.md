@@ -107,9 +107,23 @@ Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
 
 ### Select tiles under ROI
 
-If tiles with high number of HiFi-Slide R1 reads tend to be located in proximity, that may indicate these tiles were covered by the tissue.
+For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output.
 
-Algorithm explained in the Google Doc, script `xxx`.
+```
+select_tiles_in_ROI.r \
+-i L2R1__L1R1_dedup.hifislida2.o \
+-o ROI_tile_IDs.txt \
+--max_size_ROI 4 \
+--min_size_ROI 2 \
+--p_value 0.05
+```
+
+**Arguments**  
+- `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
+- `-o`: Output file.
+- `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
+- `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
+- `--p_value`: The p-value threshold to be used for statistical significance.
 
 **Output**
 `ROI_tile_IDs.txt`: Tile IDs under ROI.
