@@ -41,8 +41,6 @@ STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_with
 BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
 
 
-
-
 ########## LIBRARY 1 (spatial barcodes)
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
