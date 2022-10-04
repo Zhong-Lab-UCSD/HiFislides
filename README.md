@@ -120,13 +120,10 @@ select_tiles_in_ROI.r \
 
 **Arguments**  
 - `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
-- `-o`: Output file.
+- `-o`: Output file, tile IDs under ROI.
 - `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
 - `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
 - `--p_value`: The p-value threshold to be used for statistical significance.
-
-**Output**
-`ROI_tile_IDs.txt`: Tile IDs under ROI.
 
 
 ## 5. Match HiFi-Slide read pairs with spatial location 
@@ -134,25 +131,37 @@ select_tiles_in_ROI.r \
 Note: output filename to be changed to something better!!
 
 ```
-hifislida3.pl L2R1__L1R1_dedup.hifislida.o ROI_tile_IDs.txt L1R1_dup.txt > hifislida3.o
+hifislida3.pl \
+L2R1__L1R1_dedup.hifislida.o \
+ROI_tile_IDs.txt \
+L1R1_dup.txt > L2R1__L1R1.hifislida3.o
 ```
 
 **Arguments**  
 1. Output file produced by hifislida.pl.
-2. Output file produced by `xxx` with the IDs of the tiles under ROI.
+2. Output file produced by `select_tiles_in_ROI.r` with the IDs of the tiles under ROI.
 3. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
 
 **Purpose**  
 With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
 
 **Output**  
-Tab-separated file `hifislida3.o` with the following columns:
+Tab-separated file `L2R1__L1R1.hifislida3.o` with the following columns:
 
 - Column 1: HiFi-Slide read ID.
 - Column 2: Tile ID (only tiles under the ROI provided as input).
 - Column 3: X-coord on the tile (columns).
 - Column 4: Y-coord on the tile (rows).
 - Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
+
+Example:
+```
+HiFi_read_id    tile_id col     row     N
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    20557   77594   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    7797    22530   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1209    30647   54019   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4
+```
 
 
 ## 6. Preprocessing of HiFi-Slide R2 reads  
@@ -358,7 +367,7 @@ MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
 
 As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). This will produce final tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2).
 
-The file with HiFi-Slide read spatial coordinates is `hifislida3.o`, which is sorted first to obtain `hifislida3.sort.o` which is used below.
+The file with HiFi-Slide read spatial coordinates is `L2R1__L1R1.hifislida3.o`, which is sorted first to obtain `L2R1__L1R1.hifislida3.sort.o` which is used below.
 
 ```
 cat hifislida3.o | sort -k 1 --parallel=32 -S 20G > hifislida3.sort.o

@@ -81,11 +81,16 @@ $BIN_DIR/select_tiles_in_ROI.r \
 --min_size_ROI 2 \
 --p_value 0.05
 
-### Match HiFi-Slide read pairs with spatial location (TBD filenames)
+### Match HiFi-Slide read pairs with spatial location
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" \
 $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-$L1_DIR/L1R1_dup_$i"_"$j.txt > $L2_DIR/L2R1_mapping/hifislida3.o
+$L1_DIR/L1R1_dup_$i"_"$j.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
+
+# Add header
+echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1__L1R1_$i"_"$j".hifislida3.o"
+
+rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
 
 
 
@@ -131,10 +136,8 @@ fastp \
 
 
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
-# Which one to use? Results seem the same.
 
 mkdir -p $L2_DIR/L2R2_mapping/genome
-# mkdir -p $L2_DIR/L2R2_mapping/genome_no_sjdb
 
 STAR \
 --genomeDir $STAR_INDEX \
@@ -147,17 +150,6 @@ STAR \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN 32
-
-# STAR \
-# --genomeDir $STAR_INDEX \
-# --readFilesIn $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
-# --outSAMtype BAM SortedByCoordinate \
-# --outReadsUnmapped Fastx \
-# --outSAMattributes All \
-# --outFileNamePrefix $L2_DIR/L2R2_mapping/genome_no_sjdb/ \
-# --outFilterScoreMinOverLread 0 \
-# --outFilterMatchNminOverLread 0 \
-# --runThreadN 32
 
 ### Select uniquely mapped reads
 samtools view -@ 32 -b -h -q 255 \
@@ -204,38 +196,37 @@ cut -f 1,2,3,4,6,7,8 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome
 
 ### Creating Bowtie 2 indexes
-for i in tRNA piRNA mirbase circbase; do
-mkdir -p /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$i/bowtie2_index
+for t in tRNA piRNA mirbase circbase; do
+mkdir -p /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$t/bowtie2_index
 
 bowtie2-build \
 --threads 32 \
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$i/*fa* \
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$i/bowtie2_index/$i
+/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$t/*fa* \
+/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$t/bowtie2_index/$t
 done
 
 # Dummy fastq for testing purposes
 # head -40000 $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq > $L2_DIR/L2R2_mapping/transcriptome/temp_L2R2.trim_front_60.fastq
 
-for i in tRNA piRNA mirbase circbase; do
-mkdir -p $L2_DIR/L2R2_mapping/transcriptome/$i
+for t in tRNA piRNA mirbase circbase; do
+mkdir -p $L2_DIR/L2R2_mapping/transcriptome/$t
 
 bowtie2 \
--x /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$i/bowtie2_index/$i \
+-x /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$t/bowtie2_index/$t \
 -U $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
--S $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.sam" \
---un $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_unmapped.txt" \
---no-unal --threads 32 --local 2> $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.log"
+-S $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.sam" \
+--un $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_unmapped.txt" \
+--no-unal --threads 32 --local 2> $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.log"
 
 # Select uniquely mapped reads
 samtools view -q 10 \
--o $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.sam" \
-$L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.sam"
+-o $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sam" \
+$L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.sam"
 
 # Extract fields of interest
-cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.sam" > $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.txt"
+cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sam" > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt"
 
 done
-
 
 
 # samtools view -q 30 $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.sam | wc -l
@@ -252,39 +243,40 @@ done
 ########## Integrate spatial coordinates and gene expression information
 mkdir -p $L2_DIR/L2R1_L2R2_integrate
 
-# /mnt/extraids/SDSC_NFS/linpei/hifi/data_14/hifislida3.o # note this is pei's file, it wasn't computed here because of the lack of the algorithm to select tiles under ROI above
-cp /mnt/extraids/SDSC_NFS/linpei/hifi/data_14/hifislida3.o $L2_DIR/L2R1_mapping/
-
-HiFi_L2R1_spatial=$L2_DIR/L2R1_mapping/hifislida3.sort.o
+HiFi_L2R1_spatial=L2R1__L1R1_$i"_"$j".hifislida3.sort.o"
 #sort -k 1 $L2_DIR/L2R1_mapping/hifislida3.o > $HiFi_L2R1_spatial
-cat $L2_DIR/L2R1_mapping/hifislida3.o | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
+cat L2R1__L1R1_$i"_"$j".hifislida3.o" | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
 
 ### Genome
 HiFi_L2R2_genome=$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.sort.bed
 #sort -k 4 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed > $HiFi_L2R2_genome
 cat $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > $HiFi_L2R2_genome
 
-join -1 1 -2 4 -t $'\t' $HiFi_L2R1_spatial $HiFi_L2R2_genome > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 4 -t $'\t' $HiFi_L2R1_spatial $HiFi_L2R2_genome > $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
 # Add header
-echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\tHiFi_read_chr\tHiFi_read_start\tHiFi_read_end\tgene_id\tgene_name\tgene_type" | cat - $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial_header.txt
+echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\tHiFi_read_chr\tHiFi_read_start\tHiFi_read_end\tgene_id\tgene_name\tgene_type" | cat - $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
+
+rm $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
 ### Transcriptome
 
-for i in tRNA piRNA mirbase circbase; do
+for t in tRNA piRNA mirbase circbase; do
 
-size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.txt")
+size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt")
 
 if [ $size != 0 ]; then
 
-mkdir -p $L2_DIR/L2R1_L2R2_integrate/$i
+mkdir -p $L2_DIR/L2R1_L2R2_integrate/$t
 
-cat $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.txt" | sort -k 1 --parallel=32 -S 20G > $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.sort.txt"
+cat $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt" | sort -k 1 --parallel=32 -S 20G > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sort.txt"
 
-join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2_DIR/L2R2_mapping/transcriptome/$i/L2R2_$i"_mapped.mapq10.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$i/HiFi_L2R2_$i"_spatial.txt"
+join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt"
 
 # Add header
-echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\ttranscript_id" | cat - $L2_DIR/L2R1_L2R2_integrate/$i/HiFi_L2R2_$i"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$i/HiFi_L2R2_$i"_spatial_header.txt"
+echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\ttranscript_id" | cat - $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt"
+
+rm $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt"
 
 fi
 
