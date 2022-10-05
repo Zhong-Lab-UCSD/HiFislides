@@ -129,8 +129,6 @@ select_tiles_in_ROI.r \
 
 ## 5. Match HiFi-Slide read pairs with spatial location 
 
-Note: output filename to be changed to something better!!
-
 ```
 hifislida3.pl \
 L2R1__L1R1_dedup.hifislida.o \
@@ -333,7 +331,7 @@ chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG0000
 For Bowtie 2, we use default settings with the `--local` alignment mode. We create indexes for four types of transcripts: miRNA, circRNA, piRNA, tRNA, and then for each of them:
 
 1. We map the processed HiFi-Slide R2 reads `L2R2.trim_front_60.fastq`.
-2. We select the uniquely mapped reads using MAPQ > 10.
+2. We select the uniquely mapped reads, i.e. reads "aligned exactly 1 time" in the Bowtie 2 log file. This is done by removing reads with auxiliary tag `XS`, i.e. reads that have other valid mappings.
 3. We extract the fields of interest as HiFi-read identifier and transcript identifier.
 
 ```
@@ -346,11 +344,9 @@ bowtie2 \
 --un L2R2_$i"_unmapped.txt" \
 --no-unal --threads 32 --local 2> L2R2_$i_mapped.log
 
-samtools view -q 10 \
--o L2R2_$i"_mapped.mapq10.sam" \
-L2R2_$i"_mapped.sam"
+samtools view L2R2_$i"_mapped.sam" | grep -v "XS:i:" > L2R2_$i"_uniquely_mapped.sam"
 
-cut -f 1,3 L2R2_$i"_mapped.mapq10.sam" > L2R2_$i"_mapped.mapq10.txt"
+cut -f 1,3 L2R2_$i"_uniquely_mapped.sam" > L2R2_$i"_uniquely_mapped.txt"
 
 done
 ```
@@ -371,7 +367,7 @@ As a final step, we integrate the outcomes from the sections above to associate 
 The file with HiFi-Slide read spatial coordinates is `L2R1__L1R1.hifislida3.o`, which is sorted first to obtain `L2R1__L1R1.hifislida3.sort.o` which is used below.
 
 ```
-cat hifislida3.o | sort -k 1 --parallel=32 -S 20G > hifislida3.sort.o
+cat L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1__L1R1.hifislida3.sort.o
 ```
 
 ### Genome
@@ -379,7 +375,7 @@ cat hifislida3.o | sort -k 1 --parallel=32 -S 20G > hifislida3.sort.o
 ```
 cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
 
-join -1 1 -2 4 -t $'\t' hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 4 -t $'\t' L2R1__L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
 ```
 **Output**
 
@@ -413,9 +409,9 @@ MN00185:308:000H3YMVH:1:11101:10015:19288       1109    14271   75095   22      
 ```
 for i in tRNA piRNA mirbase circbase; do
 
-cat L2R2_$i"_mapped.mapq10.txt" | sort -k 1 --parallel=32 -S 20G > L2R2_$i"_mapped.mapq10.sort.txt"
+cat L2R2_$i"_uniquely_mapped.txt" | sort -k 1 --parallel=32 -S 20G > L2R2_$i"_uniquely_mapped.sort.txt"
 
-join -1 1 -2 1 -t $'\t' hifislida3.sort.o L2R2_$i"_mapped.mapq10.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
+join -1 1 -2 1 -t $'\t' L2R1__L1R1.hifislida3.sort.o L2R2_$i"_uniquely_mapped.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
 
 done
 ```

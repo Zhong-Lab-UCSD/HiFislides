@@ -210,6 +210,7 @@ done
 # Dummy fastq for testing purposes
 # head -40000 $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq > $L2_DIR/L2R2_mapping/transcriptome/temp_L2R2.trim_front_60.fastq
 
+### Mapping
 for t in tRNA piRNA mirbase circbase; do
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome/$t
 
@@ -221,33 +222,27 @@ bowtie2 \
 --no-unal --threads 32 --local 2> $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.log"
 
 # Select uniquely mapped reads
-samtools view -q 10 \
--o $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sam" \
-$L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.sam"
+# Option 1: Inverse grep (-v) of reads with auxiliary tag XS, meaning reads that have other valid mappings. This gives exactly the number of reads "aligned exactly 1 time" in the bowtie2 log file.
+samtools view $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.sam" | grep -v "XS:i:" > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.sam"
+
+# Option 2: using MAPQ value
+# samtools view -q 10 \
+# -o $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sam" \
+# $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.sam"
 
 # Extract fields of interest
-cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sam" > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt"
+cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.sam" > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt"
 
 done
-
-
-# samtools view -q 30 $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.sam | wc -l
-
-# samtools view -q 10 \
-# -o $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.mapq10.sam \
-# $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.sam
-
-# cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.mapq10.sam > $L2_DIR/L2R2_mapping/transcriptome/L2R2_transcriptome_mapped.mapq10.temp.txt
-
 
 
 
 ########## Integrate spatial coordinates and gene expression information
 mkdir -p $L2_DIR/L2R1_L2R2_integrate
 
-HiFi_L2R1_spatial=L2R1__L1R1.hifislida3.sort.o
+HiFi_L2R1_spatial=$L2_DIR/L2R1_mapping/L2R1__L1R1.hifislida3.sort.o
 #sort -k 1 $L2_DIR/L2R1_mapping/hifislida3.o > $HiFi_L2R1_spatial
-cat L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
+cat $L2_DIR/L2R1_mapping/L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
 
 ### Genome
 HiFi_L2R2_genome=$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.sort.bed
@@ -265,15 +260,15 @@ rm $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
 for t in tRNA piRNA mirbase circbase; do
 
-size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt")
+size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt")
 
 if [ $size != 0 ]; then
 
 mkdir -p $L2_DIR/L2R1_L2R2_integrate/$t
 
-cat $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.txt" | sort -k 1 --parallel=32 -S 20G > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sort.txt"
+cat $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt" | sort -k 1 --parallel=32 -S 20G > $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.sort.txt"
 
-join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.mapq10.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt"
+join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt"
 
 # Add header
 echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\ttranscript_id" | cat - $L2_DIR/L2R1_L2R2_integrate/$t/temp_HiFi_L2R2_$t"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt"
