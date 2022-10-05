@@ -25,11 +25,6 @@ cut -f3 $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o | xargs | tr ' ' 
 # awk -F "\t" '$3 == 1 && $4 == 1 { print $1 }' $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida.o | wc -l
 
 ##### Number of HiFi read pairs under ROI
-awk 'BEGIN{FS=OFS="\t"} {gsub(/T/, "", $2)} 1' $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o | head -10 # to remove the T (not used anymore)
-
-$L2_DIR/L2R1_mapping/ROI_tile_IDs.txt
-
-awk -F "\t" 'NR==FNR{a[$1]; next} FNR==1 || $2 in a' $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida2.o
-
-cut -f 2 /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample_new/lib2/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o | head -10
+# awk 'BEGIN{FS=OFS="\t"} {gsub(/T/, "", $2)} 1' $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o | head -10 # to remove the T (not used anymore)
+awk -F "\t" 'NR==FNR{a[$1]; next} FNR==0 || $2 in a' $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida2.o | cut -f3 | xargs | tr ' ' + | bc
 
