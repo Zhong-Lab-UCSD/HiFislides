@@ -1,3 +1,5 @@
+####### INPUT PARAMETERS
+
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data
@@ -5,7 +7,25 @@ SAMPLE_NAME=test_sample_new
 
 # Directories of the raw fastq files for each library. The full path is used here.
 L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
+L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
+
 L2_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq
+
+# Flowcell and surface identifiers
+flowcell=AAAL33WM5
+surface=$flowcell:1:1
+
+# Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
+
+# annotation_gtf_file=/dataOS/sysbio/Genomes/Homo_sapiens/Ensembl/GRCH38_hg38/Annotation/Genes/Homo_sapiens.GRCh38.84.chr.gtf
+annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
+
+### Mapping reference indexes
+STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ
+BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
+
+
+##################
 
 # Directories of the processed data
 L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
@@ -17,18 +37,6 @@ mkdir -p $L2_DIR
 L2R1=$L2_FASTQ_DIR/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2=$L2_FASTQ_DIR/Undetermined_S0_L001_R2_001.fastq.gz
 
-# Flowcell and surface identifiers
-# Q: should i and j be elevated as input parameters and kept into the filenames as currently we are doing? Discuss further.
-flowcell=AAAL33WM5
-i=1
-j=1
-surf=$flowcell:$i:$j
-
-### Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
-
-# annotation_gtf_file=/dataOS/sysbio/Genomes/Homo_sapiens/Ensembl/GRCH38_hg38/Annotation/Genes/Homo_sapiens.GRCh38.84.chr.gtf
-annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
-
 # Select full genes only
 
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
@@ -36,44 +44,41 @@ awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcala
 
 # awk -v OFS='\t' '$3=="exon"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf # to select transcripts only?
 
-### Mapping reference indexes
-STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ
-BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
-
 
 ########## LIBRARY 1 (spatial barcodes)
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 
 # g++ surfdedup.cpp -o surfdedup -lz
-$BIN_DIR/surfdedup $surf $L1_FASTQ_DIR/*_L00$i"_R1_001.fastq.gz" > $L1_DIR/L1R1_dedup_$i"_"$j.fasta 2>$L1_DIR/L1R1_dup_$i"_"$j.txt
+$BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
+
 
 # dummy example to make running faster
-# $BIN_DIR/surfdedup $surf $L1_FASTQ_DIR/MT080_S1_L001_R1_001.fastq.gz > $L1_DIR/L1R1_dedup_$i"_"$j.fasta 2>$L1_DIR/L1R1_dup_$i"_"$j.txt
+# $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/MT080_S1_L001_R1_001.fastq.gz > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
 
 
 ### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
 
-# Create index files for L2R1
+# Create index files for L1R1
 mkdir -p $L1_DIR/bwa_index_L1R1
-# cd $L1_DIR/bwa_index_L1R1
-bwa index -p $L1_DIR/bwa_index_L1R1/L1R1_dedup_$i"_"$j $L1_DIR/L1R1_dedup_$i"_"$j.fasta
+bwa index -p $L1_DIR/bwa_index_L1R1/L1R1_dedup $L1_DIR/L1R1_dedup.fasta
 
 # Alignment
 mkdir -p $L2_DIR/L2R1_mapping
-bwa mem -a -k 40 -t 32 $L1_DIR/bwa_index_L1R1/L1R1_dedup_$i"_"$j $L2R1 > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".sam" 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".log"
+bwa mem -a -k 40 -t 32 $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1 > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.log
+
 
 ### Select HiFi-Slide R1 reads with highest alignment score
-$BIN_DIR/hifislida.pl $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".sam" > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.e"
+$BIN_DIR/hifislida.pl $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida.e
 
 ### Rank the tiles by number of HiFi-Slide read pairs
 $BIN_DIR/hifislida2.pl \
-$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" \
-$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".sam" > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.o" 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.e"
+$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida.o \
+$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida2.e
 
 ### Select tiles under ROI
 $BIN_DIR/select_tiles_in_ROI.r \
--i $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida2.o" \
+-i $L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida2.o \
 -o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
@@ -81,15 +86,14 @@ $BIN_DIR/select_tiles_in_ROI.r \
 
 ### Match HiFi-Slide read pairs with spatial location
 $BIN_DIR/hifislida3.pl \
-$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup_$i"_"$j".hifislida.o" \
+$L2_DIR/L2R1_mapping/L2R1__L1R1_dedup.hifislida.o \
 $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-$L1_DIR/L1R1_dup_$i"_"$j.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
+$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
 
 # Add header
-echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1__L1R1_$i"_"$j".hifislida3.o"
+echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1__L1R1.hifislida3.o
 
 rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
-
 
 
 ########## LIBRARY 2 (HiFi-Slide read pairs)
@@ -241,9 +245,9 @@ done
 ########## Integrate spatial coordinates and gene expression information
 mkdir -p $L2_DIR/L2R1_L2R2_integrate
 
-HiFi_L2R1_spatial=L2R1__L1R1_$i"_"$j".hifislida3.sort.o"
+HiFi_L2R1_spatial=L2R1__L1R1.hifislida3.sort.o
 #sort -k 1 $L2_DIR/L2R1_mapping/hifislida3.o > $HiFi_L2R1_spatial
-cat L2R1__L1R1_$i"_"$j".hifislida3.o" | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
+cat L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > $HiFi_L2R1_spatial
 
 ### Genome
 HiFi_L2R2_genome=$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.sort.bed

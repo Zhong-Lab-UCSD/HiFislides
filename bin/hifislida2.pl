@@ -71,7 +71,7 @@ foreach my $samI ($sam) {
 					if($spot eq $hifi_N{$hifi}) {						
 						if($spot=~m/:1:(1\d\d\d):(\d+):(\d+)/) {
 							my ($TILE,$x,$y) = ($1,$2,$3);
-							$TILE = "T".$TILE;
+							$TILE = $TILE;
 							$mapped_spot_per_tile{$TILE}->{$spot} = 1;							
 							$read_per_tile{$TILE}->{$hifi} = 1;
 						}
