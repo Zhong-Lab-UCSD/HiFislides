@@ -15,7 +15,7 @@ m1=$(awk '{ sum += $2 } END { print sum }' $L1_DIR/L1R1_stats.txt)
 a=$(wc -l $L1_DIR/L1R1_dedup.fasta | cut -d " " -f 1)
 m2=$(($a / 2))
 
-a=$(echo "scale=2 ; $m2 / $m1 * 100" | bc)
+a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m3=$a"%"
 
 ##### Number of input HiFi read pairs
@@ -25,28 +25,29 @@ cut -d " " -f3 | xargs | tr ' ' + | bc)
 ##### Number of HiFi read pairs aligned to spatial barcodes (number of unique HiFi read IDs in column 1 of L2R1_L1R1_dedup.hifislida.o)
 m5=$(awk -F '\t' '{print $1}' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | sort --parallel=32 | uniq | wc -l)
 
-a=$(echo "scale=2 ; $m5 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m5 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m6=$a"%"
 
+
 ##### Number of HiFi read pairs aligned to unique spatial barcodes (number of HiFi read IDs in column 1 of L2R1_L1R1_dedup.hifislida.o with column 3 and 4 equal to 1)
-m7=$(cut -f3 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_1_1.hifislida2.o | xargs | tr ' ' + | bc) # same as below but faster
+m7=$(cut -f3 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | xargs | tr ' ' + | bc) # same as below but faster
 # awk -F "\t" '$3 == 1 && $4 == 1 { print $1 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_1_1.hifislida.o | wc -l
 
-a=$(echo "scale=2 ; $m7 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m7 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m8=$a"%"
 
 ##### Number of HiFi read pairs aligned to unique spatial barcodes and under ROI
 # awk 'BEGIN{FS=OFS="\t"} {gsub(/T/, "", $2)} 1' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_1_1.hifislida2.o | head -10 # to remove the T (not used anymore)
 m9=$(awk -F "\t" 'NR==FNR{a[$1]; next} FNR==0 || $2 in a' $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -f3 | xargs | tr ' ' + | bc)
 
-a=$(echo "scale=2 ; $m9 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m9 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m10=$a"%"
 
 
 ##### Number of HiFi read pairs under ROI (all spatially resolved, i.e. not only aligned to unique spatial barcodes)
 m11=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o | sort --parallel=32 | uniq | wc -l)
 
-a=$(echo "scale=2 ; $m11 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m11 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m12=$a"%"
 
 
@@ -54,7 +55,7 @@ m12=$a"%"
 a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq | cut -d " " -f 1)
 m13=$(($a / 4))
 
-a=$(echo "scale=2 ; $m13 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m13 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m14=$a"%"
 
 ##### Number of HiFi-Slide L2R2 passing length filtering (performed automatically by fastp)
@@ -63,7 +64,7 @@ m14=$a"%"
 # To make it faster, we can just count the number of input reads in the log of the STAR aligner
 m15=$(grep -w "Number of input reads" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Log.final.out |cut -d "|" -f2 | sed 's/\t//g')
 
-a=$(echo "scale=2 ; $m15 / $m4 * 100" | bc)
+a=$(echo "scale=4 ; $m15 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m16=$a"%"
 
 ########## GENOME
@@ -74,13 +75,13 @@ grep -w "Uniquely mapped reads number" $L2_DIR/L2R2_mapping/genome/L2R2_genome.L
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome and to annotated genes
 m17=$(wc -l $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | cut -d " " -f 1)
 
-a=$(echo "scale=2 ; $m17 / $m15 * 100" | bc)
+a=$(echo "scale=4 ; $m17 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m18=$a"%"
 
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to genome
 m19=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
 
-a=$(echo "scale=2 ; $m19 / $m15 * 100" | bc)
+a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m20=$a"%"
 
 # Number of genes 
@@ -134,13 +135,13 @@ if [ $size != 0 ]; then
 ##### Number of uniquely mapped reads to the transcriptome
 m22a=$(grep -w "aligned exactly 1 time" $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.log" | cut -d " " -f5)
 
-a=$(echo "scale=2 ; $m22a / $m15 * 100" | bc)
+a=$(echo "scale=4 ; $m22a / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m22b=$a"%"
 
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to transcriptome
 m22c=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt" | sort --parallel=32 | uniq | wc -l)
 
-a=$(echo "scale=2 ; $m22c / $m15 * 100" | bc)
+a=$(echo "scale=4 ; $m22c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m22d=$a"%"
 
 # Number of transcripts 
@@ -158,7 +159,7 @@ fi
 M22a=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts"
 M22b=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts"
 M22c=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts and under ROI"
-M22d=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts"
+M22d=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts and under ROI"
 M22e=$t" - Number of transcripts aligned to HiFi-Slide read pairs"
 
 for k in a b c d e; do
