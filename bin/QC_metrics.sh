@@ -1,7 +1,9 @@
 ##### Total number of barcodes (L1R1)
+rm $L1_DIR/L1R1_stats.txt
 touch $L1_DIR/L1R1_stats.txt
 
-for x in $L1_FASTQ_DIR/$L1_FASTQ_BASENAME; do 
+for x in $L1_FASTQ_DIR/$L1_FASTQ_BASENAME; do
+echo $x
 a=$(unpigz -p 32 -c $x | wc -l)
 out=$(($a / 4))
 echo -e $x"\t"$out >> $L1_DIR/L1R1_stats.txt
@@ -85,10 +87,44 @@ m20=$a"%"
 m21=$(awk -F '\t' 'NR>1 {print $9}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
 
 
+#### Labels
+M1="Total number of barcodes"
+M2="Number of deduplicated barcodes"
+M3="% of deduplicated barcodes"
+M4="Number of HiFi-Slide read pairs"
+M5="Number of HiFi-Slide read pairs aligned to spatial barcodes (or spatially resolved)"
+M6="% of HiFi-Slide read pairs aligned to spatial barcodes"
+M7="Number of HiFi-Slide read pairs aligned to unique spatial barcodes (or univocally spatially resolved)"
+M8="% of HiFi-Slide read pairs aligned to unique spatial barcodes"
+M9="Number of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
+M10="% of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
+M11="Number of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
+M12="% of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
+M13="Number of HiFi-Slide read pairs passing PEAR filtering"
+M14="% of HiFi-Slide read pairs passing PEAR filtering"
+M15="Number of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
+M16="% of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
+M17="Number of HiFi-Slide read pairs uniquely aligned to annotated genes"
+M18="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
+M19="Number of HiFi-Slide read pairs uniquely aligned to annotated genes and under ROI"
+M20="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
+M21="Number of annotated genes aligned to HiFi-Slide read pairs"
+
+
+rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+for k in $(seq 1 21); do
+Mk=M${k}
+mk=m${k}
+echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+done
+
+# printf '%s\n' "$M1" "$M2" "$M3" "$M4" "$M5" "$M6" "$M7" "$M8" "$M9" "$M10" "$M11" "$M12" "$M13" "$M14" "$M15" "$M16" "$M17" "$M18" "$M19" "$M20" "$M21" | paste -sd '\n' > $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+
+
+
 ########## TRANSCRIPTOME
-
-m22_array=()
-
 for t in tRNA piRNA miRNA circRNA; do
 
 size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt")
@@ -119,52 +155,20 @@ m22e=0
 
 fi
 
-m22_array+=$m22a
-m22_array+=$m22b
-m22_array+=$m22c
-m22_array+=$m22d
-m22_array+=$m22e
-
-done
-
-
-M1="Total number of barcodes"
-M2="Number of deduplicated barcodes"
-M3="% of deduplicated barcodes"
-M4="Number of HiFi-Slide read pairs"
-M5="Number of HiFi-Slide read pairs aligned to spatial barcodes (or spatially resolved)"
-M6="% of HiFi-Slide read pairs aligned to spatial barcodes"
-M7="Number of HiFi-Slide read pairs aligned to unique spatial barcodes (or univocally spatially resolved)"
-M8="% of HiFi-Slide read pairs aligned to unique spatial barcodes"
-M9="Number of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
-M10="% of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
-M11="Number of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
-M12="% of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
-M13="Number of HiFi-Slide read pairs passing PEAR filtering"
-M14="% of HiFi-Slide read pairs passing PEAR filtering"
-M15="Number of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
-M16="% of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
-M17="Number of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M18="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M19="Number of HiFi-Slide read pairs uniquely aligned to annotated genes and under ROI"
-M20="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M21="Number of annotated genes aligned to HiFi-Slide read pairs"
-
-
-printf '%s\n' "$M1" "$M2" "$M3" "$M4" "$M5" "$M6" "$M7" "$M8" "$M9" "$M10" "$M11" "$M12" "$M13" "$M14" "$M15" "$M16" "$M17" "$M18" "$M19" "$M20" "$M21" | paste -sd '\n' > $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-for t in tRNA piRNA miRNA circRNA; do
-
 M22a=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts"
 M22b=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts"
 M22c=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts and under ROI"
 M22d=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts"
 M22e=$t" - Number of transcripts aligned to HiFi-Slide read pairs"
 
-printf '%s\n' "$M22a" "$M22b" "$M22c" "$M22d" "$M22e" | paste -sd '\n' >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
+for k in a b c d e; do
+Mk=M22${k}
+mk=m22${k}
+echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+done
 
 done
+
 
 
 
