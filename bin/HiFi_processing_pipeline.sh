@@ -31,21 +31,17 @@ BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
 
 
 
+################## PROCESSING
 
-##################
+# Select full genes only
+# awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
+awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
 
 # Directories of the processed data
 L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
 L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
 mkdir -p $L1_DIR
 mkdir -p $L2_DIR
-
-# Select full genes only
-
-# awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
-awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
-
-# awk -v OFS='\t' '$3=="exon"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf # to select transcripts only?
 
 
 ########## LIBRARY 1 (spatial barcodes)
@@ -160,11 +156,9 @@ samtools view -@ 32 -b -h -q 255 \
 -o $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam
 
-samtools view -@ 32 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
-
-samtools view -@ 32 -q 255 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
-
-samtools view -@ 32 -q 30 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 -q 255 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 -q 30 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
 
 
 ### Map uniquely mapped reads over genes. Cannot use featureCounts because we need to keep track of what L2R2 read align to each gene.
@@ -264,7 +258,7 @@ for t in tRNA piRNA miRNA circRNA; do
 
 size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt")
 
-if [ $size != 0 ]; then
+if [ $size != 0 ]; then # only if there are uniquely mapped reads otherwise do nothing
 
 mkdir -p $L2_DIR/L2R1_L2R2_integrate/$t
 
