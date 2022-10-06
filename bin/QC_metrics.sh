@@ -72,23 +72,38 @@ m16=$a"%"
 
 ########## GENOME
 
-##### Number of HiFi-Slide L2R2 uniquely mapped to genome (TBD)
-grep -w "Uniquely mapped reads number" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g'
+##### Number of HiFi-Slide L2R2 uniquely mapped to genome
+# grep -w "Uniquely mapped reads number" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g'
 
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome and to annotated genes
-m17=$(wc -l $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | cut -d " " -f 1)
+m17=$(cut -f4 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | sort --parallel=32 | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m17 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m18=$a"%"
 
-##### Number of HiFi reads spatially resolved, under ROI and aligned to genome
-m19=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
+##### Number of HiFi-Slide read pairs genome mapped and spatially resolved
+m19=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $4 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | cut -f4 | sort --parallel=32 | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m20=$a"%"
 
+
+##### Number of HiFi reads spatially resolved, under ROI and aligned to genome
+m21=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
+
+a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m22=$a"%"
+
 # Number of genes 
-m21=$(awk -F '\t' 'NR>1 {print $9}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
+m23=$(awk -F '\t' 'NR>1 {print $9}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=32 | uniq | wc -l)
+
+##### Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile
+n_tiles=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
+m24=$(echo "scale=4 ; $m19 / $n_tiles" | bc | awk '{printf("%.2f",$1)}')
+
+##### Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile under ROI
+n_tiles_under_ROI=$(wc -l $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt | cut -d " " -f 1)
+m25=$(echo "scale=4 ; $m21 / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}')
 
 
 #### Labels
@@ -96,28 +111,32 @@ M1="Total number of barcodes"
 M2="Number of deduplicated barcodes"
 M3="% of deduplicated barcodes"
 M4="Number of HiFi-Slide read pairs"
-M5="Number of HiFi-Slide read pairs aligned to spatial barcodes (or spatially resolved)"
-M6="% of HiFi-Slide read pairs aligned to spatial barcodes"
-M7="Number of HiFi-Slide read pairs aligned to unique spatial barcodes (or univocally spatially resolved)"
-M8="% of HiFi-Slide read pairs aligned to unique spatial barcodes"
-M9="Number of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
-M10="% of HiFi-Slide read pairs aligned to unique spatial barcodes and under ROI"
-M11="Number of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
-M12="% of HiFi-Slide read pairs aligned to spatial barcodes and under ROI (spatially resolved and under ROI)"
+M5="Number of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes)"
+M6="% of HiFi-Slide read pairs spatially resolved"
+M7="Number of HiFi-Slide read pairs univocally spatially resolved (aligned to unique spatial barcodes)"
+M8="% of HiFi-Slide read pairs univocally spatially resolved"
+M9="Number of HiFi-Slide read pairs univocally spatially resolved and under ROI"
+M10="% of HiFi-Slide read pairs univocally spatially resolved and under ROI"
+M11="Number of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes) and under ROI"
+M12="% of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes) and under ROI"
 M13="Number of HiFi-Slide read pairs passing PEAR filtering"
 M14="% of HiFi-Slide read pairs passing PEAR filtering"
 M15="Number of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
 M16="% of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
-M17="Number of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M18="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M19="Number of HiFi-Slide read pairs uniquely aligned to annotated genes and under ROI"
-M20="% of HiFi-Slide read pairs uniquely aligned to annotated genes"
-M21="Number of annotated genes aligned to HiFi-Slide read pairs"
+M17="Number of HiFi-Slide read pairs genome mapped (uniquely aligned to annotated genes)"
+M18="% of HiFi-Slide read pairs genome mapped"
+M19="Number of HiFi-Slide read pairs genome mapped and spatially resolved"
+M20="% of HiFi-Slide read pairs genome mapped and spatially resolved"
+M21="Number of HiFi-Slide read pairs genome mapped and under ROI"
+M22="% of HiFi-Slide read pairs genome mapped and under ROI"
+M23="Number of annotated genes aligned to HiFi-Slide read pairs"
+M24="Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile"
+M25="Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile under ROI"
 
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-for k in $(seq 1 21); do
+for k in $(seq 1 23); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -136,38 +155,60 @@ size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped
 if [ $size != 0 ]; then
 
 ##### Number of uniquely mapped reads to the transcriptome
-m22a=$(grep -w "aligned exactly 1 time" $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.log" | cut -d " " -f5)
+m26a=$(grep -w "aligned exactly 1 time" $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_mapped.log" | cut -d " " -f5)
 
-a=$(echo "scale=4 ; $m22a / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
-m22b=$a"%"
+a=$(echo "scale=4 ; $m26a / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m26b=$a"%"
+
+##### Number of HiFi-Slide read pairs transcriptome mapped and spatially resolved
+m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2_DIR/L2R2_mapping/transcriptome/$t/L2R2_$t"_uniquely_mapped.txt" | cut -f1 | sort --parallel=32 | uniq | wc -l)
+
+a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m26d=$a"%"
 
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to transcriptome
-m22c=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt" | sort --parallel=32 | uniq | wc -l)
+m26e=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt" | sort --parallel=32 | uniq | wc -l)
 
-a=$(echo "scale=4 ; $m22c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
-m22d=$a"%"
+a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m26f=$a"%"
 
 # Number of transcripts 
-m22e=$(awk -F '\t' 'NR>1 {print $6}' $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt" | sort --parallel=32 | uniq | wc -l)
+m26g=$(awk -F '\t' 'NR>1 {print $6}' $L2_DIR/L2R1_L2R2_integrate/$t/HiFi_L2R2_$t"_spatial.txt" | sort --parallel=32 | uniq | wc -l)
+
+##### Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile
+n_tiles=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
+m26h=$(echo "scale=4 ; $m26c / $n_tiles" | bc | awk '{printf("%.2f",$1)}')
+
+##### Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile under ROI
+n_tiles_under_ROI=$(wc -l $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt | cut -d " " -f 1)
+m26i=$(echo "scale=4 ; $m26e / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}')
 
 elif [ $size == 0 ]; then
-m22a=0
-m22b="0%"
-m22c=0
-m22d="0%"
-m22e=0
+m26a=0
+m26b="0%"
+m26c=0
+m26d="0%"
+m26e=0
+m26f="0%"
+m26g=0
+m26h=0
+m26i=0
 
 fi
 
-M22a=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts"
-M22b=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts"
-M22c=$t" - Number of HiFi-Slide read pairs uniquely aligned to transcripts and under ROI"
-M22d=$t" - % of HiFi-Slide read pairs uniquely aligned to transcripts and under ROI"
-M22e=$t" - Number of transcripts aligned to HiFi-Slide read pairs"
+M26a=$t" - Number of HiFi-Slide read pairs transcriptome mapped (uniquely aligned to transcripts)"
+M26b=$t" - % of HiFi-Slide read pairs transcriptome mapped"
+M26c=$t" - Number of HiFi-Slide read pairs transcriptome mapped and spatially resolved"
+M26d=$t" - % of HiFi-Slide read pairs transcriptome mapped and spatially resolved"
+M26e=$t" - Number of HiFi-Slide read pairs transcriptome mapped and under ROI"
+M26f=$t" - % of HiFi-Slide read pairs transcriptome mapped and under ROI"
+M26g=$t" - Number of transcripts aligned to HiFi-Slide read pairs"
+M26h="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile"
+M26i="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile under ROI"
 
 for k in a b c d e; do
-Mk=M22${k}
-mk=m22${k}
+Mk=M26${k}
+mk=m26${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 done
 
