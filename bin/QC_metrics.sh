@@ -1,3 +1,5 @@
+###### TO BE APPENDED TO THE END OF HiFi_processing_pipeline.sh
+
 ##### Total number of barcodes (L1R1)
 rm $L1_DIR/L1R1_stats.txt
 touch $L1_DIR/L1R1_stats.txt
@@ -66,6 +68,7 @@ m15=$(grep -w "Number of input reads" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Lo
 
 a=$(echo "scale=4 ; $m15 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m16=$a"%"
+
 
 ########## GENOME
 
