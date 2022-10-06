@@ -59,12 +59,12 @@ bwa index -p L1R1_dedup L1R1_dedup.fasta
 Then, we align HiFi-Slide R1 reads `L2R1.fastq` to the deduplicated spatial barcodes:
 
 ```
-bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1__L1R1_dedup.sam 2>L2R1__L1R1_dedup.log
+bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
 ```
 
 ## 3. Select HiFi-Slide R1 reads with highest alignment score
 ```
-hifislida.pl L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida.o 2>L2R1__L1R1_dedup.hifislida.e
+hifislida.pl L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida.o 2>L2R1_L1R1_dedup.hifislida.e
 ```
 
 **Arguments**  
@@ -74,7 +74,7 @@ hifislida.pl L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida.o 2>L2R1__L1R1_de
 Read the SAM file output from BWA and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
 
 **Output**
-Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
+Tab-separated file `L2R1_L1R1_dedup.hifislida.o` with the following columns:
 
 - Column 1: HiFi-Slide read ID. 
 - Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
@@ -88,7 +88,7 @@ Tab-separated file `L2R1__L1R1_dedup.hifislida.o` with the following columns:
 ### Rank the tiles by number of HiFi-Slide read pairs
 
 ```
-hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_dedup.hifislida2.o 2>L2R1__L1R1_dedup.hifislida2.e
+hifislida2.pl L2R1_L1R1_dedup.hifislida.o L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida2.o 2>L2R1_L1R1_dedup.hifislida2.e
 ```
 
 **Arguments**  
@@ -96,10 +96,10 @@ hifislida2.pl L2R1__L1R1_dedup.hifislida.o L2R1__L1R1_dedup.sam > L2R1__L1R1_ded
 2. Output file produced by BWA.
 
 **Purpose**  
-Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1__L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
+Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1_L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
 
 **Output**  
-Tab-separated file `L2R1__L1R1_dedup.hifislida2.o` with the following columns:
+Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
 
 - Column 1: Identifier ">TILE".
 - Column 2: Tile ID. *Is it useful to have the T? I have removed it from hifislida2.pl for consistency with the rest* 
@@ -112,7 +112,7 @@ For simplicity, we estimate the ROI as rectangular with a certain maximum and mi
 
 ```
 select_tiles_in_ROI.r \
--i L2R1__L1R1_dedup.hifislida2.o \
+-i L2R1_L1R1_dedup.hifislida2.o \
 -o ROI_tile_IDs.txt \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
@@ -131,9 +131,9 @@ select_tiles_in_ROI.r \
 
 ```
 hifislida3.pl \
-L2R1__L1R1_dedup.hifislida.o \
+L2R1_L1R1_dedup.hifislida.o \
 ROI_tile_IDs.txt \
-L1R1_dup.txt > L2R1__L1R1.hifislida3.o
+L1R1_dup.txt > L2R1_L1R1.hifislida3.o
 ```
 
 **Arguments**  
@@ -145,7 +145,7 @@ L1R1_dup.txt > L2R1__L1R1.hifislida3.o
 With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
 
 **Output**  
-Tab-separated file `L2R1__L1R1.hifislida3.o` with the following columns:
+Tab-separated file `L2R1_L1R1.hifislida3.o` with the following columns:
 
 - Column 1: HiFi-Slide read ID.
 - Column 2: Tile ID (only tiles under the ROI provided as input).
@@ -335,7 +335,7 @@ For Bowtie 2, we use default settings with the `--local` alignment mode. We crea
 3. We extract the fields of interest as HiFi-read identifier and transcript identifier.
 
 ```
-for i in tRNA piRNA mirbase circbase; do
+for i in tRNA piRNA miRNA circRNA; do
 
 bowtie2 \
 -x bowtie2_index_$i \
@@ -364,10 +364,10 @@ MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
 
 As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). This will produce final tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2).
 
-The file with HiFi-Slide read spatial coordinates is `L2R1__L1R1.hifislida3.o`, which is sorted first to obtain `L2R1__L1R1.hifislida3.sort.o` which is used below.
+The file with HiFi-Slide read spatial coordinates is `L2R1_L1R1.hifislida3.o`, which is sorted first to obtain `L2R1_L1R1.hifislida3.sort.o` which is used below.
 
 ```
-cat L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1__L1R1.hifislida3.sort.o
+cat L2R1_L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1_L1R1.hifislida3.sort.o
 ```
 
 ### Genome
@@ -375,7 +375,7 @@ cat L2R1__L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1__L1R1.hifisl
 ```
 cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
 
-join -1 1 -2 4 -t $'\t' L2R1__L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 4 -t $'\t' L2R1_L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
 ```
 **Output**
 
@@ -407,11 +407,11 @@ MN00185:308:000H3YMVH:1:11101:10015:19288       1109    14271   75095   22      
 ### Transcriptome
 
 ```
-for i in tRNA piRNA mirbase circbase; do
+for i in tRNA piRNA miRNA circRNA; do
 
 cat L2R2_$i"_uniquely_mapped.txt" | sort -k 1 --parallel=32 -S 20G > L2R2_$i"_uniquely_mapped.sort.txt"
 
-join -1 1 -2 1 -t $'\t' L2R1__L1R1.hifislida3.sort.o L2R2_$i"_uniquely_mapped.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
+join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o L2R2_$i"_uniquely_mapped.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
 
 done
 ```
