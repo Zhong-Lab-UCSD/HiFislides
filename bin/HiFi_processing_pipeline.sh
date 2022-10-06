@@ -12,6 +12,10 @@ L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
 
 L2_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq
 
+# Raw reads of HiFi Slides sequencing
+L2R1_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R2_001.fastq.gz
+
 # Flowcell and surface identifiers
 flowcell=AAAL33WM5
 surface=$flowcell:1:1
@@ -26,6 +30,8 @@ STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_with
 BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
 
 
+
+
 ##################
 
 # Directories of the processed data
@@ -33,10 +39,6 @@ L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
 L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
 mkdir -p $L1_DIR
 mkdir -p $L2_DIR
-
-# Raw reads of HiFi Slides sequencing
-L2R1=$L2_FASTQ_DIR/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2=$L2_FASTQ_DIR/Undetermined_S0_L001_R2_001.fastq.gz
 
 # Select full genes only
 
@@ -65,7 +67,7 @@ bwa index -p $L1_DIR/bwa_index_L1R1/L1R1_dedup $L1_DIR/L1R1_dedup.fasta
 
 # Alignment
 mkdir -p $L2_DIR/L2R1_mapping
-bwa mem -a -k 40 -t 32 $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1 > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
+bwa mem -a -k 40 -t 32 $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
 
 
 ### Select HiFi-Slide R1 reads with highest alignment score
@@ -105,14 +107,14 @@ mkdir -p $L2_DIR/L2R2_preprocessing
 minoverlap=10
 
 pear \
--f $L2R1 \
--r $L2R2 \
+-f $L2R1_FASTQ \
+-r $L2R2_FASTQ \
 -v $minoverlap \
 -j 32 \
 -o $L2_DIR/L2R2_preprocessing/L2R2_pear
 
 # grep @ $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.names
-# zgrep -A 3 -f $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.names $L2R2 > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter_names.fastq
+# zgrep -A 3 -f $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.names $L2R2_FASTQ > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter_names.fastq
 
 # Necessary? To be confirmed!
 seqtk seq -r $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq

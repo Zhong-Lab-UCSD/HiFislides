@@ -174,8 +174,8 @@ It is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but uninten
 
 ```
 pear \
--f L2R1 \
--r L2R2 \
+-f L2R1.fastq \
+-r L2R2.fastq \
 -v 10 \
 -j 32 \
 -o L2R2_pear
