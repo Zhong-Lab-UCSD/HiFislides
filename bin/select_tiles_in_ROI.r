@@ -36,7 +36,6 @@ if (is.null(opt$out_file)){
 input_data = data.frame(fread(opt$input_file))
 #input_data = data.frame(fread("/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample_new/lib2/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o"))
 
-input_data$V2 = gsub("T", "", input_data$V2) ### USEFUL TO SAVE THE T IN FIRST PLACE???
 input_data = input_data[,-1]
 colnames(input_data) = c("tile", "n_HiFi_reads", "n_barcodes")
 
