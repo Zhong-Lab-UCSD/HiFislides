@@ -35,13 +35,18 @@ for(w in c(2,3,4)) {
 	}
 }
 
-mat = mat[-1,]
-mat = mat[order(mat[,ncol(mat)],decreasing=F),]
-i = mat[1,2]
-j = mat[1,3]
-d = mat[1,1]
-# print(tilm[j:(j+d),i:(i+d)])
 
+for(i in 1:nrow(mat)) {
+	if(mat[i,4] > mat[i,5] & mat[i,6] < 0.05) {
+		i = mat[i,2]
+		j = mat[i,3]
+		d = mat[i,1]
+		# print(tilm[j:(j+d),i:(i+d)])
 
-roi = tilm[j:(j+d),i:(i+d)]
-write.table(file="Tiles_in_ROI.txt",col.names=F,row.names=F,sep="",quote=F,as.vector(unlist(roi)))
+		roi = tilm[j:(j+d),i:(i+d)]
+		write.table(file="Tiles_in_ROI.txt",col.names=F,row.names=F,sep="",quote=F,as.vector(unlist(roi)))
+		break
+	}
+}
+
+save(mat,file="ks_test_to_identify_ROI_mat.RData")
