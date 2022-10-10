@@ -5,6 +5,8 @@ OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data
 SAMPLE_NAME=data14_test
 N_THREADS=32
 
+BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index
+
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Directories of the raw fastq files for each library. The full path is used here.
@@ -67,8 +69,13 @@ $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedu
 
 # Create index files for L1R1
 # echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes (L1R1)."
+BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8))
+
 mkdir -p $L1_DIR/bwa_index_L1R1
-bwa index -p $L1_DIR/bwa_index_L1R1/L1R1_dedup $L1_DIR/L1R1_dedup.fasta
+bwa index \
+-b $BWA_BLOCK_SIZE \
+-p $L1_DIR/bwa_index_L1R1/L1R1_dedup \
+$L1_DIR/L1R1_dedup.fasta
 
 # Alignment
 mkdir -p $L2_DIR/L2R1_mapping
