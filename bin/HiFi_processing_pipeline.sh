@@ -36,7 +36,7 @@ BOWTIE2_INDEX_TRANSCRIPT=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotatio
 ################## PROCESSING
 
 START_DATE=$(date) # start processing date
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing of "$SAMPLE_NAME
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing of "$SAMPLE_NAME" ..."
 
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
@@ -50,7 +50,7 @@ mkdir -p $L2_DIR
 
 
 ########## LIBRARY 1 (spatial barcodes)
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..."
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 
@@ -110,7 +110,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide libra
 
 ########## LIBRARY 2 (HiFi-Slide read pairs)
 
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..."
 
 ### Preprocessing of HiFi R2 reads
 mkdir -p $L2_DIR/L2R2_preprocessing
@@ -251,7 +251,7 @@ done
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 2 finished."
 
 ########## Integrate spatial coordinates and gene expression information
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..."
 
 mkdir -p $L2_DIR/L2R1_L2R2_integrate
 
@@ -299,7 +299,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 
 
 ####################### QC metrics
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..."
 
 ##### Total number of barcodes (L1R1)
 rm $L1_DIR/L1R1_stats.txt
