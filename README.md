@@ -50,12 +50,12 @@ The output of surfdedup includes two files:
 
 ## 2. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
 
-Aligner BWA was used to map HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes `L1R1_dedup.fasta`. `BWA_BLOCK_SIZE` is an integer which indicates how many bases to process in a batch, and it serves to speed up the indexing. This number in the script is automatically calculated based on the input variable `BWA_MEMORY`, which indicates the memory to be used in Megabytes.
+Aligner BWA was used to map HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes `L1R1_dedup.fasta`. 
+<!-- `BWA_BLOCK_SIZE` is an integer which indicates how many bases to process in a batch, and it serves to speed up the indexing. This number in the script is automatically calculated based on the input variable `BWA_MEMORY`, which indicates the memory to be used in Megabytes. -->
 
 First, we create bwa index from `L1R1_dedup.fasta`:
 ```
 bwa index \
--b $BWA_BLOCK_SIZE \
 -p L1R1_dedup \
 L1R1_dedup.fasta
 ```
