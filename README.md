@@ -15,7 +15,7 @@ All published computational tools used for HiFi-Slide data analysis are free sof
 - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Bedtools](https://bedtools.readthedocs.io/en/latest/)
 - [Samtools](https://www.htslib.org)
-- [seqtk?](https://github.com/lh3/seqtk)
+- [Seqtk (TBD)](https://github.com/lh3/seqtk)
 
 
 **R packages:**  
@@ -438,6 +438,8 @@ MN00185:308:000H3YMVH:1:11102:13104:11180	1109	43425	50706	15	piR-hsa-2229595
 MN00185:308:000H3YMVH:1:11102:13104:11180	1109	47135	43472	15	piR-hsa-2229595
 MN00185:308:000H3YMVH:1:11102:13104:11180	1208	16960	53394	15	piR-hsa-2229595
 ```
+
+## QC metrics
 
 
 
