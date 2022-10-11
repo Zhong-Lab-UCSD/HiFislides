@@ -1,10 +1,10 @@
-####### INPUT PARAMETERS
-BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
-
+################## INPUT PARAMETERS
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data
 SAMPLE_NAME=data14_test
-N_THREADS=32
 
+BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
+
+N_THREADS=32
 BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index??? It does not seem that useful.
 
 mkdir -p $OUT_DIR/$SAMPLE_NAME
@@ -12,7 +12,6 @@ mkdir -p $OUT_DIR/$SAMPLE_NAME
 # Directories of the raw fastq files for each library. The full path is used here.
 L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
 L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
-
 L2_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq
 
 # Raw reads of HiFi Slides sequencing
@@ -24,7 +23,6 @@ flowcell=AAAL33WM5
 surface=$flowcell:1:1
 
 # Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
-
 # annotation_gtf_file=/dataOS/sysbio/Genomes/Homo_sapiens/Ensembl/GRCH38_hg38/Annotation/Genes/Homo_sapiens.GRCh38.84.chr.gtf
 annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
 
@@ -34,11 +32,12 @@ BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
 BOWTIE2_INDEX_TRANSCRIPT=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation
 
 
-
 ################## PROCESSING
+touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 START_DATE=$(date) # start processing date
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing of "$SAMPLE_NAME" ..."
+echo "Processing of "$SAMPLE_NAME
+echo "Processing of "$SAMPLE_NAME >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
@@ -51,15 +50,16 @@ mkdir -p $L1_DIR
 mkdir -p $L2_DIR
 
 
-########## LIBRARY 1 (spatial barcodes)
+#################### LIBRARY 1 (spatial barcodes)
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
-
 # g++ surfdedup.cpp -o surfdedup -lz
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # dummy example to make running faster
 # $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/MT080_S1_L001_R1_001.fastq.gz > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
@@ -68,22 +68,23 @@ $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedu
 ### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
 
 # Create index files for L1R1
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes (L1R1)."
-BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8))
-
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start creating BWA index for spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8)) # currently not used
 mkdir -p $L1_DIR/bwa_index_L1R1
 bwa index \
 -p $L1_DIR/bwa_index_L1R1/L1R1_dedup \
 $L1_DIR/L1R1_dedup.fasta
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Alignment
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R1_mapping
 bwa mem -a -k 40 -t $N_THREADS $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 ### Select HiFi-Slide R1 reads with highest alignment score
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida.pl $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
 
 ### Rank the tiles by number of HiFi-Slide read pairs
@@ -98,10 +99,10 @@ $BIN_DIR/select_tiles_in_ROI.r \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
 --p_value 0.05
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection done."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Match HiFi-Slide read pairs with spatial location
-# echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
@@ -111,17 +112,22 @@ $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
 echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
 
 rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 finished."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 complete."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-########## LIBRARY 2 (HiFi-Slide read pairs)
 
+#################### LIBRARY 2 (HiFi-Slide read pairs)
+echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Preprocessing of HiFi R2 reads
 mkdir -p $L2_DIR/L2R2_preprocessing
 
 # Find L2R2 reads overlapping L2R1 and filter them out using the software pear
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Find L2R2 reads overlapping L2R1 and filter them out using the software PEAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 minoverlap=10
 
 pear \
@@ -136,8 +142,10 @@ pear \
 
 # Necessary? To be confirmed!
 seqtk seq -r $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq
+echo "[$(date '+%m-%d-%y %H:%M:%S')] PEAR processing complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Trimming the front 60 bp to remove Illumina adapters (max 16 threads allowed, max 30 bp at the time)
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming the front 60 bp of L2R2 reads to remove Illumina adapters..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 fastp \
 -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
 -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
@@ -155,10 +163,11 @@ fastp \
 --trim_front1 30 \
 --disable_quality_filtering \
 --thread 16
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
-
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R2_mapping/genome
 
 STAR \
@@ -210,26 +219,36 @@ $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_id.txt \
 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt \
 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt |
 cut -f 1,2,3,4,6,7,8 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
-
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome
 
-### Creating Bowtie 2 indexes (RUN ONLY ONCE, PATH AS INPUT PARAMETER)
-# for my_transcript in tRNA piRNA miRNA circRNA; do
-# mkdir -p /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/bowtie2_index
+### Creating Bowtie 2 indexes (if not input parameter)
 
-# bowtie2-build \
-# --threads $N_THREADS \
-# --quiet \
-# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/*fa* \
-# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/bowtie2_index/$my_transcript
-# done
+if [$BOWTIE2_INDEX_TRANSCRIPT == ""]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Create Bowtie 2 indexes of transcriptomes..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+for my_transcript in tRNA piRNA miRNA circRNA; do
+mkdir -p /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/bowtie2_index
+
+bowtie2-build \
+--threads $N_THREADS \
+--quiet \
+/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/*fa* \
+/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/bowtie2_index/$my_transcript
+done
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Bowtie 2 index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+fi
+
 
 # Dummy fastq for testing purposes
 # head -40000 $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq > $L2_DIR/L2R2_mapping/transcriptome/temp_L2R2.trim_front_60.fastq
 
 ### Mapping
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 for my_transcript in tRNA piRNA miRNA circRNA; do
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome/$my_transcript
 
@@ -254,10 +273,17 @@ cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript
 
 done
 
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the transcriptomes complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 2 finished."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 2 finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+
 
 ########## Integrate spatial coordinates and gene expression information
+echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 mkdir -p $L2_DIR/L2R1_L2R2_integrate
 
@@ -301,11 +327,13 @@ fi
 done
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information finished."
-
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 ####################### QC metrics
+echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ##### Total number of barcodes (L1R1)
 rm $L1_DIR/L1R1_stats.txt
@@ -441,15 +469,15 @@ M24="Average number of HiFi-Slide read pairs genome mapped and spatially resolve
 M25="Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile under ROI"
 
 
-rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
+touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 for k in $(seq 1 25); do
 Mk=M${k}
 mk=m${k}
-echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 done
 
-# printf '%s\n' "$M1" "$M2" "$M3" "$M4" "$M5" "$M6" "$M7" "$M8" "$M9" "$M10" "$M11" "$M12" "$M13" "$M14" "$M15" "$M16" "$M17" "$M18" "$M19" "$M20" "$M21" | paste -sd '\n' > $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+# printf '%s\n' "$M1" "$M2" "$M3" "$M4" "$M5" "$M6" "$M7" "$M8" "$M9" "$M10" "$M11" "$M12" "$M13" "$M14" "$M15" "$M16" "$M17" "$M18" "$M19" "$M20" "$M21" | paste -sd '\n' > $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 
 
 ########## TRANSCRIPTOME
@@ -514,18 +542,21 @@ M26i="Average number of HiFi-Slide read pairs transcriptome mapped and spatially
 for k in a b c d e; do
 Mk=M26${k}
 mk=m26${k}
-echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 done
 
 done
 
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." 
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 echo "Data processing started: "$START_DATE
-echo "Data processing ended: "$date
+echo "Data processing ended: "$(date)
 
-
+echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "Data processing started: "$START_DATE >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "Data processing ended: "$(date) >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 
