@@ -15,7 +15,7 @@ All published computational tools used for HiFi-Slide data analysis are free sof
 - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Bedtools](https://bedtools.readthedocs.io/en/latest/)
 - [Samtools](https://www.htslib.org)
-- [Seqtk (TBD)](https://github.com/lh3/seqtk)
+- [Seqtk](https://github.com/lh3/seqtk) TBD???
 
 
 **R packages:**  

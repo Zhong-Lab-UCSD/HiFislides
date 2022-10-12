@@ -541,7 +541,7 @@ M26g=$my_transcript" - Number of transcripts aligned to HiFi-Slide read pairs"
 M26h="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile"
 M26i="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile under ROI"
 
-for k in a b c d e; do
+for k in a b c d e f g h i; do
 Mk=M26${k}
 mk=m26${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
