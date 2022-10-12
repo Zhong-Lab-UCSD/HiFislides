@@ -5,7 +5,7 @@ SAMPLE_NAME=data14_test
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
 N_THREADS=32
-BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index??? It does not seem that useful.
+BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not seem that useful.
 
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
@@ -223,6 +223,12 @@ $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt \
 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt |
 cut -f 1,2,3,4,6,7,8 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
+# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_id.txt
+# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt
+# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt
+
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome
