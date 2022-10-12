@@ -38,6 +38,7 @@ touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 START_DATE=$(date) # start processing date
 echo "Processing of "$SAMPLE_NAME
 echo "Processing of "$SAMPLE_NAME >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
@@ -53,7 +54,7 @@ mkdir -p $L2_DIR
 #################### LIBRARY 1 (spatial barcodes)
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 # g++ surfdedup.cpp -o surfdedup -lz
@@ -121,7 +122,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide libra
 
 
 #################### LIBRARY 2 (HiFi-Slide read pairs)
-echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -224,12 +225,11 @@ cut -f 1,2,3,4,6,7,8 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R2_mapping/transcriptome
 
 ### Creating Bowtie 2 indexes (if not input parameter)
 
-if [$BOWTIE2_INDEX_TRANSCRIPT == ""]; then
+if [ $BOWTIE2_INDEX_TRANSCRIPT == "" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Create Bowtie 2 indexes of transcriptomes..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
@@ -283,7 +283,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide libra
 
 
 ########## Integrate spatial coordinates and gene expression information
-echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -333,7 +333,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 
 
 ####################### QC metrics
-echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -556,7 +556,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 echo "Data processing started: "$START_DATE
 echo "Data processing ended: "$(date)
 
-echo "---------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo "Data processing started: "$START_DATE >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo "Data processing ended: "$(date) >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
