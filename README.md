@@ -30,6 +30,8 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 Note that here we use dummy codes just to provide and overview of the main steps of the workflow. More information can be found [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit#).
 
+The entire log of the workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
+
 ## 1. Deduplication of spatial barcodes (L1R1)
 ```
 surfdedup AAAL33WM5:1:1 *_L1R1.fastq.gz > L1R1_dedup.fasta 2>L1R1_dup.txt
@@ -441,7 +443,7 @@ MN00185:308:000H3YMVH:1:11102:13104:11180	1208	16960	53394	15	piR-hsa-2229595
 
 ## QC metrics
 
-
+All the QC metrics listed in section 4 [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit?pli=1#) are saved in a tab-separated txt file named `sample_name.QC_metrics.txt`.
 
 
 
