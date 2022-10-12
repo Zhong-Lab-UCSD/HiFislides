@@ -428,7 +428,7 @@ m20=$a"%"
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to genome
 m21=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=$N_THREADS | uniq | wc -l)
 
-a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+a=$(echo "scale=4 ; $m21 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m22=$a"%"
 
 # Number of genes 
