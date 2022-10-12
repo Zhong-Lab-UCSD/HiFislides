@@ -446,29 +446,29 @@ m25=$(echo "scale=4 ; $m21 / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}
 #### Labels
 M1="Total number of barcodes"
 M2="Number of deduplicated barcodes"
-M3="% of deduplicated barcodes"
+M3="Percentage of deduplicated barcodes"
 M4="Number of HiFi-Slide read pairs"
 M5="Number of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes)"
-M6="% of HiFi-Slide read pairs spatially resolved"
+M6="Percentage of HiFi-Slide read pairs spatially resolved"
 M7="Number of HiFi-Slide read pairs univocally spatially resolved (aligned to unique spatial barcodes)"
-M8="% of HiFi-Slide read pairs univocally spatially resolved"
+M8="Percentage of HiFi-Slide read pairs univocally spatially resolved"
 M9="Number of HiFi-Slide read pairs univocally spatially resolved and under ROI"
-M10="% of HiFi-Slide read pairs univocally spatially resolved and under ROI"
+M10="Percentage of HiFi-Slide read pairs univocally spatially resolved and under ROI"
 M11="Number of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes) and under ROI"
-M12="% of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes) and under ROI"
+M12="Percentage of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes) and under ROI"
 M13="Number of HiFi-Slide read pairs passing PEAR filtering"
-M14="% of HiFi-Slide read pairs passing PEAR filtering"
+M14="Percentage of HiFi-Slide read pairs passing PEAR filtering"
 M15="Number of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
-M16="% of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
+M16="Percentage of HiFi-Slide read pairs passing PEAR and FASTP (length) filtering"
 M17="Number of HiFi-Slide read pairs genome mapped (uniquely aligned to annotated genes)"
-M18="% of HiFi-Slide read pairs genome mapped"
+M18="Percentage of HiFi-Slide read pairs genome mapped"
 M19="Number of HiFi-Slide read pairs genome mapped and spatially resolved"
-M20="% of HiFi-Slide read pairs genome mapped and spatially resolved"
+M20="Percentage of HiFi-Slide read pairs genome mapped and spatially resolved"
 M21="Number of HiFi-Slide read pairs genome mapped and under ROI"
-M22="% of HiFi-Slide read pairs genome mapped and under ROI"
+M22="Percentage of HiFi-Slide read pairs genome mapped and under ROI"
 M23="Number of annotated genes aligned to HiFi-Slide read pairs"
 M24="Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile"
-M25="Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile under ROI"
+M25="Average number of HiFi-Slide read pairs genome mapped per tile under ROI"
 
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
@@ -483,6 +483,9 @@ done
 
 
 ########## TRANSCRIPTOME
+m27=$m19 # to store number of read pairs genome and transcriptome mapped and spatially resolved
+m29=$m21 # to store number of read pairs genome and transcriptome mapped and undr ROI
+
 for my_transcript in tRNA piRNA miRNA circRNA; do
 
 size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
@@ -501,11 +504,15 @@ m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2_DIR/L2R1_mapping/L2R1_L
 a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26d=$a"%"
 
+m27=$(($m27 + $m26c)) # update value
+
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to transcriptome
 m26e=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26f=$a"%"
+
+m29=$(($m29 + $m26e)) # update value
 
 # Number of transcripts 
 m26g=$(awk -F '\t' 'NR>1 {print $6}' $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
@@ -532,14 +539,14 @@ m26i=0
 fi
 
 M26a=$my_transcript" - Number of HiFi-Slide read pairs transcriptome mapped (uniquely aligned to transcripts)"
-M26b=$my_transcript" - % of HiFi-Slide read pairs transcriptome mapped"
+M26b=$my_transcript" - Percentage of HiFi-Slide read pairs transcriptome mapped"
 M26c=$my_transcript" - Number of HiFi-Slide read pairs transcriptome mapped and spatially resolved"
-M26d=$my_transcript" - % of HiFi-Slide read pairs transcriptome mapped and spatially resolved"
+M26d=$my_transcript" - Percentage of HiFi-Slide read pairs transcriptome mapped and spatially resolved"
 M26e=$my_transcript" - Number of HiFi-Slide read pairs transcriptome mapped and under ROI"
-M26f=$my_transcript" - % of HiFi-Slide read pairs transcriptome mapped and under ROI"
+M26f=$my_transcript" - Percentage of HiFi-Slide read pairs transcriptome mapped and under ROI"
 M26g=$my_transcript" - Number of transcripts aligned to HiFi-Slide read pairs"
-M26h="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile"
-M26i="Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile under ROI"
+M26h=$my_transcript" - Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile"
+M26i=$my_transcript" - Average number of HiFi-Slide read pairs transcriptome mapped per tile under ROI"
 
 for k in a b c d e f g h i; do
 Mk=M26${k}
@@ -548,6 +555,30 @@ echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 done
 
 done
+
+######## Genome and transcriptome merged metrics
+a=$(echo "scale=4 ; $m27 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m28=$a"%"
+
+a=$(echo "scale=4 ; $m29 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
+m30=$a"%"
+
+m31=$(echo "scale=4 ; $m27 / $n_tiles" | bc | awk '{printf("%.2f",$1)}')
+m32=$(echo "scale=4 ; $m29 / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}')
+
+M27="Number of HiFi-Slide read pairs genome and transcriptome mapped and spatially resolved"
+M28="Percentage of HiFi-Slide read pairs genome and transcriptome mapped and spatially resolved"
+M29="Number of HiFi-Slide read pairs genome and transcriptome mapped and under ROI"
+M30="Percentage of HiFi-Slide read pairs genome and transcriptome mapped and under ROI"
+M31="Average number of HiFi-Slide read pairs genome and transcriptome mapped and spatially resolved per tile"
+M32="Average number of HiFi-Slide read pairs genome and transcriptome mapped per tile under ROI"
+
+for k in $(seq 27 32); do
+Mk=M${k}
+mk=m${k}
+echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
+done
+
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
