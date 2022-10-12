@@ -479,8 +479,6 @@ mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 done
 
-# printf '%s\n' "$M1" "$M2" "$M3" "$M4" "$M5" "$M6" "$M7" "$M8" "$M9" "$M10" "$M11" "$M12" "$M13" "$M14" "$M15" "$M16" "$M17" "$M18" "$M19" "$M20" "$M21" | paste -sd '\n' > $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
-
 
 ########## TRANSCRIPTOME
 m27=$m19 # to store number of read pairs genome and transcriptome mapped and spatially resolved
