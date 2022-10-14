@@ -10,8 +10,8 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Directories of the processed data
-L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
-L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
+L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/data14_test/lib1 # spatial barcodes
+L2_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/data14_test/lib2 # HiFi library
 mkdir -p $L1_DIR
 mkdir -p $L2_DIR
 
@@ -58,11 +58,16 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 # g++ surfdedup.cpp -o surfdedup -lz
+if [ -f "$L1_DIR/L1R1_dedup.fasta" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+fi
 
 # dummy example to make running faster
 # $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/MT080_S1_L001_R1_001.fastq.gz > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
@@ -71,6 +76,10 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $
 ### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
 
 # Create index files for L1R1
+if ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start creating BWA index for spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8)) # currently not used
 mkdir -p $L1_DIR/bwa_index_L1R1
@@ -78,6 +87,7 @@ bwa index \
 -p $L1_DIR/bwa_index_L1R1/L1R1_dedup \
 $L1_DIR/L1R1_dedup.fasta
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+fi
 
 # Alignment
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
