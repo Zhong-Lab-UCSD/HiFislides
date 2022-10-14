@@ -9,6 +9,12 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
+# Directories of the processed data
+L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
+L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
+mkdir -p $L1_DIR
+mkdir -p $L2_DIR
+
 # Directories of the raw fastq files for each library. The full path is used here.
 L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
 L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
@@ -43,12 +49,6 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
 awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
-
-# Directories of the processed data
-L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
-L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
-mkdir -p $L1_DIR
-mkdir -p $L2_DIR
 
 
 #################### LIBRARY 1 (spatial barcodes)
