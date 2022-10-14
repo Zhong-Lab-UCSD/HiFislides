@@ -58,7 +58,7 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 # g++ surfdedup.cpp -o surfdedup -lz
-if [ -f "$L1_DIR/L1R1_dedup.fasta" ]; then
+if [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
