@@ -6,9 +6,13 @@ library("data.table")
 ##### Read input argument
 option_list = list(
   make_option(c("-i", "--input_file"), type="character", default=NULL, 
-              help="L2R1__L1R1_dedup.hifislida2.o", metavar="character"),
+              help="L2R1_L1R1_dedup.hifislida2.o", metavar="character"),
   make_option(c("-o", "--out_file"), type="character", default=NULL,
               help="Output file", metavar="character"),
+  make_option(c("-f", "--flowcell_type"), type="character", default=NULL,
+              help="Flowcell type (either MiniSeq, NextSeq)", metavar="character"),
+  make_option(c("-s", "--surface"), type="character", default=NULL,
+              help="Flowcell surface (either 1 or 2)", metavar="character"),
   make_option(c("-M", "--max_size_ROI"), type="character", default=NULL,
               help="Maximum size of the ROI, either on the rows or the columns", metavar="character"),
   make_option(c("-m", "--min_size_ROI"), type="character", default=NULL,
@@ -23,7 +27,7 @@ opt = parse_args(opt_parser);
 
 if (is.null(opt$input_file)){
   print_help(opt_parser)
-  stop("Input file L2R1__L1R1_dedup.hifislida2.o must be supplied!", call.=FALSE)
+  stop("Input file L2R1_L1R1_dedup.hifislida2.o must be supplied!", call.=FALSE)
 }
 
 if (is.null(opt$out_file)){
@@ -34,16 +38,29 @@ if (is.null(opt$out_file)){
 
 #####
 input_data = data.frame(fread(opt$input_file))
-#input_data = data.frame(fread("/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample_new/lib2/L2R1_mapping/L2R1__L1R1_dedup_1_1.hifislida2.o"))
+#input_data = data.frame(fread("/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/data_26/lib2/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o"))
 
 input_data = input_data[,-1]
 colnames(input_data) = c("tile", "n_HiFi_reads", "n_barcodes")
 
-# tile_matrix is the matrix for arranging Tile IDs as their relative position on the surface. We have 11 x 6 tiles (rows x cols)
-x = 1101:1111
-tile_matrix = cbind(x, x+100, x+200, x+300, x+400, x+500)
+# tile_matrix is the matrix for arranging Tile IDs as their relative position on the surface.
+if (opt$flowcell_type == "NextSeq"){
+  # We have 11 x 6 tiles (rows x cols)
+  x = 1101:1111
+  tile_matrix = cbind(x, x+100, x+200, x+300, x+400, x+500)
+} else if (opt$flowcell_type == "MiniSeq"){
+  # We have 4 x 3 tiles (rows x cols)
+  if (opt$surface == "1"){
+    x = 11101:11104
+    tile_matrix = cbind(x, x+1000, x+2000)
+  } else {
+    x = 21101:21104
+    tile_matrix = cbind(x, x+1000, x+2000)
+  }
+}
 
-mat = matrix(data=NA, nrow=1, ncol=6)
+input_data = input_data[which(input_data$tile %in% tile_matrix),]
+
 
 ### We estimate the ROI to be rectangular.
 
@@ -58,6 +75,10 @@ min_size_ROI = as.numeric(opt$min_size_ROI) # either on the rows or columns
 
 w_matrix = cbind(combn(c(min_size_ROI:max_size_ROI),2), combn(c(min_size_ROI:max_size_ROI),2)[c(2,1),], 
                  matrix(data = c(min_size_ROI:max_size_ROI, min_size_ROI:max_size_ROI), 2, max_size_ROI-min_size_ROI+1, byrow = T))
+w_matrix = w_matrix[,which(w_matrix[1,] <= nrow(tile_matrix) & 
+                             w_matrix[2,] <= ncol(tile_matrix) &
+                             (w_matrix[1,] * w_matrix[2,] != length(tile_matrix)))] # to remove options where the size of the ROI on one dimension would be larger that the tile matrix on the dimension
+
 
 out_list = list()
 
@@ -67,8 +88,8 @@ for(w in 1:ncol(w_matrix)) {
   d_row = w_row - 1
   d_col = w_col - 1
   
-  for(i in 1:(11-d_row)) {
-    for(j in 1:(6-d_col)) {
+  for(i in 1:(nrow(tile_matrix)-d_row)) {
+    for(j in 1:(ncol(tile_matrix)-d_col)) {
       
       tiles_ROI = which(input_data$tile %in% tile_matrix[i:(i+d_row),j:(j+d_col)]) # tiles in putative ROI
       tiles_noROI = which(!(input_data$tile %in% tile_matrix[i:(i+d_row),j:(j+d_col)])) # tiles not in putative ROI
@@ -83,13 +104,19 @@ for(w in 1:ncol(w_matrix)) {
 
 df = do.call("rbind", out_list)
 df_1 = df[which(df$avg_HiFi_reads_ROI > df$avg_HiFi_reads_noROI & df$p_value < as.numeric(opt$p_value)),]
-df_1$avg_log2FC = log2((df_1$avg_HiFi_reads_ROI + 1) / (df_1$avg_HiFi_reads_noROI + 1))
 
-#df_1 = df_1[order(df_1$avg_HiFi_reads_ROI, decreasing = T),]
-df_1 = df_1[order(df_1$avg_log2FC, decreasing = T),]
-
-df_roi = df_1[1,]
-roi = tile_matrix[df_roi$i:(df_roi$i+df_roi$w_row-1), df_roi$j:(df_roi$j+df_roi$w_col-1)]
+if (nrow(df_1) > 0){
+  df_1$avg_log2FC = log2((df_1$avg_HiFi_reads_ROI + 1) / (df_1$avg_HiFi_reads_noROI + 1))
+  
+  #df_1 = df_1[order(df_1$avg_HiFi_reads_ROI, decreasing = T),]
+  df_1 = df_1[order(df_1$avg_log2FC, decreasing = T),]
+  
+  df_roi = df_1[1,]
+  roi = tile_matrix[df_roi$i:(df_roi$i+df_roi$w_row-1), df_roi$j:(df_roi$j+df_roi$w_col-1)]
+} else {
+  # the entire tile matrix as ROI
+  roi = tile_matrix
+}
 
 #print(as.numeric(roi))
 write.table(as.numeric(roi), opt$out_file, row.names = F, col.names = F, quote = F)

@@ -14,7 +14,7 @@ my ($aout,$a2out,$dupspots) = @ARGV;
 open IN,$a2out;
 while(<IN>) {
 	chomp;
-	if(m/(\d\d\d\d)/) {
+	if(m/(\d{4,5})/) {
 		my $ti = $1;
 		$tile4roi{$ti} = {};
 	}
@@ -39,7 +39,7 @@ while(<IN>) {
 	my ($hifi,$spot,$NSpot,$N,$as) = split /\t/;
 	if($N < 1000) {
 		$spot=~s/_\d+//;
-		if($spot=~m/:1:(\d\d\d\d):/) {
+		if($spot=~m/:1:(\d{4,5}):/) {
 			my $tile = $1;
 			#my $Tile = "T".$tile;
 			if(exists $tile4roi{$tile}) {
@@ -48,7 +48,7 @@ while(<IN>) {
 		}
 		my @dupspots = keys %{$dupspots{$spot}};
 		foreach my $spot_1 (@dupspots) {
-			if($spot_1=~m/:1:(\d\d\d\d):/) {
+			if($spot_1=~m/:1:(\d{4,5}):/) {
 				my $tile = $1;
 				#my $Tile = "T".$tile;
 				if(exists $tile4roi{$tile}) {
@@ -64,7 +64,7 @@ foreach my $hifi (keys %spot_in_roi) {
 	my @spot = keys %{$spot_in_roi{$hifi}};
 	my $N = scalar @spot;
 	foreach my $spot (@spot) {
-		if($spot=~m/:1:(\d\d\d\d):(\d+):(\d+)/) {
+		if($spot=~m/:1:(\d{4,5}):(\d+):(\d+)/) {
 			# range of y is larger than x.
 			# Y: rows, 119 grids.
 			# X: cols, 85 grids.

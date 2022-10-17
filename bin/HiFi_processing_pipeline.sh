@@ -158,6 +158,7 @@ $BIN_DIR/select_tiles_in_ROI.r \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
 --p_value 0.05
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Match HiFi-Slide read pairs with spatial location
