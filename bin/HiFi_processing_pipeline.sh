@@ -25,8 +25,14 @@ L2R1_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R2_001.fastq.gz
 
 # Flowcell and surface identifiers
+flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
 flowcell=AAAL33WM5
+
+if [ $flowcell_type == "NextSeq" ]; then
 surface=$flowcell:1:1
+elif [ $flowcell_type == "MiniSeq" ]; then
+surface=$flowcell:1:
+fi
 
 # Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
 # annotation_gtf_file=/dataOS/sysbio/Genomes/Homo_sapiens/Ensembl/GRCH38_hg38/Annotation/Genes/Homo_sapiens.GRCh38.84.chr.gtf
@@ -95,15 +101,43 @@ mkdir -p $L2_DIR/L2R1_mapping
 bwa mem -a -k 40 -t $N_THREADS $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
+if [ $flowcell_type == "MiniSeq" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# Remove header and select 0 and 256 flags
+grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+
+# Select reads coming from surface 1 and surface 2
+grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+
+# Choose which surface the tissue is based on the number of mapped reads
+n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
+n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
+
+if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+else
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+fi
+
+rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+
+elif [ $flowcell_type == "NextSeq" ]; then
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
+fi
+
 
 ### Select HiFi-Slide R1 reads with highest alignment score
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-$BIN_DIR/hifislida.pl $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
+$BIN_DIR/hifislida.pl $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
 
 ### Rank the tiles by number of HiFi-Slide read pairs
 $BIN_DIR/hifislida2.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
+$L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
 
 ### Select tiles under ROI
 $BIN_DIR/select_tiles_in_ROI.r \

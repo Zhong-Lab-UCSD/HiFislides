@@ -37,7 +37,7 @@ The entire log of the workflow with the executed commands and the timestamps is 
 surfdedup AAAL33WM5:1:1 *_L1R1.fastq.gz > L1R1_dedup.fasta 2>L1R1_dup.txt
 ```
 **Arguments**  
-1. Identifier of the surface on recycled flowcell. For example, AAAL33WM5:1:1 indicates that the deduplication will be performed on the top surface (surface 1) of lane 1 of flowcell AAAL33WM5. 
+1. Identifier of the surface on recycled flowcell. For example, `AAAL33WM5:1:1` indicates that the deduplication will be performed on the top surface (surface 1) of lane 1 of flowcell AAAL33WM5. In case of MiniSeq, we do not know if the tissue is on the top or bottom surface, therefore only `AAAL33WM5:1:` would be inputted here to consider both the surfaces.
 2. The filename identifier of several L1R1 fastq files.
 
 **Purpose**  
@@ -66,6 +66,8 @@ Then, we align HiFi-Slide R1 reads `L2R1.fastq` to the deduplicated spatial barc
 ```
 bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
 ```
+
+In the case of a flowcell coming from MiniSeq, there is an additional step where we count the number of HiFi-Slide R1 reads mapped (flag 0 or 256) to spatial barcodes on the top (AAAL33WM5:1:1) and bottom surface (AAAL33WM5:1:2) and then select the surface with the highest number of aligned reads. This subsetted SAM file will go to the following steps.
 
 ## 3. Select HiFi-Slide R1 reads with highest alignment score
 ```
