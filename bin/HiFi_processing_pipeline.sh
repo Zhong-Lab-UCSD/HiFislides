@@ -140,9 +140,21 @@ $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
 
 ### Select tiles under ROI
+if [ $flowcell_type == "MiniSeq" ]; then
+if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
+mySurf=1
+else
+mySurf=2
+fi
+elif [ $flowcell_type == "NextSeq" ]; then
+mySurf=1
+fi
+
 $BIN_DIR/select_tiles_in_ROI.r \
 -i $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o \
 -o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+-f $flowcell_type \
+--surface $mySurf \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
 --p_value 0.05

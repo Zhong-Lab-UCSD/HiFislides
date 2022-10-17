@@ -121,6 +121,8 @@ For simplicity, we estimate the ROI as rectangular with a certain maximum and mi
 select_tiles_in_ROI.r \
 -i L2R1_L1R1_dedup.hifislida2.o \
 -o ROI_tile_IDs.txt \
+-f NextSeq \
+--surface 1 \
 --max_size_ROI 4 \
 --min_size_ROI 2 \
 --p_value 0.05
@@ -129,6 +131,8 @@ select_tiles_in_ROI.r \
 **Arguments**  
 - `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
 - `-o`: Output file, tile IDs under ROI.
+- `-f`: Flowcell type, either MiniSeq, NextSeq.
+- `--surface`: Flowcell surface where the tissue is. For NextSeq is `1` for MiniSeq it depends on which surface is the highest number of mapped HiFi-Slide R1 reads to barcodes. This parameter is automatically computed in the script and passed to this function.
 - `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
 - `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
 - `--p_value`: The p-value threshold to be used for statistical significance.

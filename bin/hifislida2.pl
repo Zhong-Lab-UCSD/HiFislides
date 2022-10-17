@@ -27,22 +27,6 @@ close IN;
 # SAM per tile
 my $sam = shift @ARGV;
 
-my %read_to_kept;
-my $read_to_kept = "NAN";
-$read_to_kept = shift @ARGV if @ARGV > 0;
-if($read_to_kept ne "NAN") {
-	open IN,$read_to_kept;
-	while(<IN>) {
-		chomp;
-		if(m/(MN00185:\d+:\S+:\d:\d+:\d+:\d+)/) {
-			my $rd = $1;
-			$read_to_kept{$rd} = 1;
-		}
-	}
-	close IN;
-} else {
-	%read_to_kept = %hifi_N;
-}
 my %spotcount_per_tile;
 my %readcount_per_tile;
 
@@ -54,30 +38,29 @@ foreach my $samI ($sam) {
 	while(<IN>) {
 		chomp;
 		my $go = 0;
-		if(m/\t0\tVH00454:/) {
+		if(m/\t0\t\S+:/) {
 			$go = 1;
 		}
-		if(m/\t256\tVH00454:/) {
+		if(m/\t256\t\S+:/) {
 			$go = 1;
 		}
 		if($go == 1) {
 			my @a = split /\t/;
 			my $spot = $a[2];
 			my $hifi = $a[0];
-			if(exists $read_to_kept{$hifi}) {
 				if(exists $hifi_N{$hifi}) {
 					#if($NSpot == 1 && $N == 1 && $spot=~m/_1$/) {
 					# $hifi_N{$rd} = $spot;
 					if($spot eq $hifi_N{$hifi}) {						
-						if($spot=~m/:1:(1\d\d\d):(\d+):(\d+)/) {
+						if($spot=~m/:1:(\d+):(\d+):(\d+)/) {
 							my ($TILE,$x,$y) = ($1,$2,$3);
-							$TILE = $TILE;
+							# $TILE = "T".$TILE;
 							$mapped_spot_per_tile{$TILE}->{$spot} = 1;							
 							$read_per_tile{$TILE}->{$hifi} = 1;
 						}
+						
 					}
 				}
-			}
 		}
 	}
 	print STDERR $sam,"\n";
