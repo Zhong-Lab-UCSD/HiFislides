@@ -115,7 +115,7 @@ Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
 
 ### Select tiles under ROI
 
-For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output.
+For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output. If no significant ROI comes out, then all the tiles of the surface are considered as ROI.
 
 ```
 select_tiles_in_ROI.r \
