@@ -10,19 +10,23 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Directories of the processed data
-L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/data14_test/lib1 # spatial barcodes
-L2_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/data14_test/lib2 # HiFi library
+L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
+L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
 mkdir -p $L1_DIR
 mkdir -p $L2_DIR
 
 # Directories of the raw fastq files for each library. The full path is used here.
 L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
 L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
-L2_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq
+
+# These can be explicitly declared if already processed
+L1R1_FASTQ_BWA_INDEX="" 
+L1R1_DEDUP="" # first output of surfdedup
+L1R1_DUP="" # second output of surfdedup
 
 # Raw reads of HiFi Slides sequencing
-L2R1_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2_FASTQ=$L2_FASTQ_DIR/Undetermined_S0_L001_R2_001.fastq.gz
+L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R2_001.fastq.gz
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
@@ -67,10 +71,17 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 if [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+elif [ $L1R1_DEDUP != "" ] && [ $L1R1_DUP != "" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
+
+L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta
+L1R1_DUP=$L1_DIR/L1R1_dup.txt
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 fi
@@ -85,20 +96,27 @@ fi
 if ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+elif [ $L1R1_FASTQ_BWA_INDEX != "" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start creating BWA index for spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8)) # currently not used
 mkdir -p $L1_DIR/bwa_index_L1R1
+
 bwa index \
 -p $L1_DIR/bwa_index_L1R1/L1R1_dedup \
-$L1_DIR/L1R1_dedup.fasta
+$L1R1_DEDUP
+
+L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 fi
 
 # Alignment
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R1_mapping
-bwa mem -a -k 40 -t $N_THREADS $L1_DIR/bwa_index_L1R1/L1R1_dedup $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
+bwa mem -a -k 40 -t $N_THREADS $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 if [ $flowcell_type == "MiniSeq" ]; then
