@@ -109,7 +109,7 @@ Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 t
 Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
 
 - Column 1: Identifier ">TILE".
-- Column 2: Tile ID. *Is it useful to have the T? I have removed it from hifislida2.pl for consistency with the rest* 
+- Column 2: Tile ID.
 - Column 3: Number of spatially resolved HiFi-Slide read pairs per tile (ranked in descending order).
 - Column 4: Number of mapped barcodes on the tile used for resolving the HiFi-Slide read pairs.
 

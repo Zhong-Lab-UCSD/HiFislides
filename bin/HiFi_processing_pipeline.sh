@@ -13,11 +13,14 @@ mkdir -p $OUT_DIR/$SAMPLE_NAME
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
 flowcell=AAAL33WM5
 
-if [ $flowcell_type == "NextSeq" ]; then
+if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
-elif [ $flowcell_type == "MiniSeq" ]; then
+elif [ "$flowcell_type" == "MiniSeq" ]; then
 surface=$flowcell:1:
 fi
+
+max_size_ROI=7
+min_size_ROI=6
 
 # Directories of the processed data
 L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
@@ -69,12 +72,16 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
 # g++ surfdedup.cpp -o surfdedup -lz
-if [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-elif [ "$L1R1_DEDUP" != "" ] && [ "$L1R1_DUP" != "" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+if [ "$L1R1_DEDUP" != "" ] && [ "$L1R1_DUP" != "" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1R1_DEDUP
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1R1_DEDUP >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+elif [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
+L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta
+L1R1_DUP=$L1_DIR/L1R1_dup.txt
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1_DIR"/L1R1_dedup.fasta"
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1_DIR"/L1R1_dedup.fasta" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -94,12 +101,16 @@ fi
 ### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
 
 # Create index files for L1R1
-if ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-elif [ "$L1R1_FASTQ_BWA_INDEX" != "" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+if [ "$L1R1_FASTQ_BWA_INDEX" != "" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing:" $L1R1_FASTQ_BWA_INDEX
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing:" $L1R1_FASTQ_BWA_INDEX >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+elif ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
+L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing: "$L1_DIR/bwa_index_L1R1/$L1R1_dedup
+echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing: "$L1_DIR/bwa_index_L1R1/$L1R1_dedup >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 else
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start creating BWA index for spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8)) # currently not used
@@ -115,9 +126,11 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $OUT_DIR/$
 fi
 
 # Alignment
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 mkdir -p $L2_DIR/L2R1_mapping
 bwa mem -a -k 40 -t $N_THREADS $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 if [ "$flowcell_type" == "MiniSeq" ]; then
@@ -150,6 +163,7 @@ fi
 
 
 ### Select HiFi-Slide R1 reads with highest alignment score
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida.pl $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
 
@@ -174,13 +188,15 @@ $BIN_DIR/select_tiles_in_ROI.r \
 -o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
 -f $flowcell_type \
 --surface $mySurf \
---max_size_ROI 4 \
---min_size_ROI 2 \
+--max_size_ROI $max_size_ROI \
+--min_size_ROI $min_size_ROI \
 --p_value 0.05
 
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Match HiFi-Slide read pairs with spatial location
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
@@ -191,6 +207,7 @@ $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
 echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
 
 rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 complete."
@@ -218,6 +235,14 @@ pear \
 
 # grep @ $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.names
 # zgrep -A 3 -f $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.names $L2R2_FASTQ > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter_names.fastq
+
+size=$(stat -c %s $L2_DIR"/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq")
+
+if [ $size == 0 ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] No output file from PEAR. Stopping!"
+echo "[$(date '+%m-%d-%y %H:%M:%S')] No output file from PEAR. Stopping!" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+exit 1
+fi
 
 # Necessary? To be confirmed!
 seqtk seq -r $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq
