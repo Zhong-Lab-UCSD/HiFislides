@@ -9,11 +9,21 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
+# Flowcell and surface identifiers
+flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
+flowcell=AAAL33WM5
+
+if [ $flowcell_type == "NextSeq" ]; then
+surface=$flowcell:1:1
+elif [ $flowcell_type == "MiniSeq" ]; then
+surface=$flowcell:1:
+fi
+
 # Directories of the processed data
-L1_DIR=$OUT_DIR/$SAMPLE_NAME/lib1 # spatial barcodes
-L2_DIR=$OUT_DIR/$SAMPLE_NAME/lib2 # HiFi library
+L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
 mkdir -p $L1_DIR
-mkdir -p $L2_DIR
+
+L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 
 # Directories of the raw fastq files for each library. The full path is used here.
 L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
@@ -28,15 +38,6 @@ L1R1_DUP="" # second output of surfdedup
 L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R2_001.fastq.gz
 
-# Flowcell and surface identifiers
-flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell=AAAL33WM5
-
-if [ $flowcell_type == "NextSeq" ]; then
-surface=$flowcell:1:1
-elif [ $flowcell_type == "MiniSeq" ]; then
-surface=$flowcell:1:
-fi
 
 # Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
 # annotation_gtf_file=/dataOS/sysbio/Genomes/Homo_sapiens/Ensembl/GRCH38_hg38/Annotation/Genes/Homo_sapiens.GRCh38.84.chr.gtf
@@ -71,7 +72,7 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 if [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-elif [ $L1R1_DEDUP != "" ] && [ $L1R1_DUP != "" ]; then
+elif [ "$L1R1_DEDUP" != "" ] && [ "$L1R1_DUP" != "" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] L1R1 reads already processed." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
@@ -96,7 +97,7 @@ fi
 if ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-elif [ $L1R1_FASTQ_BWA_INDEX != "" ]; then
+elif [ "$L1R1_FASTQ_BWA_INDEX" != "" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
@@ -119,7 +120,7 @@ mkdir -p $L2_DIR/L2R1_mapping
 bwa mem -a -k 40 -t $N_THREADS $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-if [ $flowcell_type == "MiniSeq" ]; then
+if [ "$flowcell_type" == "MiniSeq" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Remove header and select 0 and 256 flags
@@ -143,7 +144,7 @@ fi
 
 rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
 
-elif [ $flowcell_type == "NextSeq" ]; then
+elif [ "$flowcell_type" == "NextSeq" ]; then
 L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
 fi
 
@@ -158,13 +159,13 @@ $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
 
 ### Select tiles under ROI
-if [ $flowcell_type == "MiniSeq" ]; then
+if [ "$flowcell_type" == "MiniSeq" ]; then
 if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
 mySurf=1
 else
 mySurf=2
 fi
-elif [ $flowcell_type == "NextSeq" ]; then
+elif [ "$flowcell_type" == "NextSeq" ]; then
 mySurf=1
 fi
 
@@ -310,7 +311,7 @@ mkdir -p $L2_DIR/L2R2_mapping/transcriptome
 
 ### Creating Bowtie 2 indexes (if not input parameter)
 
-if [ $BOWTIE2_INDEX_TRANSCRIPT == "" ]; then
+if [ "$BOWTIE2_INDEX_TRANSCRIPT" == "" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Create Bowtie 2 indexes of transcriptomes..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
