@@ -458,7 +458,7 @@ done
 m1=$(awk '{ sum += $2 } END { print sum }' $L1_DIR/L1R1_stats.txt)
 
 ##### Number of deduplicated barcodes
-a=$(wc -l $L1_DIR/L1R1_dedup.fasta | cut -d " " -f 1)
+a=$(wc -l $L1R1_DEDUP | cut -d " " -f 1)
 m2=$(($a / 2))
 
 a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
