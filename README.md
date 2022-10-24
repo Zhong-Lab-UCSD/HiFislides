@@ -30,9 +30,13 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 Note that here we use dummy codes just to provide and overview of the main steps of the workflow. More information can be found [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit#).
 
-The entire log of the workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
+The data processing is performed separately with two shell scripts for library 1 of spatial barcodes and library 2 of HiFi-Slide read pairs:
 
-## 1. Deduplication of spatial barcodes (L1R1)
+- `spatial_barcode_processing.sh`: step 1 below. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `flowcell_ID.log`
+- `HiFi_processing_pipeline.sh`: steps 2-8 below. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
+
+
+## 1. Deduplication of spatial barcodes (L1R1) and BWA index creation
 ```
 surfdedup AAAL33WM5:1:1 *_L1R1.fastq.gz > L1R1_dedup.fasta 2>L1R1_dup.txt
 ```
@@ -48,20 +52,19 @@ The output of surfdedup includes two files:
 
 1. `L1R1_dedup.fasta`: fasta file with deduplicated read sequences (obtained from STDOUT). 
 2. `L1R1_dup.txt`: txt file listing all the read identifiers that shared the same read sequence. Note that when N reads shared the same sequence, only 1 of the N read identifiers would be randomly chosen and printed to `L1R1_dedup.fasta` while the remaining N - 1 read identifiers would be shown in N - 1 rows in `L1R1_dup.txt`.
-  
 
-## 2. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
-
-Aligner BWA was used to map HiFi-Slide R1 reads (L2R1) to deduplicated spatial barcodes `L1R1_dedup.fasta`. 
 <!-- `BWA_BLOCK_SIZE` is an integer which indicates how many bases to process in a batch, and it serves to speed up the indexing. This number in the script is automatically calculated based on the input variable `BWA_MEMORY`, which indicates the memory to be used in Megabytes. -->
 
-First, we create bwa index from `L1R1_dedup.fasta`:
+Then, we create bwa index from `L1R1_dedup.fasta`:
 ```
 bwa index \
 -p L1R1_dedup \
 L1R1_dedup.fasta
 ```
-Then, we align HiFi-Slide R1 reads `L2R1.fastq` to the deduplicated spatial barcodes:
+
+## 2. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
+
+Aligner BWA is used to map HiFi-Slide R1 reads (L2R1) `L2R1.fastq` to deduplicated spatial barcodes `L1R1_dedup.fasta`. 
 
 ```
 bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
@@ -449,7 +452,10 @@ MN00185:308:000H3YMVH:1:11102:13104:11180	1208	16960	53394	15	piR-hsa-2229595
 
 ## QC metrics
 
-All the QC metrics listed in section 4 [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit?pli=1#) are saved in a tab-separated txt file named `sample_name.QC_metrics.txt`.
+All the QC metrics listed in section 4 [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit?pli=1#) are saved in tab-separated txt files named respectively:
+
+- `flowcell_ID.QC_metrics.txt`.
+- `sample_name.QC_metrics.txt`.
 
 
 

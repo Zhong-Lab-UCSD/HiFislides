@@ -25,15 +25,9 @@ min_size_ROI=6
 # Directories of the processed data
 L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
 mkdir -p $L1_DIR
-
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 
-# Directories of the raw fastq files for each library. The full path is used here.
-L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
-L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
-
-# These can be explicitly declared if already processed
-L1R1_FASTQ_BWA_INDEX="" 
+L1R1_FASTQ_BWA_INDEX="" # bwa index path and basename
 L1R1_DEDUP="" # first output of surfdedup
 L1R1_DUP="" # second output of surfdedup
 
@@ -58,72 +52,18 @@ touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 START_DATE=$(date) # start processing date
 echo "Processing of "$SAMPLE_NAME
 echo "Processing of "$SAMPLE_NAME >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
 awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
 
 
-#################### LIBRARY 1 (spatial barcodes)
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..."
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+#################### LIBRARY 2 R1
 echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-### Deduplication of raw reads from the recycled flow cell to extract unique raw reads as spatial barcodes
-# g++ surfdedup.cpp -o surfdedup -lz
-if [ "$L1R1_DEDUP" != "" ] && [ "$L1R1_DUP" != "" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1R1_DEDUP
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1R1_DEDUP >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-elif [ -f "$L1_DIR/L1R1_dedup.fasta" ] && [ -f "$L1_DIR/L1R1_dup.txt" ]; then
-L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta
-L1R1_DUP=$L1_DIR/L1R1_dup.txt
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1_DIR"/L1R1_dedup.fasta"
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplicated L1R1 reads already existing:" $L1_DIR"/L1R1_dedup.fasta" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-else
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-$BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
-
-L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta
-L1R1_DUP=$L1_DIR/L1R1_dup.txt
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-fi
-
-# dummy example to make running faster
-# $BIN_DIR/surfdedup $surface $L1_FASTQ_DIR/MT080_S1_L001_R1_001.fastq.gz > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
-
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
-
-# Create index files for L1R1
-if [ "$L1R1_FASTQ_BWA_INDEX" != "" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing:" $L1R1_FASTQ_BWA_INDEX
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing:" $L1R1_FASTQ_BWA_INDEX >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-elif ls $L1_DIR/bwa_index_L1R1/${L1R1_dedup}* > /dev/null 2>&1; then
-L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing: "$L1_DIR/bwa_index_L1R1/$L1R1_dedup
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index for spatial barcodes (L1R1) already existing: "$L1_DIR/bwa_index_L1R1/$L1R1_dedup >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-else
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Start creating BWA index for spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-BWA_BLOCK_SIZE=$(($BWA_MEMORY * 1000000 / 8)) # currently not used
-mkdir -p $L1_DIR/bwa_index_L1R1
-
-bwa index \
--p $L1_DIR/bwa_index_L1R1/L1R1_dedup \
-$L1R1_DEDUP
-
-L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-fi
 
 # Alignment
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
@@ -163,8 +103,8 @@ fi
 
 
 ### Select HiFi-Slide R1 reads with highest alignment score
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L1R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L2R1) and select ROI..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L2R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida.pl $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
 
 ### Rank the tiles by number of HiFi-Slide read pairs
@@ -210,14 +150,14 @@ rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 complete."
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
-#################### LIBRARY 2 (HiFi-Slide read pairs)
+#################### LIBRARY 2 R2
 echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..."
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide library 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R2..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Preprocessing of HiFi R2 reads
 mkdir -p $L2_DIR/L2R2_preprocessing
@@ -444,26 +384,6 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-##### Total number of barcodes (L1R1)
-rm $L1_DIR/L1R1_stats.txt
-touch $L1_DIR/L1R1_stats.txt
-
-for x in $L1_FASTQ_DIR/$L1_FASTQ_BASENAME; do
-echo $x
-a=$(unpigz -p $N_THREADS -c $x | wc -l)
-out=$(($a / 4))
-echo -e $x"\t"$out >> $L1_DIR/L1R1_stats.txt
-done
-
-m1=$(awk '{ sum += $2 } END { print sum }' $L1_DIR/L1R1_stats.txt)
-
-##### Number of deduplicated barcodes
-a=$(wc -l $L1R1_DEDUP | cut -d " " -f 1)
-m2=$(($a / 2))
-
-a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
-m3=$a"%"
-
 ##### Number of input HiFi read pairs
 m4=$(grep -w "M\\:\\:mem_process_seqs" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log |
 cut -d " " -f3 | xargs | tr ' ' + | bc)
@@ -551,9 +471,6 @@ m25=$(echo "scale=4 ; $m21 / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}
 
 
 #### Labels
-M1="Total number of barcodes"
-M2="Number of deduplicated barcodes"
-M3="Percentage of deduplicated barcodes"
 M4="Number of HiFi-Slide read pairs"
 M5="Number of HiFi-Slide read pairs spatially resolved (aligned to spatial barcodes)"
 M6="Percentage of HiFi-Slide read pairs spatially resolved"
@@ -580,7 +497,7 @@ M25="Average number of HiFi-Slide read pairs genome mapped per tile under ROI"
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
-for k in $(seq 1 25); do
+for k in $(seq 4 25); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
