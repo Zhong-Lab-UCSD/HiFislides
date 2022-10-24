@@ -26,7 +26,6 @@ L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
 ################## PROCESSING
 touch $L1_DIR/$flowcell.log
 
-START_DATE=$(date) # start processing date
 echo "Processing of "$flowcell
 echo "Processing of "$flowcell >> $L1_DIR/$flowcell.log
 echo "------------------------------" >> $L1_DIR/$flowcell.log
