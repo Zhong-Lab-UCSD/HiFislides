@@ -6,7 +6,7 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell=AAAL33WM5
+flowcell="AAAL33WM5"
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1

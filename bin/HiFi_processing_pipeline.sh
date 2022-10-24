@@ -11,7 +11,7 @@ mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell=AAAL33WM5
+flowcell="AAAL33WM5"
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
