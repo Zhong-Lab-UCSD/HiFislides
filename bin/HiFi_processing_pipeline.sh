@@ -1,4 +1,4 @@
-################## INPUT PARAMETERS
+################## INPUT PARAMETERS (TO BE UPDATED PER EACH SAMPLE)
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data
 SAMPLE_NAME=data14_test
 
@@ -24,14 +24,13 @@ min_size_ROI=6
 
 # Directories of the processed data
 L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
-mkdir -p $L1_DIR
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 
-L1R1_FASTQ_BWA_INDEX="" # bwa index path and basename
-L1R1_DEDUP="" # first output of surfdedup
-L1R1_DUP="" # second output of surfdedup
+L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup # bwa index path and basename
+L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta # first output of surfdedup
+L1R1_DUP=$L1_DIR/L1R1_dup.txt # second output of surfdedup
 
-# Raw reads of HiFi Slides sequencing
+# Raw reads of HiFi Slides sequencing (TO BE UPDATED PER EACH SAMPLE)
 L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R1_001.fastq.gz
 L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R2_001.fastq.gz
 
