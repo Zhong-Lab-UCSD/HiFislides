@@ -56,7 +56,7 @@ Remove redundant spatial barcodes. This script reads raw reads from recycled flo
 The output of surfdedup includes two files:
 
 1. `L1R1_dedup.fasta`: fasta file with deduplicated read sequences (obtained from STDOUT). 
-2. `L1R1_dup.txt`: txt file listing all the read identifiers that shared the same read sequence. Note that when N reads shared the same sequence, only 1 of the N read identifiers would be randomly chosen and printed to `L1R1_dedup.fasta` while the remaining N - 1 read identifiers would be shown in N - 1 rows in `L1R1_dup.txt`.
+2. `L1R1_dup.txt`: txt file listing all the read identifiers that shared the same read sequence (obtained from STDERR). Note that when N reads shared the same sequence, only 1 of the N read identifiers would be randomly chosen and printed to `L1R1_dedup.fasta` while the remaining N - 1 read identifiers would be shown in N - 1 rows in `L1R1_dup.txt`.
 
 <!-- `BWA_BLOCK_SIZE` is an integer which indicates how many bases to process in a batch, and it serves to speed up the indexing. This number in the script is automatically calculated based on the input variable `BWA_MEMORY`, which indicates the memory to be used in Megabytes. -->
 

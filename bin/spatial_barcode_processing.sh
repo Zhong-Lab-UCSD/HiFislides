@@ -19,8 +19,8 @@ L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatia
 mkdir -p $L1_DIR
 
 # Directories of the raw fastq files for each library. The full path is used here.
-L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib1/fastq
-L1_FASTQ_BASENAME=MT*_L001_R1_001.fastq.gz
+L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/MiniSeq/test_sample/lib1/fastq
+L1_FASTQ_BASENAME=*_L001_R1_001.fastq.gz
 
 
 ################## PROCESSING
@@ -40,6 +40,7 @@ echo "------------------------------" >> $L1_DIR/$flowcell.log
 # g++ surfdedup.cpp -o surfdedup -lz
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $L1_DIR/$flowcell.log
+
 $BIN_DIR/surfdedup \
 $surface \
 $L1_FASTQ_DIR/$L1_FASTQ_BASENAME > $L1_DIR/L1R1_dedup.fasta 2>$L1_DIR/L1R1_dup.txt
