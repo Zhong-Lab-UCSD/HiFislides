@@ -102,16 +102,29 @@ fi
 
 
 ### Select HiFi-Slide R1 reads with highest alignment score
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L2R1) and select ROI..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parse aligned HiFi-Slide R1 reads (L2R1) and select ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 $BIN_DIR/hifislida.pl $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
 
-### Rank the tiles by number of HiFi-Slide read pairs
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### Rank tiles by the number of HiFi-Slide read pairs
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 $BIN_DIR/hifislida2.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
 
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 ### Select tiles under ROI
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 if [ "$flowcell_type" == "MiniSeq" ]; then
 if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
 mySurf=1
@@ -131,12 +144,12 @@ $BIN_DIR/select_tiles_in_ROI.r \
 --min_size_ROI $min_size_ROI \
 --p_value 0.05
 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Parsing and ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Match HiFi-Slide read pairs with spatial location
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
@@ -146,8 +159,8 @@ $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
 echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
 
 rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
