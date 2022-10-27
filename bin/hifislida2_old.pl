@@ -10,23 +10,13 @@ $hifi_N_file = shift @ARGV;
 
 my %hifi_N;
 open IN,$hifi_N_file;
-
-my %read_per_tile;
-my %mapped_spot_per_tile;
-
 while(<IN>) {
 	chomp;
-	if(m/^\S+:\d+:\S+:\d+:\d+:\d+:\d+/) {
+	if(m/^MN00185/) {
 		my @a = split /\t/;
 		my ($rd,$spot,$NSpot,$N,$as) = @a;
 		if($NSpot == 1 && $N == 1 && $spot=~m/_1$/) {
 			$hifi_N{$rd} = $spot;
-			if($spot=~m/:1:(\d+):(\d+):(\d+)/) {
-				my ($TILE,$x,$y) = ($1,$2,$3);
-				# $TILE = "T".$TILE;
-				$read_per_tile{$TILE}->{$rd} = 1;
-				$mapped_spot_per_tile{$TILE}->{$spot} = 1;
-			}
 		}
 		# NSpot spots aligned by this hifi read tied with the highest AS
 		# this hifi_N_file was outputed by hifia.pl
@@ -35,10 +25,49 @@ while(<IN>) {
 close IN;
 
 # SAM per tile
+my $sam = shift @ARGV;
+
+my %spotcount_per_tile;
+my %readcount_per_tile;
+
+my %read_per_tile;
+my %mapped_spot_per_tile;
+
+foreach my $samI ($sam) {
+	open IN,$samI;
+	while(<IN>) {
+		chomp;
+		my $go = 0;
+		if(m/\t0\t\S+:/) {
+			$go = 1;
+		}
+		if(m/\t256\t\S+:/) {
+			$go = 1;
+		}
+		if($go == 1) {
+			my @a = split /\t/;
+			my $spot = $a[2];
+			my $hifi = $a[0];
+				if(exists $hifi_N{$hifi}) {
+					#if($NSpot == 1 && $N == 1 && $spot=~m/_1$/) {
+					# $hifi_N{$rd} = $spot;
+					if($spot eq $hifi_N{$hifi}) {						
+						if($spot=~m/:1:(\d+):(\d+):(\d+)/) {
+							my ($TILE,$x,$y) = ($1,$2,$3);
+							# $TILE = "T".$TILE;
+							$mapped_spot_per_tile{$TILE}->{$spot} = 1;							
+							$read_per_tile{$TILE}->{$hifi} = 1;
+						}
+						
+					}
+				}
+		}
+	}
+	print STDERR $sam,"\n";
+	close IN;
+}
 
 my @tile = keys %read_per_tile;
-my %readcount_per_tile;
-my %spotcount_per_tile;
 
 foreach my $tile (@tile) {
 	my $nhifi = scalar keys %{$read_per_tile{$tile}};
