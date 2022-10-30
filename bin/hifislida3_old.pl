@@ -60,8 +60,6 @@ while(<IN>) {
 }
 close IN;
 
-print "HiFi_read_id","\t","tile_id","\t","col","\t","row","\t","N","\n";
-
 foreach my $hifi (keys %spot_in_roi) {
 	my @spot = keys %{$spot_in_roi{$hifi}};
 	my $N = scalar @spot;
@@ -75,9 +73,5 @@ foreach my $hifi (keys %spot_in_roi) {
 		}
 	}
 }
-
-print STDERR "Number of spatially resolved HiFi reads within ROI","\n";
-print STDERR scalar keys %spot_in_roi,"\n";
-
 $datestring = localtime();
 print STDERR $datestring,"\n";

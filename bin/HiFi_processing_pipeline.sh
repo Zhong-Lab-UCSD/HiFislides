@@ -147,18 +147,33 @@ $BIN_DIR/select_tiles_in_ROI.r \
 echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-### Match HiFi-Slide read pairs with spatial location
+### Match HiFi-Slide read pairs with spatial location (header already included)
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 $BIN_DIR/hifislida3.pl \
 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
 $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/temp.hifislida3.o
+$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
 
-# Add header
-echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+# less $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | head -10000 > $L2_DIR/L2R1_mapping/temp.txt
 
-rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
+# $BIN_DIR/hifislida3.pl \
+# $L2_DIR/L2R1_mapping/temp.txt \
+# $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+# $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3_temp.o
+
+$BIN_DIR/hifislida3.pl \
+$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
+$L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+
+# Add header (INCLUDED INTO hifislida3.pl)
+#1) echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+#2) sed -i '1s;^;HiFi_read_id\ttile_id\tcol\trow\tN\n;' $L2_DIR/L2R1_mapping/temp.hifislida3.o
+#3) perl -pi -e '$.=0 if eof;print "HiFi_read_id\ttile_id\tcol\trow\tN\n" if ($.==1)' $L2_DIR/L2R1_mapping/temp.hifislida3.o
+
+# rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -196,12 +211,15 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] No output file from PEAR. Stopping!" >> $OU
 exit 1
 fi
 
-# Necessary? To be confirmed!
 seqtk seq -r $L2_DIR/L2R2_preprocessing/L2R2_pear.unassembled.reverse.fastq > $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq
 echo "[$(date '+%m-%d-%y %H:%M:%S')] PEAR processing complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
+# rm $L2_DIR/L2R2_preprocessing/L2R2_pear* FILES ARE BIG!!!
+
 # Trimming the front 60 bp to remove Illumina adapters (max 16 threads allowed, max 30 bp at the time)
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming the front 60 bp of L2R2 reads to remove Illumina adapters..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### 1
 fastp \
 -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
 -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
@@ -219,68 +237,153 @@ fastp \
 --trim_front1 30 \
 --disable_quality_filtering \
 --thread 16
+
+### 2
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.json \
+--trim_poly_g \
+--trim_poly_x \
+--disable_quality_filtering \
+--thread 16
+
+### 3
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.log.json \
+--trim_poly_g \
+--trim_poly_x \
+--low_complexity_filter \
+--complexity_threshold 30 \
+--disable_quality_filtering \
+--thread 16
+
+### 4
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.json \
+--trim_front1 30 \
+--trim_poly_g \
+--trim_poly_x \
+--disable_quality_filtering \
+--thread 16
+
+### 5
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.json \
+--trim_front1 30 \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
+rm $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq
 
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-mkdir -p $L2_DIR/L2R2_mapping/genome
 
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome
+R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq
+
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
+R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
+
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
+R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
+
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_2
+R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
+
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_3
+R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
+
+mkdir -p $L2R2_GENOME_DIR
 STAR \
 --genomeDir $STAR_INDEX \
---readFilesIn $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
+--readFilesIn $R2_FILTER_INPUT \
 --outSAMtype BAM SortedByCoordinate \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
---outFileNamePrefix $L2_DIR/L2R2_mapping/genome/L2R2_genome. \
+--outFileNamePrefix $L2R2_GENOME_DIR/L2R2_genome. \
 --sjdbGTFfile $annotation_gtf_file \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN $N_THREADS
 
+
 ### Select uniquely mapped reads
 samtools view -@ $N_THREADS -b -h -q 255 \
--o $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
-$L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam
+-o $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+$L2R2_GENOME_DIR/L2R2_genome.Aligned.sortedByCoord.out.bam
 
-# samtools view -@ 32 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
-# samtools view -@ 32 -q 255 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
-# samtools view -@ 32 -q 30 $L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 $L2R2_GENOME_DIR/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 -q 255 $L2R2_GENOME_DIR/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
+# samtools view -@ 32 -q 30 $L2R2_GENOME_DIR/L2R2_genome.Aligned.sortedByCoord.out.bam | wc -l
 
 
 ### Map uniquely mapped reads over genes. Cannot use featureCounts because we need to keep track of what L2R2 read align to each gene.
 bedtools intersect \
--a $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
--b /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf \
--wb -bed | cut -f 1,2,3,4,21 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
+-a $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+-b $annotation_gtf_file \
+-wb -bed | cut -f 1,2,3,4,21 > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
 
-cut -f 5 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed |  # extract column 5
+cut -f 5 $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed |  # extract column 5
 cut -f1 -d';' |        # extract column 1 using semi-colon as delimiter
 cut -f2 -d' ' |        # extract column 2 using space as delimiter
-tr -d '"' > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_id.txt  # remove double quote
+tr -d '"' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt  # remove double quote
 
-cut -f 5 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed |  # extract column 5
+cut -f 5 $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed |  # extract column 5
 cut -f3 -d';' |        # extract column 3 using semi-colon as delimiter
 cut -f3 -d' ' |        # extract column 3 using space as delimiter
-tr -d '"' > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt  # remove double quote
+tr -d '"' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt  # remove double quote
 
-cut -f 5 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed |  # extract column 5
+cut -f 5 $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed |  # extract column 5
 cut -f2 -d';' |        # extract column 2 (column 5 for Ensembl) using semi-colon as delimiter
 cut -f3 -d' ' |        # extract column 3 using space as delimiter
-tr -d '"' > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt  # remove double quote
+tr -d '"' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt  # remove double quote
 
 paste \
-$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed \
-$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_id.txt \
-$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt \
-$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt |
-cut -f 1,2,3,4,6,7,8 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed
+$L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed \
+$L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt \
+$L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt \
+$L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt |
+cut -f 1,2,3,4,6,7,8 > $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
-# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_id.txt
-# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_name.txt
-# rm $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_gene_biotype.txt
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt
 
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
@@ -352,10 +455,12 @@ HiFi_L2R1_spatial=$L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.sort.o
 #sort -k 1 $L2_DIR/L2R1_mapping/hifislida3.o > $HiFi_L2R1_spatial
 cat $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o | sort -k 1 --parallel=$N_THREADS -S 20G > $HiFi_L2R1_spatial
 
+# rm $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o # VERY BIG FILES
+
 ### Genome
-HiFi_L2R2_genome=$L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.sort.bed
-#sort -k 4 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed > $HiFi_L2R2_genome
-cat $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | sort -k 4 --parallel=$N_THREADS -S 20G > $HiFi_L2R2_genome
+HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
+#sort -k 4 $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed > $HiFi_L2R2_genome
+cat $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed | sort -k 4 --parallel=$N_THREADS -S 20G > $HiFi_L2R2_genome
 
 join -1 1 -2 4 -t $'\t' $HiFi_L2R1_spatial $HiFi_L2R2_genome > $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
@@ -440,7 +545,7 @@ m14=$a"%"
 # a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq | cut -d " " -f 1)
 # echo $(($a / 4))
 # To make it faster, we can just count the number of input reads in the log of the STAR aligner
-m15=$(grep -w "Number of input reads" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Log.final.out |cut -d "|" -f2 | sed 's/\t//g')
+m15=$(grep -w "Number of input reads" $L2R2_GENOME_DIR/L2R2_genome.Log.final.out |cut -d "|" -f2 | sed 's/\t//g')
 
 a=$(echo "scale=4 ; $m15 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m16=$a"%"
@@ -449,16 +554,16 @@ m16=$a"%"
 ########## GENOME
 
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome
-# grep -w "Uniquely mapped reads number" $L2_DIR/L2R2_mapping/genome/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g'
+# grep -w "Uniquely mapped reads number" $L2R2_GENOME_DIR/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g'
 
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome and to annotated genes
-m17=$(cut -f4 $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | sort --parallel=$N_THREADS | uniq | wc -l)
+m17=$(cut -f4 $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m17 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m18=$a"%"
 
 ##### Number of HiFi-Slide read pairs genome mapped and spatially resolved
-m19=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $4 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome.bed | cut -f4 | sort --parallel=$N_THREADS | uniq | wc -l)
+m19=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $4 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed | cut -f4 | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m20=$a"%"
