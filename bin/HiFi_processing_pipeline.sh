@@ -312,24 +312,24 @@ rm $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome
-R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
-R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
-R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_2
-R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_3
-R2_FILTER_INPUT=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
 
 mkdir -p $L2R2_GENOME_DIR
 STAR \
 --genomeDir $STAR_INDEX \
---readFilesIn $R2_FILTER_INPUT \
+--readFilesIn $L2R2_FILTER_FASTQ \
 --outSAMtype BAM SortedByCoordinate \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
@@ -378,19 +378,18 @@ $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt \
 $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt |
 cut -f 1,2,3,4,6,7,8 > $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed
 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt
 
-# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
-# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt
-# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt
-# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
-mkdir -p $L2_DIR/L2R2_mapping/transcriptome
+mkdir -p $L2R2_TRANSCRIPTOME_DIR
 
 ### Creating Bowtie 2 indexes (if not input parameter)
-
 if [ "$BOWTIE2_INDEX_TRANSCRIPT" == "" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Create Bowtie 2 indexes of transcriptomes..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -404,36 +403,38 @@ bowtie2-build \
 /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/$my_transcript/bowtie2_index/$my_transcript
 done
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Bowtie 2 index creation complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
 fi
 
 
 # Dummy fastq for testing purposes
-# head -40000 $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq > $L2_DIR/L2R2_mapping/transcriptome/temp_L2R2.trim_front_60.fastq
+# head -40000 $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq > $L2R2_TRANSCRIPTOME_DIR/temp_L2R2.trim_front_60.fastq
 
 ### Mapping
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+L2R2_TRANSCRIPTOME_DIR=$L2R2_TRANSCRIPTOME_DIR
+
 for my_transcript in tRNA piRNA miRNA circRNA; do
-mkdir -p $L2_DIR/L2R2_mapping/transcriptome/$my_transcript
+mkdir -p $L2R2_TRANSCRIPTOME_DIR/$my_transcript
 
 bowtie2 \
 -x $BOWTIE2_INDEX_TRANSCRIPT/$my_transcript/bowtie2_index/$my_transcript \
--U $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
--S $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.sam" \
---un $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_unmapped.txt" \
---no-unal --threads $N_THREADS --local 2> $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.log"
+-U $L2R2_FILTER_FASTQ \
+-S $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam" \
+--un $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_unmapped.txt" \
+--no-unal --threads $N_THREADS --local 2> $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.log"
 
 # Select uniquely mapped reads
 # Option 1: Inverse grep (-v) of reads with auxiliary tag XS, meaning reads that have other valid mappings. This gives exactly the number of reads "aligned exactly 1 time" in the bowtie2 log file.
-samtools view $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.sam" | grep -v "XS:i:" > $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sam"
+samtools view $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam" | grep -v "XS:i:" > $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sam"
 
 # Option 2: using MAPQ value
 # samtools view -q 10 \
-# -o $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.mapq10.sam" \
-# $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.sam"
+# -o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.mapq10.sam" \
+# $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam"
 
 # Extract fields of interest
-cut -f 1,3 $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sam" > $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt"
+cut -f 1,3 $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sam" > $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt"
 
 done
 
@@ -473,15 +474,15 @@ rm $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 
-size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
+size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
 
 if [ $size != 0 ]; then # only if there are uniquely mapped reads otherwise do nothing
 
 mkdir -p $L2_DIR/L2R1_L2R2_integrate/$my_transcript
 
-cat $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | sort -k 1 --parallel=$N_THREADS -S 20G > $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt"
+cat $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt"
 
-join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/temp_HiFi_L2R2_$my_transcript"_spatial.txt"
+join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/temp_HiFi_L2R2_$my_transcript"_spatial.txt"
 
 # Add header
 echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\ttranscript_id" | cat - $L2_DIR/L2R1_L2R2_integrate/$my_transcript/temp_HiFi_L2R2_$my_transcript"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
@@ -627,18 +628,18 @@ m29=$m21 # to store number of read pairs genome and transcriptome mapped and und
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 
-size=$(stat -c %s $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
+size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
 
 if [ $size != 0 ]; then
 
 ##### Number of uniquely mapped reads to the transcriptome
-m26a=$(grep -w "aligned exactly 1 time" $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_mapped.log" | cut -d " " -f5)
+m26a=$(grep -w "aligned exactly 1 time" $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.log" | cut -d " " -f5)
 
 a=$(echo "scale=4 ; $m26a / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26b=$a"%"
 
 ##### Number of HiFi-Slide read pairs transcriptome mapped and spatially resolved
-m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2_DIR/L2R2_mapping/transcriptome/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | cut -f1 | sort --parallel=$N_THREADS | uniq | wc -l)
+m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | cut -f1 | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26d=$a"%"
