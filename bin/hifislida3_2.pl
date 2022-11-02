@@ -9,18 +9,17 @@ my @tile4roi;
 
 my $datestring = localtime();
 print STDERR $datestring,"\n";
-my ($aout,$dupspots) = @ARGV;
+my ($aout,$a2out,$dupspots) = @ARGV;
 
-#open IN,$a2out;
-#while(<IN>) {
-#	chomp;
-#	if(m/(\d{4,5})/) {
-#		my $ti = $1;
-#		$tile4roi{$ti} = {};
-#	}
-#}
-#close IN;
-
+open IN,$a2out;
+while(<IN>) {
+	chomp;
+	if(m/(\d{4,5})/) {
+		my $ti = $1;
+		$tile4roi{$ti} = {};
+	}
+}
+close IN;
 my %dupspots;
 open IN,$dupspots;
 while(<IN>) {
@@ -40,22 +39,22 @@ while(<IN>) {
 	my ($hifi,$spot,$NSpot,$N,$as) = split /\t/;
 	if($N < 1000) {
 		$spot=~s/_\d+//;
-		# if($spot=~m/:1:(\d{4,5}):/) {
-		#	my $tile = $1;
+		if($spot=~m/:1:(\d{4,5}):/) {
+			my $tile = $1;
 			#my $Tile = "T".$tile;
-		#	if(exists $tile4roi{$tile}) {
+			if(exists $tile4roi{$tile}) {
 				$spot_in_roi{$hifi}->{$spot} = 1;
-		#	}
-		#}
+			}
+		}
 		my @dupspots = keys %{$dupspots{$spot}};
 		foreach my $spot_1 (@dupspots) {
-			#if($spot_1=~m/:1:(\d{4,5}):/) {
-			#	my $tile = $1;
-			#	#my $Tile = "T".$tile;
-			#	if(exists $tile4roi{$tile}) {
+			if($spot_1=~m/:1:(\d{4,5}):/) {
+				my $tile = $1;
+				#my $Tile = "T".$tile;
+				if(exists $tile4roi{$tile}) {
 					$spot_in_roi{$hifi}->{$spot_1} = 1;
-			#	}
-			#}
+				}
+			}
 		}
 	}
 }
@@ -77,8 +76,8 @@ foreach my $hifi (keys %spot_in_roi) {
 	}
 }
 
-#print STDERR "Number of spatially resolved HiFi reads within ROI","\n";
-#print STDERR scalar keys %spot_in_roi,"\n";
+print STDERR "Number of spatially resolved HiFi reads within ROI","\n";
+print STDERR scalar keys %spot_in_roi,"\n";
 
 $datestring = localtime();
 print STDERR $datestring,"\n";

@@ -32,11 +32,14 @@ Note that here we use dummy codes just to provide and overview of the main steps
 
 The data processing is performed separately with two shell scripts for library 1 of spatial barcodes and library 2 of HiFi-Slide read pairs:
 
-- **`spatial_barcode_processing.sh`**: step 1 below. The output files from this are saved into a folder named `flowcell_ID`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `flowcell_ID.log`
-- **`HiFi_processing_pipeline.sh`**: steps 2-8 below. The output files from this are saved into a folder named `sample_name`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
+- **`spatial_barcode_processing.sh`**: The output files from this are saved into a folder named `flowcell_ID`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `flowcell_ID.log`
+- **`HiFi_processing_pipeline.sh`**: steps 1-8 below. The output files from this are saved into a folder named `sample_name`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
 
 
-## 1. Deduplication of spatial barcodes (L1R1) and BWA index creation
+## Deduplication of spatial barcodes (L1R1) and BWA index creation
+
+This step is related to the flowcell library (library 1). It is independendent on the HiFi-Slide library.
+
 ```
 flowcell_type="NextSeq"
 flowcell="AAAL33WM5"
@@ -67,129 +70,16 @@ bwa index \
 L1R1_dedup.fasta
 ```
 
-## 2. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
-
-Aligner BWA is used to map HiFi-Slide R1 reads (L2R1) `L2R1.fastq` to deduplicated spatial barcodes `L1R1_dedup.fasta`. 
-
-```
-bwa mem -a -k 40 -t 32 L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
-```
-
-In the case of a flowcell coming from MiniSeq, there is an additional step where we count the number of HiFi-Slide R1 reads mapped (flag 0 or 256) to spatial barcodes on the top (AAAL33WM5:1:1) and bottom surface (AAAL33WM5:1:2) and then select the surface with the highest number of aligned reads. This subsetted SAM file will go to the following steps.
-
-## 3. Select HiFi-Slide R1 reads with highest alignment score
-```
-hifislida.pl L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida.o 2>L2R1_L1R1_dedup.hifislida.e
-```
-
-**Arguments**  
-1. Output SAM file from BWA.  
-
-**Purpose**   
-Read the SAM file output from BWA and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
-
-**Output**
-Tab-separated file `L2R1_L1R1_dedup.hifislida.o` with the following columns:
-
-- Column 1: HiFi-Slide read ID. 
-- Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
-- Column 3: Number of non-redundant spatial barcodes aligned at the highest score.  
-- Column 4: Number of all the spatial barcodes aligned at the highest score.  
-- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.
-
-
-## 4. Identify the Region of Interest (ROI)
-
-### Rank the tiles by number of HiFi-Slide read pairs
-
-```
-hifislida2.pl L2R1_L1R1_dedup.hifislida.o L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida2.o 2>L2R1_L1R1_dedup.hifislida2.e
-```
-
-**Arguments**  
-1. Output file produced by hifislida.pl.
-2. Output file produced by BWA.
-
-**Purpose**  
-Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1_L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
-
-**Output**  
-Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
-
-- Column 1: Identifier ">TILE".
-- Column 2: Tile ID.
-- Column 3: Number of spatially resolved HiFi-Slide read pairs per tile (ranked in descending order).
-- Column 4: Number of mapped barcodes on the tile used for resolving the HiFi-Slide read pairs.
-
-### Select tiles under ROI
-
-For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output. If no significant ROI comes out, then all the tiles of the surface are considered as ROI.
-
-```
-select_tiles_in_ROI.r \
--i L2R1_L1R1_dedup.hifislida2.o \
--o ROI_tile_IDs.txt \
--f NextSeq \
---surface 1 \
---max_size_ROI 4 \
---min_size_ROI 2 \
---p_value 0.05
-```
-
-**Arguments**  
-- `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
-- `-o`: Output file, tile IDs under ROI.
-- `-f`: Flowcell type, either MiniSeq, NextSeq.
-- `--surface`: Flowcell surface where the tissue is. For NextSeq is `1` for MiniSeq it depends on which surface is the highest number of mapped HiFi-Slide R1 reads to barcodes. This parameter is automatically computed in the script and passed to this function.
-- `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
-- `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
-- `--p_value`: The p-value threshold to be used for statistical significance.
-
-
-## 5. Match HiFi-Slide read pairs with spatial location 
-
-```
-hifislida3.pl \
-L2R1_L1R1_dedup.hifislida.o \
-ROI_tile_IDs.txt \
-L1R1_dup.txt > L2R1_L1R1.hifislida3.o
-```
-
-**Arguments**  
-1. Output file produced by hifislida.pl.
-2. Output file produced by `select_tiles_in_ROI.r` with the IDs of the tiles under ROI.
-3. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
-
-**Purpose**  
-With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
-
-**Output**  
-Tab-separated file `L2R1_L1R1.hifislida3.o` with the following columns:
-
-- Column 1: HiFi-Slide read ID.
-- Column 2: Tile ID (only tiles under the ROI provided as input).
-- Column 3: X-coord on the tile (columns).
-- Column 4: Y-coord on the tile (rows).
-- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
-
-Example:
-```
-HiFi_read_id    tile_id col     row     N
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    20557   77594   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    7797    22530   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1209    30647   54019   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4
-```
-
-
-## 6. Preprocessing of HiFi-Slide R2 reads  
+## 1. Preprocessing of HiFi-Slide R2 reads  
 
 By design, HiFi-Slide R2 reads contain the sequences of the tissue RNA (RNA end of the read pair). 
 
-It is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but unintendedly reads through the fragment from one end to the other end. In other words, HiFi-Slide R2 could mistakenly include a portion of R1 in the recycled flow cell. To identify such cases, we search for overlap between L2R1 and L2R2 using the software PEAR (v0.9.6, minimum overlap size = 10 bp) and we filter out such L2R2 reads. Next, we trim the front 60 bp to remove Illumina Read 1 primers in L2R2 using the software fastp (v0.23.2). Note that besides trimming, fastp also reduces the number of reads because it filters out reads that are too short.
+It is possible that HiFi-Slide R2 sequencing reads the cDNA fragment but unintendedly reads through the fragment from one end to the other end. In other words, HiFi-Slide R2 could mistakenly include a portion of R1 in the recycled flow cell. To identify such cases, we search for overlap between L2R1 and L2R2 using the software PEAR (v0.9.6, minimum overlap size = 10 bp) and we filter out such L2R2 reads. 
+
+TBD: Next, we trim the front 60 bp to remove Illumina Read 1 primers in L2R2 using the software fastp (v0.23.2). Note that besides trimming, fastp also reduces the number of reads because it filters out reads that are too short.
 
 
-### Filter out overlapping L2R1 and L2R2 (pear)
+### Filter out overlapping L2R1 and L2R2 (PEAR)
 
 ```
 pear \
@@ -211,9 +101,9 @@ pear \
 The software produces several fastq files with different contents. For our purposes, we are interested in `unassembled.reverse.fastq`, which contains the L2R2 reads not overlapping L2R1.
 
 
-### Trimming Illumina Read 1 primers (fastp)
+### Trimming Illumina Read 1 primers (FASTP)
 
-The software fastp can trim only 30 bp at the time, thus it is run twice consecutively. The first input file `-i` is the output fastq from pear, the second input file is the output file from the first round of fastp. With this step we also remove reads that are too short.
+TBD: The software fastp can trim only 30 bp at the time, thus it is run twice consecutively. The first input file `-i` is the output fastq from pear, the second input file is the output file from the first round of fastp. With this step we also remove reads that are too short.
 
 ```
 fastp \
@@ -241,42 +131,125 @@ Fastq file of preprocessed L2R2 reads `L2R2.trim_front_60.fastq` that will go in
 
 <!-- Option 1
 ```
-fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_tail1_1.fastq --trim_tail1 80 --disable_quality_filtering --thread 16 > someo 2>somee;date
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+
 ```
 
 Option 2
 ```
-fastp -i L2R2_1x2.fastq -o L2R2_1x2_trim_front1_1.fastq --trim_front1 60 --disable_quality_filtering --thread 16 > someo 2>somee;date
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.json \
+--trim_poly_g \
+--trim_poly_x \
+--disable_quality_filtering \
+--thread 16
 ```
 
 Option 3
 ```
-p=L2R2_1x2_processed_Q0
-fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --thread 16 > $p\o 2>$p\e
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.log.json \
+--trim_poly_g \
+--trim_poly_x \
+--low_complexity_filter \
+--complexity_threshold 30 \
+--disable_quality_filtering \
+--thread 16
 ```
 
 Option 4
 ```
-p=L2R2_1x2_processed_Q1
-fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_front --cut_tail --thread 16 > $p\o 2>$p\e
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.json \
+--trim_front1 30 \
+--trim_poly_g \
+--trim_poly_x \
+--disable_quality_filtering \
+--thread 16
 ```
 
 Option 5
 ```
-p=L2R2_1x2_processed_Q2
-fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_front --thread 16 > $p\o 2>$p\e
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_front1 30 \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.json \
+--trim_front1 30 \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
 ```
 
 Option 6
 ```
-p=L2R2_1x2_processed_Q3
-fastp -i L2R2_1x2.fastq -o $p.fastq --disable_quality_filtering --trim_poly_g --trim_poly_x --cut_tail --thread 16 > $p\o 2>$p\e
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.json \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
 ``` 
 
 Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not overlapped with HiFi-Slide R1 and not mapped with illumina R1 reads primer. Processed reads were then mapped to human genome using STAR or mapped to human transcriptome using BOWTIE2.  
 -->
 
-## 7. Mapping HiFi-Slide R2 reads
+## 2. Mapping HiFi-Slide R2 reads
 
 1. We used STAR to align HiFi-Slide R2 reads to the genome.
 2. we used Bowtie 2 to align HiFi-Slide R2 reads to the transcriptome.
@@ -286,9 +259,11 @@ Here ``L2R2_1x2.fastq`` is the fastq of filtered HiFi-Slide R2 reads that not ov
 For STAR, we set `--outFilterScoreMinOverLread 0` and `--outFilterMatchNminOverLread 0` as in [SeqScope](https://github.com/leeju-umich/Cho_Xi_Seqscope/blob/main/script/align.sh).
 
 ```
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq
+
 STAR \
 --genomeDir $STAR_INDEX \
---readFilesIn L2R2.trim_front_60.fastq \
+--readFilesIn $L2R2_FILTER_FASTQ \
 --outSAMtype BAM SortedByCoordinate \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
@@ -377,6 +352,136 @@ MN00185:308:000H3YMVH:1:11101:7721:4462         piR-hsa-2277753
 MN00185:308:000H3YMVH:1:11101:20516:4919        piR-hsa-2277753
 MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
 ```
+
+
+## 3. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
+
+Aligner BWA is used to map HiFi-Slide R1 reads (L2R1) `L2R1.fastq` to deduplicated spatial barcodes `L1R1_dedup.fasta`. The minimum number of base match between L2R1 and L1R1 (spatial barcodes) `-k` is set at 80% of the length of spatial barcodes.
+
+```
+temp=$(less L1R1_dedup.fasta | head -2 | sed -n '2p')
+min_base_match=$(echo "scale=4 ; ${#temp} * 0.8" | bc | awk '{printf("%.0f",$1)}')
+
+bwa mem \
+-a \
+-k $min_base_match \
+-t 32 \
+L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
+```
+
+In the case of a flowcell coming from MiniSeq, there is an additional step where we count the number of HiFi-Slide R1 reads mapped (flag 0 or 256) to spatial barcodes on the top (AAAL33WM5:1:1) and bottom surface (AAAL33WM5:1:2) and then select the surface with the highest number of aligned reads. This subsetted SAM file will go to the following steps.
+
+
+## 4. Select HiFi-Slide R1 reads where R2 reads map over genes/transcripts
+
+At this step, we use the HiFi-Slide read ID to select L2R1 reads aligned to spatial barcodes (L2R1_L1R1_dedup.sam) that have corresponding R2 ends (L2R2) mapped over genes/transcripts using the files generated at step 2. This step produces a filtered SAM file `L2R1_L1R1_dedup.filter.sam`.
+
+
+## 5. Select HiFi-Slide R1 reads with highest alignment score
+```
+hifislida.pl L2R1_L1R1_dedup.filter.sam > L2R1_L1R1_dedup.hifislida.o 2>L2R1_L1R1_dedup.hifislida.e
+```
+
+**Arguments**  
+1. Output SAM file from BWA.  
+
+**Purpose**   
+Read the SAM file output from BWA and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
+
+**Output**
+Tab-separated file `L2R1_L1R1_dedup.hifislida.o` with the following columns:
+
+- Column 1: HiFi-Slide read ID. 
+- Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
+- Column 3: Number of non-redundant spatial barcodes aligned at the highest score.  
+- Column 4: Number of all the spatial barcodes aligned at the highest score.  
+- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.
+
+
+<!-- ## 4. Identify the Region of Interest (ROI)
+
+### Rank the tiles by number of HiFi-Slide read pairs
+
+```
+hifislida2.pl L2R1_L1R1_dedup.hifislida.o L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida2.o 2>L2R1_L1R1_dedup.hifislida2.e
+```
+
+**Arguments**  
+1. Output file produced by hifislida.pl.
+2. Output file produced by BWA.
+
+**Purpose**  
+Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1_L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
+
+**Output**  
+Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
+
+- Column 1: Identifier ">TILE".
+- Column 2: Tile ID.
+- Column 3: Number of spatially resolved HiFi-Slide read pairs per tile (ranked in descending order).
+- Column 4: Number of mapped barcodes on the tile used for resolving the HiFi-Slide read pairs.
+
+### Select tiles under ROI
+
+For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output. If no significant ROI comes out, then all the tiles of the surface are considered as ROI.
+
+```
+select_tiles_in_ROI.r \
+-i L2R1_L1R1_dedup.hifislida2.o \
+-o ROI_tile_IDs.txt \
+-f NextSeq \
+--surface 1 \
+--max_size_ROI 4 \
+--min_size_ROI 2 \
+--p_value 0.05
+```
+
+**Arguments**  
+- `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
+- `-o`: Output file, tile IDs under ROI.
+- `-f`: Flowcell type, either MiniSeq, NextSeq.
+- `--surface`: Flowcell surface where the tissue is. For NextSeq is `1` for MiniSeq it depends on which surface is the highest number of mapped HiFi-Slide R1 reads to barcodes. This parameter is automatically computed in the script and passed to this function.
+- `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
+- `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
+- `--p_value`: The p-value threshold to be used for statistical significance.
+ -->
+
+## 6. Match HiFi-Slide read pairs with spatial location 
+
+```
+hifislida3.pl \
+L2R1_L1R1_dedup.hifislida.o \
+ROI_tile_IDs.txt \
+L1R1_dup.txt > L2R1_L1R1.hifislida3.o
+```
+
+**Arguments**  
+1. Output file produced by hifislida.pl.
+2. Output file produced by `select_tiles_in_ROI.r` with the IDs of the tiles under ROI.
+3. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
+
+**Purpose**  
+With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
+
+**Output**  
+Tab-separated file `L2R1_L1R1.hifislida3.o` with the following columns:
+
+- Column 1: HiFi-Slide read ID.
+- Column 2: Tile ID (only tiles under the ROI provided as input).
+- Column 3: X-coord on the tile (columns).
+- Column 4: Y-coord on the tile (rows).
+- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
+
+Example:
+```
+HiFi_read_id    tile_id col     row     N
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    20557   77594   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    7797    22530   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1209    30647   54019   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4
+```
+
+
 
 
 ## 8. Integrate spatial coordinates and RNA information

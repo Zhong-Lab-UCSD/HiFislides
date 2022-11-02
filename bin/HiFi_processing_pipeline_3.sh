@@ -1,6 +1,6 @@
 ################## INPUT PARAMETERS (TO BE UPDATED PER EACH SAMPLE)
-OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data
-SAMPLE_NAME=data14_test
+OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/MiniSeq
+SAMPLE_NAME=data_26_05aug22plantrun2
 
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
@@ -11,7 +11,7 @@ mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell="AAAL33WM5"
+flowcell="AAALN5GM5"
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
@@ -19,8 +19,8 @@ elif [ "$flowcell_type" == "MiniSeq" ]; then
 surface=$flowcell:1:
 fi
 
-max_size_ROI=7
-min_size_ROI=6
+# max_size_ROI=7
+# min_size_ROI=6
 
 # Directories of the processed data
 L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
@@ -31,8 +31,8 @@ L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta # first output of surfdedup
 L1R1_DUP=$L1_DIR/L1R1_dup.txt # second output of surfdedup
 
 # Raw reads of HiFi Slides sequencing (TO BE UPDATED PER EACH SAMPLE)
-L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R1_001.fastq.gz
-L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/test_sample/lib2/fastq/Undetermined_S0_L001_R2_001.fastq.gz
+L2R1_FASTQ=/mnt/extraids/SDSC_NFS/linpei/hifi/data_26_05aug22plantrun2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz
+L2R2_FASTQ=/mnt/extraids/SDSC_NFS/linpei/hifi/data_26_05aug22plantrun2/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz
 
 
 # Annotation file hg38. This file can be downloaded without the need of computing it from the GTF file or bedtools intersect can take GTF as input, only genes can be selected from the GTF file.
@@ -55,130 +55,6 @@ echo "Processing of "$SAMPLE_NAME >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 # Select full genes only
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/Homo_sapiens.GRCh38.84.chr.gene.gtf
 awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
-
-
-#################### LIBRARY 2 R1
-echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..."
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
-
-# Alignment
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-mkdir -p $L2_DIR/L2R1_mapping
-bwa mem -a -k 40 -t $N_THREADS $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-if [ "$flowcell_type" == "MiniSeq" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-# Remove header and select 0 and 256 flags
-grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
-
-# Select reads coming from surface 1 and surface 2
-grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-
-# Choose which surface the tissue is based on the number of mapped reads
-n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
-n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
-
-if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-else
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-fi
-
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
-
-elif [ "$flowcell_type" == "NextSeq" ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
-fi
-
-
-### Select HiFi-Slide R1 reads with highest alignment score
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-$BIN_DIR/hifislida.pl $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-### Rank tiles by the number of HiFi-Slide read pairs
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-$BIN_DIR/hifislida2.pl \
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-$L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-### Select tiles under ROI
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-if [ "$flowcell_type" == "MiniSeq" ]; then
-if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-mySurf=1
-else
-mySurf=2
-fi
-elif [ "$flowcell_type" == "NextSeq" ]; then
-mySurf=1
-fi
-
-$BIN_DIR/select_tiles_in_ROI.r \
--i $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o \
--o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
--f $flowcell_type \
---surface $mySurf \
---max_size_ROI $max_size_ROI \
---min_size_ROI $min_size_ROI \
---p_value 0.05
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-### Match HiFi-Slide read pairs with spatial location (header already included)
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-$BIN_DIR/hifislida3.pl \
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-$L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
-
-# less $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | head -10000 > $L2_DIR/L2R1_mapping/temp.txt
-
-# $BIN_DIR/hifislida3.pl \
-# $L2_DIR/L2R1_mapping/temp.txt \
-# $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-# $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3_temp.o
-
-$BIN_DIR/hifislida3.pl \
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-$L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
-
-# Add header (INCLUDED INTO hifislida3.pl)
-#1) echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
-#2) sed -i '1s;^;HiFi_read_id\ttile_id\tcol\trow\tN\n;' $L2_DIR/L2R1_mapping/temp.hifislida3.o
-#3) perl -pi -e '$.=0 if eof;print "HiFi_read_id\ttile_id\tcol\trow\tN\n" if ($.==1)' $L2_DIR/L2R1_mapping/temp.hifislida3.o
-
-# rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
-echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
 #################### LIBRARY 2 R2
@@ -304,9 +180,28 @@ fastp \
 --disable_quality_filtering \
 --thread 16
 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+### 6
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
+
+fastp \
+-i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+-o $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.json \
+--trim_tail1 30 \
+--disable_quality_filtering \
+--thread 16
 
 rm $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -325,6 +220,9 @@ L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_3
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
+
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_4
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq
 
 mkdir -p $L2R2_GENOME_DIR
 STAR \
@@ -387,7 +285,6 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to 
 
 
 ### Align HiFi R2 reads to the transcriptome in order to obtain gene annotation for HiFi read pairs.
-mkdir -p $L2R2_TRANSCRIPTOME_DIR
 
 ### Creating Bowtie 2 indexes (if not input parameter)
 if [ "$BOWTIE2_INDEX_TRANSCRIPT" == "" ]; then
@@ -412,7 +309,13 @@ fi
 ### Mapping
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R2_TRANSCRIPTOME_DIR=$L2R2_TRANSCRIPTOME_DIR
+L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
+
+L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
+
+mkdir -p $L2R2_TRANSCRIPTOME_DIR
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 mkdir -p $L2R2_TRANSCRIPTOME_DIR/$my_transcript
@@ -442,6 +345,170 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to 
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 2 finished."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide library 2 finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+
+
+
+#################### LIBRARY 2 R1
+echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
+
+# Alignment
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+mkdir -p $L2_DIR/L2R1_mapping
+
+# Calculate the minimum base match (-k) as 80% of the length of the spatial barcodes
+temp=$(less $L1R1_DEDUP | head -2 | sed -n '2p')
+min_base_match=$(echo "scale=4 ; ${#temp} * 0.8" | bc | awk '{printf("%.0f",$1)}')
+
+bwa mem \
+-a \
+-k $min_base_match \
+-t $N_THREADS \
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
+
+# Remove header (not useful and only occupies storage)
+grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
+rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### Select flowcell surface if flowcell type is MiniSeq
+if [ "$flowcell_type" == "MiniSeq" ]; then
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# Select 0 and 256 flags
+awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+
+# Select reads coming from surface 1 and surface 2
+grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+
+rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+
+# Choose which surface the tissue is based on the number of mapped reads
+n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
+n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
+
+if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+else
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+fi
+
+elif [ "$flowcell_type" == "NextSeq" ]; then
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
+fi
+
+
+### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
+awk -F"\t" 'NR==FNR{a[$4]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.genome.samf
+
+for my_transcript in tRNA piRNA miRNA circRNA; do
+size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
+
+if [ $size != 0 ]; then
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.$my_transcript.samf
+fi
+done
+
+# Concatenate the samf files to obtain a final SAM file
+L2R1_L1R1_SAM_FILTER=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.filter.sam
+cat $L2_DIR/L2R1_mapping/*samf > $L2R1_L1R1_SAM_FILTER
+
+# wc -l $L2R1_L1R1_SAM_FILTER
+# cut -f1 $L2R1_L1R1_SAM_FILTER | sort --parallel=$N_THREADS | uniq | wc -l
+
+# rm $L2_DIR/L2R1_mapping/*samf
+# rm $L2R1_L1R1_SAM
+
+### Select HiFi-Slide R1 reads with highest alignment score
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+$BIN_DIR/hifislida.pl $L2R1_L1R1_SAM_FILTER > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### Rank tiles by the number of HiFi-Slide read pairs
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# $BIN_DIR/hifislida2.pl \
+# $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
+# $L2R1_L1R1_SAM_FILTER > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
+
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# ### Select tiles under ROI
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Select tiles under ROI..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# if [ "$flowcell_type" == "MiniSeq" ]; then
+# if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
+# mySurf=1
+# else
+# mySurf=2
+# fi
+# elif [ "$flowcell_type" == "NextSeq" ]; then
+# mySurf=1
+# fi
+
+# $BIN_DIR/select_tiles_in_ROI.r \
+# -i $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o \
+# -o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+# -f $flowcell_type \
+# --surface $mySurf \
+# --max_size_ROI $max_size_ROI \
+# --min_size_ROI $min_size_ROI \
+# --p_value 0.1
+
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] ROI selection complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+### Match HiFi-Slide read pairs with spatial location (header already included)
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+# cut -f2 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | sort --parallel=$N_THREADS > $L2_DIR/L2R1_mapping/ALL_tile_IDs.txt 
+
+$BIN_DIR/hifislida3.pl \
+$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
+$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+
+# less $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | head -10000 > $L2_DIR/L2R1_mapping/temp.txt
+
+# $BIN_DIR/hifislida3.pl \
+# $L2_DIR/L2R1_mapping/temp.txt \
+# $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+# $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3_temp.o
+
+# Add header (INCLUDED INTO hifislida3.pl)
+#1) echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+#2) sed -i '1s;^;HiFi_read_id\ttile_id\tcol\trow\tN\n;' $L2_DIR/L2R1_mapping/temp.hifislida3.o
+#3) perl -pi -e '$.=0 if eof;print "HiFi_read_id\ttile_id\tcol\trow\tN\n" if ($.==1)' $L2_DIR/L2R1_mapping/temp.hifislida3.o
+
+# rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
+echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
+
+
 
 
 
