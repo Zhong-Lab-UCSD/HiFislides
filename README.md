@@ -295,28 +295,25 @@ bedtools intersect \
 
 Example:
 ```
-chr10   70257   70295   MN00185:308:000H3YMVH:1:11104:22416:20248       gene_id "ENSG00000261456.6"; gene_type "protein_coding"; gene_name "TUBB8"; level 2; hgnc_id "HGNC:20773"; havana_gene "OTTHUMG00000174803.2";
-chr10   135356  135387  MN00185:308:000H3YMVH:1:22102:18602:1451        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
-chr10   135360  135410  MN00185:308:000H3YMVH:1:11103:2816:12628        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
-chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+MN00185:308:000H3YMVH:1:11104:22416:20248       gene_id "ENSG00000261456.6"; gene_type "protein_coding"; gene_name "TUBB8"; level 2; hgnc_id "HGNC:20773"; havana_gene "OTTHUMG00000174803.2";
+MN00185:308:000H3YMVH:1:22102:18602:1451        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+MN00185:308:000H3YMVH:1:11103:2816:12628        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
 ```
 
-Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns (maybe here no need for columns 1-3?):
+Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns:
 
-- Column 1: L2R2 chromosome.
-- Column 2: L2R2 start coordinate.
-- Column 3: L2R2 end coordinate.
-- Column 4: L2R2 read ID.
-- Column 5: Gene ID.
-- Column 6: Gene name.
-- Column 7: Gene biotype.
+- Column 1: L2R2 read ID.
+- Column 2: Gene ID.
+- Column 3: Gene name.
+- Column 4: Gene biotype.
 
 Example:
 ```
-chr10   70257   70295   MN00185:308:000H3YMVH:1:11104:22416:20248       ENSG00000261456.6       TUBB8   protein_coding
-chr10   135356  135387  MN00185:308:000H3YMVH:1:22102:18602:1451        ENSG00000015171.20      ZMYND11 protein_coding
-chr10   135360  135410  MN00185:308:000H3YMVH:1:11103:2816:12628        ENSG00000015171.20      ZMYND11 protein_coding
-chr10   135434  135471  MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG00000015171.20      ZMYND11 protein_coding
+MN00185:308:000H3YMVH:1:11104:22416:20248       ENSG00000261456.6       TUBB8   protein_coding
+MN00185:308:000H3YMVH:1:22102:18602:1451        ENSG00000015171.20      ZMYND11 protein_coding
+MN00185:308:000H3YMVH:1:11103:2816:12628        ENSG00000015171.20      ZMYND11 protein_coding
+MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG00000015171.20      ZMYND11 protein_coding
 ```
 
 
@@ -499,34 +496,53 @@ cat L2R1_L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1_L1R1.hifislid
 ```
 cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
 
-join -1 1 -2 4 -t $'\t' L2R1_L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed > HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed | cut -f 2,3,4,5,6,7,8 > HiFi_L2R2_genome_spatial.txt
 ```
-**Output**
+
+Without the `cut` the first column would be the HiFi-Slide read ID (field used for `join`), however since we do not need this information anymore we prefer to remove that field before writing to output file.
 
 Tab-separated txt file with the following columns:
 
-- Column 1: HiFi-Slide read ID.
-- Column 2: Tile ID (only tiles under the ROI provided as input).
-- Column 3: X-coord on the tile (columns).
-- Column 4: Y-coord on the tile (rows).
-- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
-- Column 6: HiFi-Slide read chromosome.
-- Column 7: HiFi-Slide read start coordinate.
-- Column 8: HiFi-Slide read end coordinate.
-- Column 9: Gene ID.
-- Column 10: Gene name.
-- Column 11: Gene biotype.
+- Column 1: Tile ID (only tiles under the ROI provided as input).
+- Column 2: X-coord on the tile (columns).
+- Column 3: Y-coord on the tile (rows).
+- Column 4: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
+- Column 5: Gene ID.
+- Column 6: Gene name.
+- Column 7: Gene biotype.
 
 Example:
 
 ```
-HiFi_read_id     tile_id  col     row     N       HiFi_read_chr   HiFi_read_start HiFi_read_end   gene_id  gene_name        gene_type
-MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45545   10979   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
-MN00185:308:000H3YMVH:1:11101:10009:10866       1109    45867   11036   2       chr2    32916350        32916484        ENSG00000230876.8       LINC00486       lncRNA
-MN00185:308:000H3YMVH:1:11101:10015:13558       1109    13609   68183   1       chr2    32916214        32916317        ENSG00000230876.8       LINC00486       lncRNA
-MN00185:308:000H3YMVH:1:11101:10015:19288       1109    14271   75095   22      chr2    32916252        32916394        ENSG00000230876.8       LINC00486       lncRNA
+1109    45545   10979   2       ENSG00000230876.8       LINC00486       lncRNA
+1109    45545   10979   4       ENSG00000230876.8       LINC00486       lncRNA
+1109    13609   68183   1       ENSG00000230876.8       LINC00486       lncRNA
+1109    14271   75095   22      ENSG00000230876.8       LINC00486       lncRNA
 ```
 
+We then aggregate `HiFi_L2R2_genome_spatial.txt` to get unique (spot_i, gene_j) rows, and we calculate the expression level of gene_j in spot_i in this way: first we calculate `1/N` values in every row of `HiFi_L2R2_genome_spatial.txt`, then we sum the 1/N values corresponding to each (spot_i, gene_j) pair.
+
+```
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
+```
+
+Tab-separated txt file `HiFi_L2R2_genome_spatial.final.txt` with the following columns:
+
+- Column 1: Tile ID (only tiles under the ROI provided as input).
+- Column 2: X-coord on the tile (columns).
+- Column 3: Y-coord on the tile (rows).
+- Column 4: Gene ID.
+- Column 5: Gene name.
+- Column 6: Gene biotype.
+- Column 7: Gene expression level.
+
+Example:
+
+```
+1109    45545   10979   ENSG00000230876.8       LINC00486       lncRNA  0.75
+1109    13609   68183   ENSG00000230876.8       LINC00486       lncRNA  1
+1109    14271   75095   ENSG00000230876.8       LINC00486       lncRNA  0.04545455
+```
 
 ### Transcriptome
 
@@ -540,25 +556,40 @@ join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o L2R2_$i"_uniquely_mapped.sor
 done
 ```
 
-**Output**
-
 Tab-separated txt file with the following columns:
 
-- Column 1: HiFi-Slide read ID.
-- Column 2: Tile ID (only tiles under the ROI provided as input).
-- Column 3: X-coord on the tile (columns).
-- Column 4: Y-coord on the tile (rows).
-- Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
-- Column 6: Transcript identifier.
+- Column 1: Tile ID (only tiles under the ROI provided as input).
+- Column 2: X-coord on the tile (columns).
+- Column 3: Y-coord on the tile (rows).
+- Column 4: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
+- Column 5: Transcript identifier.
 
 Example for piRNA:
 ```
-HiFi_read_id	tile_id	col	row	N	transcript_id
-MN00185:308:000H3YMVH:1:11102:13104:11180	1109	29549	34175	15	piR-hsa-2229595
-MN00185:308:000H3YMVH:1:11102:13104:11180	1109	43425	50706	15	piR-hsa-2229595
-MN00185:308:000H3YMVH:1:11102:13104:11180	1109	47135	43472	15	piR-hsa-2229595
-MN00185:308:000H3YMVH:1:11102:13104:11180	1208	16960	53394	15	piR-hsa-2229595
+1109	29549	34175	15	piR-hsa-2229595
+1109	29549	34175	20	piR-hsa-2229595
+1109	47135	43472	15	piR-hsa-2229595
+1208	16960	53394	10	piR-hsa-2229595
 ```
+
+We perform the same aggregation method as above for transcripts.
+
+```
+for i in tRNA piRNA miRNA circRNA; do
+
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_$i"_spatial.txt" > HiFi_L2R2_$i"_spatial.final.txt"
+
+done
+```
+
+Example for piRNA:
+```
+1109	29549	34175	piR-hsa-2229595 0.1166667
+1109	47135	43472	piR-hsa-2229595 0.06666667
+1208	16960	53394	piR-hsa-2229595 0.1
+```
+
+
 
 ## QC metrics
 
