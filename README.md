@@ -499,11 +499,11 @@ cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sor
 join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed | cut -f 2,3,4,5,6,7,8 > HiFi_L2R2_genome_spatial.txt
 ```
 
-Without the `cut` the first column would be the HiFi-Slide read ID (field used for `join`), however since we do not need this information anymore we prefer to remove that field before writing to output file.
+Without the `cut` the first column would be the HiFi-Slide read ID (field used for `join`), however since we do not need this information anymore we prefer to remove that field before writing to output file to reduce memory occupation.
 
 Tab-separated txt file with the following columns:
 
-- Column 1: Tile ID (only tiles under the ROI provided as input).
+- Column 1: Tile ID.
 - Column 2: X-coord on the tile (columns).
 - Column 3: Y-coord on the tile (rows).
 - Column 4: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
@@ -520,7 +520,7 @@ Example:
 1109    14271   75095   22      ENSG00000230876.8       LINC00486       lncRNA
 ```
 
-We then aggregate `HiFi_L2R2_genome_spatial.txt` to get unique (spot_i, gene_j) rows, and we calculate the expression level of gene_j in spot_i in this way: first we calculate `1/N` values in every row of `HiFi_L2R2_genome_spatial.txt`, then we sum the 1/N values corresponding to each (spot_i, gene_j) pair.
+We then aggregate `HiFi_L2R2_genome_spatial.txt` to get unique (spot_i, gene_j) rows, and we calculate the expression level (counts) of gene_j in spot_i in this way: first we calculate `1/N` values in every row of `HiFi_L2R2_genome_spatial.txt`, then we sum the 1/N values corresponding to each (spot_i, gene_j) pair.
 
 ```
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
@@ -528,13 +528,13 @@ awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in arra
 
 Tab-separated txt file `HiFi_L2R2_genome_spatial.final.txt` with the following columns:
 
-- Column 1: Tile ID (only tiles under the ROI provided as input).
+- Column 1: Tile ID.
 - Column 2: X-coord on the tile (columns).
 - Column 3: Y-coord on the tile (rows).
 - Column 4: Gene ID.
 - Column 5: Gene name.
 - Column 6: Gene biotype.
-- Column 7: Gene expression level.
+- Column 7: Gene expression level (counts).
 
 Example:
 
@@ -572,7 +572,7 @@ Example for piRNA:
 1208	16960	53394	10	piR-hsa-2229595
 ```
 
-We perform the same aggregation method as above for transcripts.
+Next, we perform the same aggregation method as above for transcripts.
 
 ```
 for i in tRNA piRNA miRNA circRNA; do
