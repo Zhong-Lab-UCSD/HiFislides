@@ -518,15 +518,16 @@ HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
 
 join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
 
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
+
 # Add header (VERY SLOW, maybe remove?)
 # echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\tHiFi_read_chr\tHiFi_read_start\tHiFi_read_end\tgene_id\tgene_name\tgene_type" | cat - $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
 
 # rm $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
 
-awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' HiFi_L2R2_genome_spatial_temp.txt > HiFi_L2R2_genome_spatial.final2.txt
+awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial_temp.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
-
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial_temp.txt > HiFi_L2R2_genome_spatial.final2.txt
 
 
 ### TEST
