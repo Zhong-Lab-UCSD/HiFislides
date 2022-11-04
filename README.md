@@ -14,7 +14,7 @@ All published computational tools used for HiFi-Slide data analysis are free sof
 - [STAR](https://github.com/alexdobin/STAR)  
 - [Bowtie 2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
 - [Bedtools](https://bedtools.readthedocs.io/en/latest/)
-- [Samtools](https://www.htslib.org)
+- [SAMtools](https://www.htslib.org)
 - [Seqtk](https://github.com/lh3/seqtk) TBD???
 
 
@@ -448,17 +448,15 @@ select_tiles_in_ROI.r \
 ```
 hifislida3.pl \
 L2R1_L1R1_dedup.hifislida.o \
-ROI_tile_IDs.txt \
 L1R1_dup.txt > L2R1_L1R1.hifislida3.o
 ```
 
 **Arguments**  
 1. Output file produced by hifislida.pl.
-2. Output file produced by `select_tiles_in_ROI.r` with the IDs of the tiles under ROI.
-3. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
+2. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
 
 **Purpose**  
-With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. With `hifislida2.pl` we ranked tiles by their number of spatially resolved HiFi-Slide read pairs and we could manually select a few tiles as our ROI. To integrate these results we use `hifislida3.pl` to obtain all the aligned spatial barcodes located within the ROI and print out their coordinates on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
+With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. Next, we use `hifislida3.pl` to print out the coordinates of all the aligned spatial barcodes on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
 
 **Output**  
 Tab-separated file `L2R1_L1R1.hifislida3.o` with the following columns:
@@ -479,11 +477,9 @@ MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4
 ```
 
 
-
-
 ## 8. Integrate spatial coordinates and RNA information
 
-As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). This will produce final tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2).
+As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). First, we generate tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2). Finally, we aggregate those tables to obtain a list of unique "spot-gene" pairs with the corresponding gene expression levels.
 
 The file with HiFi-Slide read spatial coordinates is `L2R1_L1R1.hifislida3.o`, which is sorted first to obtain `L2R1_L1R1.hifislida3.sort.o` which is used below.
 
