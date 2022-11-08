@@ -19,9 +19,6 @@ elif [ "$flowcell_type" == "MiniSeq" ]; then
 surface=$flowcell:1:
 fi
 
-# max_size_ROI=7
-# min_size_ROI=6
-
 # Directories of the processed data
 L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatial barcodes
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
@@ -65,6 +62,7 @@ mkdir -p $L2_DIR/L2R2_preprocessing
 
 # Find L2R2 reads overlapping L2R1 and filter them out using the software PEAR
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Find L2R2 reads overlapping L2R1 and filter them out using the software PEAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+
 minoverlap=10 # default for PEAR
 
 pear \
@@ -87,38 +85,37 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] PEAR processing complete." >> $OUT_DIR/$SAM
 
 rm $L2_DIR/L2R2_preprocessing/L2R2_pear* # FILES ARE BIG!!!
 
-# TBD!!! Trimming the front 60 bp to remove Illumina adapters (max 16 threads allowed, max 30 bp at the time)
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming the front 60 bp of L2R2 reads to remove Illumina adapters..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Filtering L2R2 reads..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-### 1
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
---trim_front1 30 \
---disable_quality_filtering \
---thread 16
+# ### 1
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+# --trim_front1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.json \
---trim_front1 30 \
---disable_quality_filtering \
---thread 16
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.log.json \
+# --trim_front1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-### 2
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.json \
---trim_poly_g \
---trim_poly_x \
---disable_quality_filtering \
---thread 16
+# ### 2
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.json \
+# --trim_poly_g \
+# --trim_poly_x \
+# --disable_quality_filtering \
+# --thread 16
 
 ### 3
 fastp \
@@ -134,90 +131,90 @@ fastp \
 --thread 16
 
 ### 4
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
---trim_front1 30 \
---disable_quality_filtering \
---thread 16
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+# --trim_front1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.json \
---trim_front1 30 \
---trim_poly_g \
---trim_poly_x \
---disable_quality_filtering \
---thread 16
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.log.json \
+# --trim_front1 30 \
+# --trim_poly_g \
+# --trim_poly_x \
+# --disable_quality_filtering \
+# --thread 16
 
-### 5
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
---trim_front1 30 \
---trim_tail1 30 \
---disable_quality_filtering \
---thread 16
+# ### 5
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+# --trim_front1 30 \
+# --trim_tail1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.json \
---trim_front1 30 \
---trim_tail1 30 \
---disable_quality_filtering \
---thread 16
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.log.json \
+# --trim_front1 30 \
+# --trim_tail1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-### 6
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
---trim_tail1 30 \
---disable_quality_filtering \
---thread 16
+# ### 6
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.log.json \
+# --trim_tail1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-fastp \
--i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.json \
---trim_tail1 30 \
---disable_quality_filtering \
---thread 16
+# fastp \
+# -i $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq \
+# -o $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq \
+# -h $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.html \
+# -j $L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.log.json \
+# --trim_tail1 30 \
+# --disable_quality_filtering \
+# --thread 16
 
-rm $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq
+# rm $L2_DIR/L2R2_preprocessing/L2R2.trim_front_temp.fastq
 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Trimming complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Filtering complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
 
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_2
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_2
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_60_2.fastq
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_3
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_3
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_front_tail_60.fastq
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_4
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_4
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq
 
 mkdir -p $L2R2_GENOME_DIR
 STAR \
@@ -231,6 +228,21 @@ STAR \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN $N_THREADS
+
+
+# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30_066
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
+# mkdir -p $L2R2_GENOME_DIR
+# STAR \
+# --genomeDir $STAR_INDEX \
+# --readFilesIn $L2R2_FILTER_FASTQ \
+# --outSAMtype BAM SortedByCoordinate \
+# --outReadsUnmapped Fastx \
+# --outSAMattributes All \
+# --outFileNamePrefix $L2R2_GENOME_DIR/L2R2_genome. \
+# --sjdbGTFfile $annotation_gtf_file \
+# --runThreadN $N_THREADS
+
 
 
 ### Select uniquely mapped reads
@@ -298,8 +310,8 @@ fi
 ### Mapping
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the transcriptomes using Bowtie 2..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
+# L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
+# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
 
 L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
@@ -313,11 +325,12 @@ bowtie2 \
 -x $BOWTIE2_INDEX_TRANSCRIPT/$my_transcript/bowtie2_index/$my_transcript \
 -U $L2R2_FILTER_FASTQ \
 -S $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam" \
---un $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_unmapped.txt" \
 --no-unal --threads $N_THREADS --local 2> $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.log"
 
 # Select uniquely mapped reads. Inverse grep (-v) of reads with auxiliary tag XS, meaning reads that have other valid mappings. This gives exactly the number of reads "aligned exactly 1 time" in the bowtie2 log file.
 samtools view $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam" | grep -v "XS:i:" | cut -f 1,3 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt"
+
+# rm $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_mapped.sam"
 
 done
 
@@ -339,7 +352,9 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide
 # Alignment
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-mkdir -p $L2_DIR/L2R1_mapping
+
+L2R1_MAPPING_DIR=$L2R1/L2R1_mapping
+mkdir -p $L2R1_MAPPING_DIR
 
 # Calculate the minimum base match (-k) as 80% of the length of the spatial barcodes
 temp=$(less $L1R1_DEDUP | head -2 | sed -n '2p')
@@ -349,11 +364,11 @@ bwa mem \
 -a \
 -k $min_base_match \
 -t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log
 
 # Remove header (not useful and only occupies storage)
-grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -363,59 +378,59 @@ if [ "$flowcell_type" == "MiniSeq" ]; then
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # Select 0 and 256 flags
-awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
 # Select reads coming from surface 1 and surface 2
-grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+grep $surface"1" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
+grep $surface"2" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
 
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
 # Choose which surface the tissue is based on the number of mapped reads
-n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
-n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
+n_reads_surface_1=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
+n_reads_surface_2=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
 
 if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 fi
 
 elif [ "$flowcell_type" == "NextSeq" ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam
 fi
 
 
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.genome.samf
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed $L2R1_L1R1_SAM > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.genome.samf
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
 
 if [ $size != 0 ]; then
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" $L2R1_L1R1_SAM > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.$my_transcript.samf
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" $L2R1_L1R1_SAM > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.$my_transcript.samf
 fi
 done
 
 # Concatenate the samf files to obtain a final SAM file
-L2R1_L1R1_SAM_FILTER=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.filter.sam
-cat $L2_DIR/L2R1_mapping/*samf > $L2R1_L1R1_SAM_FILTER
+L2R1_L1R1_SAM_FILTER=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
+cat $L2R1_MAPPING_DIR/*samf > $L2R1_L1R1_SAM_FILTER
 
 # wc -l $L2R1_L1R1_SAM_FILTER
 # cut -f1 $L2R1_L1R1_SAM_FILTER | sort --parallel=$N_THREADS | uniq | wc -l
 
-# rm $L2_DIR/L2R1_mapping/*samf
+# rm $L2R1_MAPPING_DIR/*samf
 # rm $L2R1_L1R1_SAM
 
 ### Select HiFi-Slide R1 reads with highest alignment score
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-$BIN_DIR/hifislida.pl $L2R1_L1R1_SAM_FILTER > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.e
+$BIN_DIR/hifislida.pl $L2R1_L1R1_SAM_FILTER > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.e
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score (hifislida.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -425,8 +440,8 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest ali
 # echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 # $BIN_DIR/hifislida2.pl \
-# $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-# $L2R1_L1R1_SAM_FILTER > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.e
+# $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o \
+# $L2R1_L1R1_SAM_FILTER > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.e
 
 # echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete."
 # echo "[$(date '+%m-%d-%y %H:%M:%S')] Rank tiles by the number of HiFi-Slide read pairs (hifislida2.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -446,8 +461,8 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest ali
 # fi
 
 # $BIN_DIR/select_tiles_in_ROI.r \
-# -i $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o \
-# -o $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
+# -i $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o \
+# -o $L2R1_MAPPING_DIR/ROI_tile_IDs.txt \
 # -f $flowcell_type \
 # --surface $mySurf \
 # --max_size_ROI $max_size_ROI \
@@ -461,25 +476,12 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest ali
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-# cut -f2 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | sort --parallel=$N_THREADS > $L2_DIR/L2R1_mapping/ALL_tile_IDs.txt 
+# cut -f2 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o | sort --parallel=$N_THREADS > $L2R1_MAPPING_DIR/ALL_tile_IDs.txt 
 
 $BIN_DIR/hifislida3.pl \
-$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o \
-$L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o \
+$L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o
 
-# less $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | head -10000 > $L2_DIR/L2R1_mapping/temp.txt
-
-# $BIN_DIR/hifislida3.pl \
-# $L2_DIR/L2R1_mapping/temp.txt \
-# $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt \
-# $L1_DIR/L1R1_dup.txt > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3_temp.o
-
-# Add header (INCLUDED INTO hifislida3.pl)
-#1) echo -e "HiFi_read_id\ttile_id\tcol\trow\tN" | cat - $L2_DIR/L2R1_mapping/temp.hifislida3.o > $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o
-#2) sed -i '1s;^;HiFi_read_id\ttile_id\tcol\trow\tN\n;' $L2_DIR/L2R1_mapping/temp.hifislida3.o
-#3) perl -pi -e '$.=0 if eof;print "HiFi_read_id\ttile_id\tcol\trow\tN\n" if ($.==1)' $L2_DIR/L2R1_mapping/temp.hifislida3.o
-
-# rm $L2_DIR/L2R1_mapping/temp.hifislida3.o
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -490,50 +492,48 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 
 
 
 
-
-
 ########## Integrate spatial coordinates and gene expression information
 echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-mkdir -p $L2_DIR/L2R1_L2R2_integrate
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
+
+### TEMPORARY
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter_ct30
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
-
-L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
 L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30
 
-TEMP_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter_ct30 ### FIND A SOLUTION HERE
-TEMP_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter ### FIND A SOLUTION HERE
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
+L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter
 
-HiFi_L2R1_spatial=$TEMP_DIR/L2R1_L1R1.hifislida3.sort.o
-cat $TEMP_DIR/L2R1_L1R1.hifislida3.o | sort -k 1 --parallel=$N_THREADS -S 20G > $HiFi_L2R1_spatial
-
-# rm $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o # VERY BIG FILES
 
 ### Genome
 HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
 
-join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt
 
-# Add header (VERY SLOW, maybe remove?)
-# echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\tHiFi_read_chr\tHiFi_read_start\tHiFi_read_end\tgene_id\tgene_name\tgene_type" | cat - $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt > $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt
+# rm $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
-# rm $L2_DIR/L2R1_L2R2_integrate/temp_HiFi_L2R2_genome_spatial.txt
+
+### TEST
 
 awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial_temp.txt
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial_temp.txt > HiFi_L2R2_genome_spatial.final2.txt
 
-
-### TEST
 cut -f 2,3,4,5,9,10,11 HiFi_L2R2_genome_spatial.txt | tail -n +2 > HiFi_L2R2_genome_spatial2.txt
 
-tail -n +2 HiFi_L2R2_genome_spatial2.txt > HiFi_L2R2_genome_spatial3.txt
+tail -n +2 HiFi_L2R2_genome_spatial2.txt > HiFi_L2R2_genome_spatial.txt
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
+
 
 less HiFi_L2R2_genome_spatial.txt | head -10 > temp.txt
 cut -f 2,3,4,5,9,10,11 temp.txt > temp1.txt
@@ -545,24 +545,28 @@ awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in arra
 
 
 
-### Transcriptome
+### Transcriptome (FILES TO BE UPDATED)
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 
-size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt")
+size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt")
 
 if [ $size != 0 ]; then # only if there are uniquely mapped reads otherwise do nothing
 
-mkdir -p $L2_DIR/L2R1_L2R2_integrate/$my_transcript
+### COMMENTED FOR UPDATING FILES (THIS IS THE CODE TO BE KEPT)
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR/$my_transcript
 
-join -1 1 -2 1 -t $'\t' $HiFi_L2R1_spatial $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" cut -f 2,3,4,5,6 > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" | cut -f 2,3,4,5,6 > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt"
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt"
 
-# Add header
-# echo -e "HiFi_read_id\ttile_id\tcol\trow\tN\ttranscript_id" | cat - $L2_DIR/L2R1_L2R2_integrate/$my_transcript/temp_HiFi_L2R2_$my_transcript"_spatial.txt" > $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
+# rm $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
 
-# rm $L2_DIR/L2R1_L2R2_integrate/$my_transcript/temp_HiFi_L2R2_$my_transcript"_spatial.txt"
+
+### Updating files created with previous pipeline
+# cut -f 2,3,4,5,6 $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | tail -n +2 > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial2.txt"
+
+# awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial2.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt"
 
 fi
 
@@ -576,39 +580,39 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 
 
 
-####################### QC metrics
+####################### QC metrics (TO BE UPDATED)
 echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ##### Number of input HiFi read pairs
-m4=$(grep -w "M\\:\\:mem_process_seqs" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log |
+m4=$(grep -w "M\\:\\:mem_process_seqs" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log |
 cut -d " " -f3 | xargs | tr ' ' + | bc)
 
 ##### Number of HiFi read pairs aligned to spatial barcodes (number of unique HiFi read IDs in column 1 of L2R1_L1R1_dedup.hifislida.o)
-m5=$(awk -F '\t' '{print $1}' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o | sort --parallel=$N_THREADS | uniq | wc -l)
+m5=$(awk -F '\t' '{print $1}' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m5 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m6=$a"%"
 
 
 ##### Number of HiFi read pairs aligned to unique spatial barcodes (number of HiFi read IDs in column 1 of L2R1_L1R1_dedup.hifislida.o with column 3 and 4 equal to 1)
-m7=$(cut -f3 $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | xargs | tr ' ' + | bc) # same as below but faster
-# awk -F "\t" '$3 == 1 && $4 == 1 { print $1 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_1_1.hifislida.o | wc -l
+m7=$(cut -f3 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o | xargs | tr ' ' + | bc) # same as below but faster
+# awk -F "\t" '$3 == 1 && $4 == 1 { print $1 }' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_1_1.hifislida.o | wc -l
 
 a=$(echo "scale=4 ; $m7 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m8=$a"%"
 
 ##### Number of HiFi read pairs aligned to unique spatial barcodes and under ROI
-# awk 'BEGIN{FS=OFS="\t"} {gsub(/T/, "", $2)} 1' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_1_1.hifislida2.o | head -10 # to remove the T (not used anymore)
-m9=$(awk -F "\t" 'NR==FNR{a[$1]; next} FNR==0 || $2 in a' $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -f3 | xargs | tr ' ' + | bc)
+# awk 'BEGIN{FS=OFS="\t"} {gsub(/T/, "", $2)} 1' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_1_1.hifislida2.o | head -10 # to remove the T (not used anymore)
+m9=$(awk -F "\t" 'NR==FNR{a[$1]; next} FNR==0 || $2 in a' $L2R1_MAPPING_DIR/ROI_tile_IDs.txt $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o | cut -f3 | xargs | tr ' ' + | bc)
 
 a=$(echo "scale=4 ; $m9 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m10=$a"%"
 
 
 ##### Number of HiFi read pairs under ROI (all spatially resolved, i.e. not only aligned to unique spatial barcodes)
-m11=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_mapping/L2R1_L1R1.hifislida3.o | sort --parallel=$N_THREADS | uniq | wc -l)
+m11=$(awk -F '\t' 'NR>1 {print $1}' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.o | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m11 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m12=$a"%"
@@ -643,27 +647,27 @@ a=$(echo "scale=4 ; $m17 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m18=$a"%"
 
 ##### Number of HiFi-Slide read pairs genome mapped and spatially resolved
-m19=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $4 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed | cut -f4 | sort --parallel=$N_THREADS | uniq | wc -l)
+m19=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $4 in a' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o $L2R2_GENOME_DIR/HiFi_L2R2_genome.bed | cut -f4 | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m19 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m20=$a"%"
 
 
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to genome
-m21=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=$N_THREADS | uniq | wc -l)
+m21=$(awk -F '\t' 'NR>1 {print $1}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m21 / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m22=$a"%"
 
 # Number of genes 
-m23=$(awk -F '\t' 'NR>1 {print $9}' $L2_DIR/L2R1_L2R2_integrate/HiFi_L2R2_genome_spatial.txt | sort --parallel=$N_THREADS | uniq | wc -l)
+m23=$(awk -F '\t' 'NR>1 {print $9}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt | sort --parallel=$N_THREADS | uniq | wc -l)
 
 ##### Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile
-n_tiles=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
+n_tiles=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
 m24=$(echo "scale=4 ; $m19 / $n_tiles" | bc | awk '{printf("%.2f",$1)}')
 
 ##### Average number of HiFi-Slide read pairs genome mapped and spatially resolved per tile under ROI
-n_tiles_under_ROI=$(wc -l $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt | cut -d " " -f 1)
+n_tiles_under_ROI=$(wc -l $L2R1_MAPPING_DIR/ROI_tile_IDs.txt | cut -d " " -f 1)
 m25=$(echo "scale=4 ; $m21 / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}')
 
 
@@ -718,7 +722,7 @@ a=$(echo "scale=4 ; $m26a / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26b=$a"%"
 
 ##### Number of HiFi-Slide read pairs transcriptome mapped and spatially resolved
-m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | cut -f1 | sort --parallel=$N_THREADS | uniq | wc -l)
+m26c=$(awk 'FNR==NR {a[$1]; next} FNR> 0 && $1 in a' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.txt" | cut -f1 | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26d=$a"%"
@@ -726,7 +730,7 @@ m26d=$a"%"
 m27=$(($m27 + $m26c)) # update value
 
 ##### Number of HiFi reads spatially resolved, under ROI and aligned to transcriptome
-m26e=$(awk -F '\t' 'NR>1 {print $1}' $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
+m26e=$(awk -F '\t' 'NR>1 {print $1}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
 
 a=$(echo "scale=4 ; $m26c / $m15 * 100" | bc | awk '{printf("%.2f",$1)}')
 m26f=$a"%"
@@ -734,14 +738,14 @@ m26f=$a"%"
 m29=$(($m29 + $m26e)) # update value
 
 # Number of transcripts 
-m26g=$(awk -F '\t' 'NR>1 {print $6}' $L2_DIR/L2R1_L2R2_integrate/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
+m26g=$(awk -F '\t' 'NR>1 {print $6}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" | sort --parallel=$N_THREADS | uniq | wc -l)
 
 ##### Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile
-n_tiles=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
+n_tiles=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida2.o | cut -d " " -f 1)
 m26h=$(echo "scale=4 ; $m26c / $n_tiles" | bc | awk '{printf("%.2f",$1)}')
 
 ##### Average number of HiFi-Slide read pairs transcriptome mapped and spatially resolved per tile under ROI
-n_tiles_under_ROI=$(wc -l $L2_DIR/L2R1_mapping/ROI_tile_IDs.txt | cut -d " " -f 1)
+n_tiles_under_ROI=$(wc -l $L2R1_MAPPING_DIR/ROI_tile_IDs.txt | cut -d " " -f 1)
 m26i=$(echo "scale=4 ; $m26e / $n_tiles_under_ROI" | bc | awk '{printf("%.2f",$1)}')
 
 elif [ $size == 0 ]; then
