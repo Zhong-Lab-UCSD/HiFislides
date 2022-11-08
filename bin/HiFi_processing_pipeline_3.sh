@@ -547,7 +547,7 @@ awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in arra
 
 
 
-### Transcriptome (FILES TO BE UPDATED)
+### Transcriptome
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 
@@ -561,6 +561,10 @@ mkdir -p $L2R1_L2R2_INTEGRATE_DIR/$my_transcript
 join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" | cut -f 2,3,4,5,6 > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt"
+
+# Count how many spots in each tile
+awk '{A[$1]++}END{for(i in A)print i,A[i]}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/tile_spot_number_table.txt
+
 
 # rm $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
 
