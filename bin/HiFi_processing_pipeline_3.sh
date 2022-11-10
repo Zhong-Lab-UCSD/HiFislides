@@ -358,7 +358,7 @@ mkdir -p $L2R1_MAPPING_DIR
 
 # Calculate the minimum base match (-k) as 80% of the length of the spatial barcodes
 temp=$(less $L1R1_DEDUP | head -2 | sed -n '2p')
-min_base_match=$(echo "scale=4 ; ${#temp} * 0.8" | bc | awk '{printf("%.0f",$1)}')
+min_base_match=$(echo "scale=4 ; ${#temp} * 0.95" | bc | awk '{printf("%.0f",$1)}')
 
 bwa mem \
 -a \
@@ -482,6 +482,8 @@ $BIN_DIR/hifislida3.pl \
 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o \
 $L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o
 
+$BIN_DIR/hifislida3_noDup.pl \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.hifislida.o | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort_noDup.o
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -502,16 +504,19 @@ mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
 
 ### TEMPORARY
-L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter_ct30
+k_value=k80
+
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/$k_value/pipeline_3_fastp_filter_ct30
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
 L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
-L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30/$k_value/noDup
 
-L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/pipeline_3_fastp_filter
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
-L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter
-L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter
+k_value=k95
 
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/$k_value
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
+L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30/$k_value
 
 ### Genome
 HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
@@ -525,25 +530,28 @@ awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in arra
 # Count how many spots in each tile
 awk '{A[$1]++}END{for(i in A)print i,A[i]}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt > $L2R1_L2R2_INTEGRATE_DIR/tile_spot_number_table.txt
 
+# Calculate total gene expression level in each tile
+awk '{a[$1]+=$7}END{for(i in a) print i,a[i]}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_expression_table.txt
+
 
 ### TEST
-awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial_temp.txt
+# awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial_temp.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial_temp.txt > HiFi_L2R2_genome_spatial.final2.txt
+# awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial_temp.txt > HiFi_L2R2_genome_spatial.final2.txt
 
-cut -f 2,3,4,5,9,10,11 HiFi_L2R2_genome_spatial.txt | tail -n +2 > HiFi_L2R2_genome_spatial2.txt
+# cut -f 2,3,4,5,9,10,11 HiFi_L2R2_genome_spatial.txt | tail -n +2 > HiFi_L2R2_genome_spatial2.txt
 
-tail -n +2 HiFi_L2R2_genome_spatial2.txt > HiFi_L2R2_genome_spatial.txt
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
+# tail -n +2 HiFi_L2R2_genome_spatial2.txt > HiFi_L2R2_genome_spatial.txt
+# awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_genome_spatial.txt > HiFi_L2R2_genome_spatial.final.txt
 
 
-less HiFi_L2R2_genome_spatial.txt | head -10 > temp.txt
-cut -f 2,3,4,5,9,10,11 temp.txt > temp1.txt
-awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' temp1.txt > temp2.txt
+# less HiFi_L2R2_genome_spatial.txt | head -10 > temp.txt
+# cut -f 2,3,4,5,9,10,11 temp.txt > temp1.txt
+# awk -F"\t" -v OFS='\t' '{ print $1, $2, $3, 1/$4, $5, $6, $7 }' temp1.txt > temp2.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' temp2.txt > temp_agg.txt
+# awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=$4} END { for (i in array) {print i"\t" array[i]}}' temp2.txt > temp_agg.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' temp1.txt > temp_agg2.txt
+# awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' temp1.txt > temp_agg2.txt
 
 
 
@@ -564,6 +572,9 @@ awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"
 
 # Count how many spots in each tile
 awk '{A[$1]++}END{for(i in A)print i,A[i]}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/tile_spot_number_table.txt
+
+# Calculate total gene expression level in each tile
+awk '{a[$1]+=$7}END{for(i in a) print i,a[i]}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/tile_gene_expression_table.txt
 
 
 # rm $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
