@@ -35,6 +35,10 @@ L2R2_FASTQ=/mnt/extraids/SDSC_NFS/linpei/hifi/data_26_05aug22plantrun2/Data/Inte
 # Annotation file hg38
 annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
 
+# Select full gene coordinates only
+annotation_gtf_file_genes=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
+awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > $annotation_gtf_file_genes
+
 ### Mapping reference indexes
 STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ
 BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
@@ -47,9 +51,6 @@ touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 START_DATE=$(date) # start processing date
 echo "Processing of "$SAMPLE_NAME
 echo "Processing of "$SAMPLE_NAME >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-# Select full gene coordinates only
-awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
 
 
 #################### LIBRARY 2 R2
@@ -253,7 +254,7 @@ $L2R2_GENOME_DIR/L2R2_genome.Aligned.sortedByCoord.out.bam
 ### Map uniquely mapped reads over genes. Cannot use featureCounts because we need to keep track of what L2R2 read align to each gene.
 bedtools intersect \
 -a $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
--b $annotation_gtf_file \
+-b $annotation_gtf_file_genes \
 -wb -bed | cut -f 4,21 > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
 
 cut -f 2 $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed |  # extract column 2
@@ -539,23 +540,30 @@ mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
 ### TEMPORARY
 k_value=k80
-
 L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/$k_value/pipeline_3_fastp_filter_ct30
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
 L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
 L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30/$k_value/noDup
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
 k_value=k95
-
 L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/pipeline_3/$k_value
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
 L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
 L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate/pipeline_3_fastp_filter_ct30/$k_value
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR
+
+k_value=k95
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping_ROI
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30
+L2R2_TRANSCRIPTOME_DIR=$L2_DIR/L2R2_mapping/transcriptome_fastp_filter_ct30
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate_ROI
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
 ### Genome
 HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
 
-join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort_noDup.o $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt
 
@@ -600,7 +608,7 @@ if [ $size != 0 ]; then # only if there are uniquely mapped reads otherwise do n
 ### COMMENTED FOR UPDATING FILES (THIS IS THE CODE TO BE KEPT)
 mkdir -p $L2R1_L2R2_INTEGRATE_DIR/$my_transcript
 
-join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" | cut -f 2,3,4,5,6 > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort_noDup.o $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt" | cut -f 2,3,4,5,6 > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt"
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.txt" > $L2R1_L2R2_INTEGRATE_DIR/$my_transcript/HiFi_L2R2_$my_transcript"_spatial.final.txt"
 
