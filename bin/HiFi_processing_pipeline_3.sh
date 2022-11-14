@@ -347,16 +347,33 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start processing HiFi-Slide L2R1..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
 
-# Alignment
+###### Subsetting barcodes only within tiles under ROI and create specific BWA index
+mkdir -p $L2_DIR/L1R1_ROI
+ROI_tiles=$L2_DIR/L1R1_ROI/ROI_tiles.txt
+
+less $L1_DIR/L1R1_dedup.fasta | cut -f5 -d ":" | grep -f $ROI_tiles -n | awk -F: '{print $1"\n"$1+1}' > $L2_DIR/L1R1_ROI/temp_lines.txt
+
+awk 'NR==FNR{data[$1]; next}FNR in data' $L2_DIR/L1R1_ROI/temp_lines.txt $L1_DIR/L1R1_dedup.fasta > $L2_DIR/L1R1_ROI/L1R1_dedup_ROI.fasta
+
+mkdir -p $L2_DIR/L1R1_ROI/bwa_index_L1R1_ROI
+bwa index \
+-p $L2_DIR/L1R1_ROI/bwa_index_L1R1_ROI/L1R1_dedup_ROI \
+$L2_DIR/L1R1_ROI/L1R1_dedup_ROI.fasta
+
+L1R1_FASTQ_BWA_INDEX_ROI=$L2_DIR/L1R1_ROI/bwa_index_L1R1_ROI/L1R1_dedup_ROI
+
+
+###### Align HiFi R1 reads (L2R1) to spatial barcodes (L1R1) in order to obtain spatial coordinates for HiFi read pairs.
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
+### Alignment for all the barcodes
 L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping
 mkdir -p $L2R1_MAPPING_DIR
 
-# Calculate the minimum base match (-k) as 80% of the length of the spatial barcodes
+# Calculate the minimum base match (-k) as 95% of the length of the spatial barcodes
 temp=$(less $L1R1_DEDUP | head -2 | sed -n '2p')
 min_base_match=$(echo "scale=4 ; ${#temp} * 0.95" | bc | awk '{printf("%.0f",$1)}')
 
@@ -366,7 +383,24 @@ bwa mem \
 -t $N_THREADS \
 $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log
 
-# Remove header (not useful and only occupies storage)
+
+### Alignment for the barcodes under ROI
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping_ROI
+mkdir -p $L2R1_MAPPING_DIR
+
+# Calculate the minimum base match (-k) as 95% of the length of the spatial barcodes
+temp=$(less $L2_DIR/L1R1_ROI/L1R1_dedup_ROI.fasta | head -2 | sed -n '2p')
+min_base_match=$(echo "scale=4 ; ${#temp} * 0.95" | bc | awk '{printf("%.0f",$1)}')
+
+bwa mem \
+-a \
+-k $min_base_match \
+-t $N_THREADS \
+$L1R1_FASTQ_BWA_INDEX_ROI $L2R1_FASTQ > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log
+
+
+
+### Remove header (not useful and only occupies storage)
 grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam
 rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
