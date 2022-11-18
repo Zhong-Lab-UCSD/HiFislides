@@ -1,6 +1,7 @@
 ################## INPUT PARAMETERS (TO BE UPDATED PER EACH SAMPLE)
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM
 SAMPLE_NAME=HiFi_placenta_1
+RUNNING_LABEL=""
 
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
@@ -108,17 +109,19 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Filtering L2R2 reads..." >> $OUT_DIR/$SAMPL
 # --thread 16
 
 # ### 2
+RUNNING_LABEL="fastp_filter"
 fastp \
 -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
--o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
--h $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.html \
--j $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.log.json \
+-o $L2_DIR/L2R2_preprocessing/L2R2.$RUNNING_LABEL.fastq \
+-h $L2_DIR/L2R2_preprocessing/L2R2.$RUNNING_LABEL.log.html \
+-j $L2_DIR/L2R2_preprocessing/L2R2.$RUNNING_LABEL.log.json \
 --trim_poly_g \
 --trim_poly_x \
 --disable_quality_filtering \
 --thread 16
 
 ### 3
+# RUNNING_LABEL="fastp_filter"
 # fastp \
 # -i $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq \
 # -o $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq \
@@ -205,6 +208,9 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the gen
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
 
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30_nosjdb
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
+
 L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_pear_filter
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq
 
@@ -232,21 +238,6 @@ STAR \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN $N_THREADS
-
-
-# L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter_ct30_066
-# L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter_ct30.fastq
-# mkdir -p $L2R2_GENOME_DIR
-# STAR \
-# --genomeDir $STAR_INDEX \
-# --readFilesIn $L2R2_FILTER_FASTQ \
-# --outSAMtype BAM SortedByCoordinate \
-# --outReadsUnmapped Fastx \
-# --outSAMattributes All \
-# --outFileNamePrefix $L2R2_GENOME_DIR/L2R2_genome. \
-# --sjdbGTFfile $annotation_gtf_file \
-# --runThreadN $N_THREADS
-
 
 
 ### Select uniquely mapped reads
@@ -279,13 +270,24 @@ paste \
 $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed \
 $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt \
 $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt \
-$L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt | cut -f 1,3,4,5 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed
+$L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt | cut -f 1,3,4,5 > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed
 
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt
+# rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt
 
-rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
-rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_id.txt
-rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_name.txt
-rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_gene_biotype.txt
+### Not aligned to genes
+bedtools intersect \
+-a $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+-b $annotation_gtf_file_genes \
+-v -bed | cut -f 4 | awk '{print $0, "\tNA", "\tNA", "\tNA"}' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed
+
+### Concatenate and sort
+cat $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed
+
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed
+rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment of HiFi-Slide reads R2 (L2R2) to the genome complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -440,12 +442,14 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected sur
 fi
 
 elif [ "$flowcell_type" == "NextSeq" ]; then
+
 L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam
+
 fi
 
 
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome.sort.bed $L2R1_L1R1_SAM > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.genome.samf
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.genome.samf
 
 for my_transcript in tRNA piRNA miRNA circRNA; do
 size=$(stat -c %s $L2R2_TRANSCRIPTOME_DIR/$my_transcript/L2R2_$my_transcript"_uniquely_mapped.sort.txt")
