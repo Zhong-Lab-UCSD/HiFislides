@@ -1,7 +1,7 @@
 ################## INPUT PARAMETERS (TO BE UPDATED PER EACH SAMPLE)
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM
 SAMPLE_NAME=HiFi_placenta_1
-RUNNING_LABEL="genome_no_filter"
+RUNNING_LABEL=""
 
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
@@ -217,7 +217,7 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) t
 L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping/$RUNNING_LABEL
 mkdir -p $L2R1_MAPPING_DIR
 
-# Calculate the minimum base match (-k) as 50% of the length of the spatial barcodes
+# Calculate the minimum base match (-k) as 50% of the length of the spatial barcodes (TBD)
 temp=$(less $L1R1_DEDUP | head -2 | sed -n '2p')
 min_base_match=$(echo "scale=4 ; ${#temp} * 0.5" | bc | awk '{printf("%.0f",$1)}')
 
@@ -225,7 +225,7 @@ bwa mem \
 -a \
 -k $min_base_match \
 -t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam 2>$L2R1_MAPPING_DIR/L2R1_L1R1_dedup_$min_base_match.log
 
 ### Remove header (not useful and it only occupies storage)
 grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$min_base_match.sam
@@ -270,6 +270,8 @@ fi
 
 
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
+L2R1_L1R1_SAM=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM/HiFi_placenta_1/L2R1_mapping/L2R1_L1R1_dedup_k19.sam
+
 L2R1_L1R1_SAM_FILTER=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
 awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_L1R1_SAM_FILTER
