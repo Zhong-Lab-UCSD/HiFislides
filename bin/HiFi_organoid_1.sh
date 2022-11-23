@@ -1,7 +1,7 @@
 ################## INPUT PARAMETERS (TO BE UPDATED PER EACH SAMPLE)
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM
-SAMPLE_NAME=HiFi_placenta_1
-RUNNING_LABEL=""
+SAMPLE_NAME=HiFi_organoid_1
+RUNNING_LABEL="fastp_filter_k19_ALL"
 
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
@@ -12,7 +12,7 @@ mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell="AAALN5GM5"
+flowcell="AAALNN7M5"
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
@@ -30,8 +30,8 @@ L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta # first output of surfdedup
 L1R1_DUP=$L1_DIR/L1R1_dup.txt # second output of surfdedup
 
 # Raw reads of HiFi Slides sequencing
-L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R1_001.fastq.gz
-L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R2_001.fastq.gz
+L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/NP_Organoid_hifi_05oct22_S1_L001_R1_001.fastq.gz
+L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/NP_Organoid_hifi_05oct22_S1_L001_R2_001.fastq.gz
 
 # Annotation file hg38
 annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
@@ -122,6 +122,7 @@ STAR \
 --outFilterMatchNminOverLread 0 \
 --runThreadN $N_THREADS
 
+
 ### Select uniquely mapped reads
 # samtools view -@ $N_THREADS -b -h -q 255 \
 # -o $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
@@ -206,69 +207,32 @@ mkdir -p $L2R1_MAPPING_DIR
 bwa_seed_length=19 # default
 
 ### Method 1
-bwa mem \
--a \
--k $bwa_seed_length \
--t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
-
-### Method 2
 # bwa mem \
 # -a \
 # -k $bwa_seed_length \
 # -t $N_THREADS \
-# $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_$bwa_seed_length.log
+# $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
 
-# # Remove header (not useful and it only occupies storage)
-# grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+### Method 2
+bwa mem \
+-a \
+-k $bwa_seed_length \
+-t $N_THREADS \
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_$bwa_seed_length.log
 
-# rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
+# Remove header (not useful and it only occupies storage)
+grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 
-# grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
+rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam
 
-awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
+# awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.temp.sam
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
-### Select flowcell surface if flowcell type is MiniSeq
-if [ "$flowcell_type" == "MiniSeq" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-# Select 0 and 256 flags
-# awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
-
-# Select reads coming from surface 1 and surface 2
-grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-
-# rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
-
-# Choose which surface the tissue is based on the number of mapped reads
-n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
-n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
-
-if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-else
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-fi
-
-elif [ "$flowcell_type" == "NextSeq" ]; then
-
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
-
-fi
-
-
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
-# L2R1_L1R1_SAM=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM/HiFi_placenta_1/L2R1_mapping/L2R1_L1R1_dedup_k19.sam
-
+L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 L2R1_L1R1_SAM_FILTER=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
 awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_L1R1_SAM_FILTER
@@ -349,21 +313,6 @@ ROI_label="ROI_1"
 
 awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $ROI_TILES $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1"_"$2"_"$3, $1, $2, $3, $5, $6, $7}' | awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6]+=$7} END { for (i in array) {print i"\t" array[i]}}' > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.$ROI_label.txt
 
-ROI_TILES=$L2_DIR/ROI_tiles_2.txt
-ROI_label="ROI_2"
-
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $ROI_TILES $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1"_"$2"_"$3, $1, $2, $3, $5, $6, $7}' | awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6]+=$7} END { for (i in array) {print i"\t" array[i]}}' > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.$ROI_label.txt
-
-ROI_TILES=$L2_DIR/ROI_tiles_3.txt
-ROI_label="ROI_3"
-
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $ROI_TILES $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1"_"$2"_"$3, $1, $2, $3, $5, $6, $7}' | awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6]+=$7} END { for (i in array) {print i"\t" array[i]}}' > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.$ROI_label.txt
-
-ROI_TILES=$L2_DIR/tile_max_spot.txt
-ROI_label="tile_max_spot"
-
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==1 || $1 in a' $ROI_TILES $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1"_"$2"_"$3, $1, $2, $3, $5, $6, $7}' | awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6]+=$7} END { for (i in array) {print i"\t" array[i]}}' > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.$ROI_label.txt
-
 
 
 ####################### QC metrics
@@ -372,10 +321,8 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculatio
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ##### Number of input HiFi read pairs
-# m1=$(grep -w "M\\:\\:mem_process_seqs" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log |
-# cut -d " " -f3 | xargs | tr ' ' + | bc)
-a=$(zcat $L2R1_FASTQ | wc -l | cut -d " " -f 1)
-m1=$(($a / 4))
+m1=$(grep -w "M\\:\\:mem_process_seqs" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log |
+cut -d " " -f3 | xargs | tr ' ' + | bc)
 
 ##### Number of HiFi-Slide L2R2 passing pear filtering
 a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq | cut -d " " -f 1)
@@ -385,6 +332,9 @@ a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m3=$a"%"
 
 ##### Number of HiFi-Slide L2R2 passing length filtering (performed automatically by fastp)
+# a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq | cut -d " " -f 1)
+# echo $(($a / 4))
+# To make it faster, we can just count the number of input reads in the log of the STAR aligner
 m4=$(grep -w "Number of input reads" $L2R2_GENOME_DIR/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g')
 
 a=$(echo "scale=4 ; $m4 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
@@ -397,30 +347,14 @@ a=$(echo "scale=4 ; $m6 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m7=$a"%"
 
 ##### Number of HiFi-Slide L2R1 spatially resolved
-m8=$(awk '!seen[$1]++' $L2R1_L1R1_SAM | wc -l)
-
-a=$(echo "scale=4 ; $m8 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
-m9=$a"%"
+m8=NA
+m9=NA
 
 ##### Number of HiFi read pairs mapped to the genome and spatially resolved
 m10=$(cut -f1 $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o | uniq | wc -l)
 
-a=$(echo "scale=4 ; $m10 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
+a=$(echo "scale=4 ; $m8 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m11=$a"%"
-
-##### Average number of spots per tile
-m12=$(count=0; total=0; for i in $( awk '{ print $2; }' $L2R1_L2R2_INTEGRATE_DIR/tile_spot_number_table.txt );\
-do total=$(echo $total+$i | bc ); \
-((count++)); done; echo "scale=0; $total / $count" | bc)
-
-m13=$(echo "scale=4 ; $m12 / 10000" | bc | awk '{printf("%.4f",$1)}')
-
-##### Average number of genes per tile
-m14=$(count=0; total=0; for i in $( awk '{ print $2; }' $L2R1_L2R2_INTEGRATE_DIR/tile_gene_number_table.txt );\
-do total=$(echo $total+$i | bc ); \
-((count++)); done; echo "scale=0; $total / $count" | bc)
-
-m15=$(echo "scale=4 ; $m14 / 10000" | bc | awk '{printf("%.4f",$1)}')
 
 
 ##### Print to file
@@ -435,14 +369,11 @@ M8="Number of read pairs spatially resolved"
 M9="Percentage of read pairs spatially resolved"
 M10="Number of read pairs genome mapped and spatially resolved"
 M11="Percentage of read pairs genome mapped and spatially resolved"
-M12="Average spots per tile"
-M13="Average spots per 10 um^2"
-M14="Average genes per tile"
-M15="Average genes per 10 um^2"
+
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
-for k in $(seq 1 15); do
+for k in $(seq 1 11); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
