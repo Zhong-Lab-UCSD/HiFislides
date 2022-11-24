@@ -210,7 +210,7 @@ bwa mem \
 -a \
 -k $bwa_seed_length \
 -t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.log | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 
 ### Method 2
 # bwa mem \
@@ -372,10 +372,8 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculatio
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ##### Number of input HiFi read pairs
-# m1=$(grep -w "M\\:\\:mem_process_seqs" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log |
-# cut -d " " -f3 | xargs | tr ' ' + | bc)
-a=$(zcat $L2R1_FASTQ | wc -l | cut -d " " -f 1)
-m1=$(($a / 4))
+m1=$(grep -w "M\\:\\:mem_process_seqs" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.log |
+cut -d " " -f3 | xargs | tr ' ' + | bc)
 
 ##### Number of HiFi-Slide L2R2 passing pear filtering
 a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2.pear_filter.fastq | cut -d " " -f 1)
@@ -391,7 +389,7 @@ a=$(echo "scale=4 ; $m4 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m5=$a"%"
 
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome (and to annotated genes)
-m6=$(cut -f1 $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | uniq | wc -l)
+m6=$(awk '!seen[$1]++' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | wc -l)
 
 a=$(echo "scale=4 ; $m6 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m7=$a"%"
@@ -403,7 +401,7 @@ a=$(echo "scale=4 ; $m8 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m9=$a"%"
 
 ##### Number of HiFi read pairs mapped to the genome and spatially resolved
-m10=$(cut -f1 $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o | uniq | wc -l)
+m10=$(awk '!seen[$1]++' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o | wc -l)
 
 a=$(echo "scale=4 ; $m10 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m11=$a"%"
