@@ -226,7 +226,7 @@ $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 =
 
 # grep -v '^@' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.temp.sam | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
 
-awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
+# awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.2.sam
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
