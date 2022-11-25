@@ -315,7 +315,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculatio
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ##### Number of input HiFi read pairs
-m1=$(grep -w "M\\:\\:mem_process_seqs" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.log |
+m1=$(grep -w "M\\:\\:mem_process_seqs" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.log |
 cut -d " " -f3 | xargs | tr ' ' + | bc)
 
 ##### Number of HiFi-Slide L2R2 passing pear filtering
@@ -326,29 +326,42 @@ a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m3=$a"%"
 
 ##### Number of HiFi-Slide L2R2 passing length filtering (performed automatically by fastp)
-# a=$(wc -l $L2_DIR/L2R2_preprocessing/L2R2.trim_front_60.fastq | cut -d " " -f 1)
-# echo $(($a / 4))
-# To make it faster, we can just count the number of input reads in the log of the STAR aligner
 m4=$(grep -w "Number of input reads" $L2R2_GENOME_DIR/L2R2_genome.Log.final.out | cut -d "|" -f2 | sed 's/\t//g')
 
 a=$(echo "scale=4 ; $m4 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m5=$a"%"
 
 ##### Number of HiFi-Slide L2R2 uniquely mapped to genome (and to annotated genes)
-m6=$(cut -f1 $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | uniq | wc -l)
+m6=$(awk '!seen[$1]++' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | wc -l)
 
 a=$(echo "scale=4 ; $m6 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m7=$a"%"
 
 ##### Number of HiFi-Slide L2R1 spatially resolved
-m8=NA
-m9=NA
+m8=$(awk '!seen[$1]++' $L2R1_L1R1_SAM | wc -l)
+
+a=$(echo "scale=4 ; $m8 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
+m9=$a"%"
 
 ##### Number of HiFi read pairs mapped to the genome and spatially resolved
-m10=$(cut -f1 $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o | uniq | wc -l)
+m10=$(awk '!seen[$1]++' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o | wc -l)
 
-a=$(echo "scale=4 ; $m8 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
+a=$(echo "scale=4 ; $m10 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m11=$a"%"
+
+##### Average number of spots per tile
+m12=$(count=0; total=0; for i in $( awk '{ print $2; }' $L2R1_L2R2_INTEGRATE_DIR/tile_spot_number_table.txt );\
+do total=$(echo $total+$i | bc ); \
+((count++)); done; echo "scale=0; $total / $count" | bc)
+
+m13=$(echo "scale=4 ; $m12 / 10000" | bc | awk '{printf("%.4f",$1)}')
+
+##### Average number of genes per tile
+m14=$(count=0; total=0; for i in $( awk '{ print $2; }' $L2R1_L2R2_INTEGRATE_DIR/tile_gene_number_table.txt );\
+do total=$(echo $total+$i | bc ); \
+((count++)); done; echo "scale=0; $total / $count" | bc)
+
+m15=$(echo "scale=4 ; $m14 / 10000" | bc | awk '{printf("%.4f",$1)}')
 
 
 ##### Print to file
@@ -363,17 +376,18 @@ M8="Number of read pairs spatially resolved"
 M9="Percentage of read pairs spatially resolved"
 M10="Number of read pairs genome mapped and spatially resolved"
 M11="Percentage of read pairs genome mapped and spatially resolved"
-
+M12="Average spots per tile"
+M13="Average spots per 10 um^2"
+M14="Average genes per tile"
+M15="Average genes per 10 um^2"
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
-for k in $(seq 1 11); do
+for k in $(seq 1 15); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 done
-
-
 
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." 

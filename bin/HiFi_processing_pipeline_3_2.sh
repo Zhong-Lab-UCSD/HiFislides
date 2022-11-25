@@ -391,7 +391,7 @@ m7=$a"%"
 ##### Number of HiFi-Slide L2R1 spatially resolved
 m8=$(awk '!seen[$1]++' $L2R1_L1R1_SAM | wc -l)
 
-a=$(echo "scale=4 ; $m8 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
+a=$(echo "scale=4 ; $m8 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m9=$a"%"
 
 ##### Number of HiFi read pairs mapped to the genome and spatially resolved
