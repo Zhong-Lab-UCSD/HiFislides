@@ -295,6 +295,14 @@ $L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DI
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
+
+
+$BIN_DIR/hifislidatanalysis0.pl \
+$L2R1_L1R1_SAM_FILTER \
+$L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o
+
+
+
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 

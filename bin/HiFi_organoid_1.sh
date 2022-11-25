@@ -338,7 +338,8 @@ a=$(echo "scale=4 ; $m6 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m7=$a"%"
 
 ##### Number of HiFi-Slide L2R1 spatially resolved
-m8=$(awk '!seen[$1]++' $L2R1_L1R1_SAM | wc -l)
+awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2R1_L1R1_SAM > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM/HiFi_organoid_1/L2R1_mapping/L2R1_L1R1_dedup_temp.sam
+m8=$(awk '!seen[$1]++' /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM/HiFi_organoid_1/L2R1_mapping/L2R1_L1R1_dedup_temp.sam | wc -l)
 
 a=$(echo "scale=4 ; $m8 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
 m9=$a"%"
