@@ -119,42 +119,57 @@ Fastq file of preprocessed L2R2 reads `L2R2.fastp_filter.fastq` that will go int
 
 ## 2. Mapping HiFi-Slide R2 reads
 
-We used STAR to align HiFi-Slide R2 reads to the genome.
+1. We used STAR to align HiFi-Slide R2 reads to the genome.
+2. we used Bowtie 2 to align HiFi-Slide R2 reads to the transcriptome.
+
+### Mapping to the genome
 
 For STAR, we set `--outFilterScoreMinOverLread 0` and `--outFilterMatchNminOverLread 0` as in [SeqScope](https://github.com/leeju-umich/Cho_Xi_Seqscope/blob/main/script/align.sh).
 
 ```
+L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.trim_tail_60.fastq
+
 STAR \
 --genomeDir $STAR_INDEX \
---readFilesIn L2R2.fastp_filter.fastq \
---outSAMtype BAM Unsorted \
+--readFilesIn $L2R2_FILTER_FASTQ \
+--outSAMtype BAM SortedByCoordinate \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
---outFileNamePrefix $L2R2_GENOME_DIR/L2R2_genome. \
+--outFileNamePrefix $L2_DIR/L2R2_mapping/genome/L2R2_genome. \
 --sjdbGTFfile gencode.v41.annotation.gtf \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN 32
 ```
 
-Next, uniquely mapped reads are selected using Samtools.
+Next, uniquely mapped reads are selected using samtools (NOTE: maybe here using MAPQ30 would be good enough).
 
 ```
 samtools view -@ 32 -b -h -q 255 \
--o $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.out.bam \
-$L2R2_GENOME_DIR/L2R2_genome.Aligned.out.bam 
+-o $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+$L2_DIR/L2R2_mapping/genome/L2R2_genome.Aligned.sortedByCoord.out.bam 
 ```
 
-Uniquely mapped reads are associated with annotated genes using bedtools. `gencode.v41.annotation.gene.gtf` is a modified version of the original GTF file `gencode.v41.annotation.gtf`, where only full gene body coordinates are kept (column 3 equal to "gene"), the additional rows (such as those related to exons for example) were discarded.
+Finally, uniquely mapped reads are associated with genes using bedtools. `gencode.v41.annotation.gene.gtf` is a modified version of the original GTF file `gencode.v41.annotation.gtf`, where only full gene body coordinates are kept (column 3 equal to "gene"), the additional rows (such as those related to exons for example) were discarded.
 
 ```
 bedtools intersect \
--a $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.out.bam \
--b $annotation_gtf_file_genes \
--wb -bed | cut -f 4,21 > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp.bed
+-a $L2_DIR/L2R2_mapping/genome/L2R2_genome.uniquelyAligned.sortedByCoord.out.bam \
+-b gencode.v41.annotation.gene.gtf \
+-wb -bed | cut -f 1,2,3,4,21 > $L2_DIR/L2R2_mapping/genome/HiFi_L2R2_genome_temp.bed
 ```
 
-`HiFi_L2R2_genome_temp.bed` shows each L2R2 read associated with the corresponding gene where gene information are formatted as in a GTF file. Additional processing will transform the file into a `HiFi_L2R2_genome_temp1.bed` with the following columns:
+`HiFi_L2R2_genome_temp.bed` shows each L2R2 read associated with the corresponding gene where gene information are formatted as in a GTF file. 
+
+Example:
+```
+MN00185:308:000H3YMVH:1:11104:22416:20248       gene_id "ENSG00000261456.6"; gene_type "protein_coding"; gene_name "TUBB8"; level 2; hgnc_id "HGNC:20773"; havana_gene "OTTHUMG00000174803.2";
+MN00185:308:000H3YMVH:1:22102:18602:1451        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+MN00185:308:000H3YMVH:1:11103:2816:12628        gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+MN00185:308:000H3YMVH:1:12102:3409:4239         gene_id "ENSG00000015171.20"; gene_type "protein_coding"; gene_name "ZMYND11"; level 2; hgnc_id "HGNC:16966"; havana_gene "OTTHUMG00000017526.8";
+```
+
+Additional processing will transform the file into the final `HiFi_L2R2_genome.bed` with the following columns:
 
 - Column 1: L2R2 read ID.
 - Column 2: Gene ID.
@@ -169,45 +184,63 @@ MN00185:308:000H3YMVH:1:11103:2816:12628        ENSG00000015171.20      ZMYND11 
 MN00185:308:000H3YMVH:1:12102:3409:4239         ENSG00000015171.20      ZMYND11 protein_coding
 ```
 
-Additionally, we also include reads uniquely mapped but not overlapping annotated genes and we put `NA` for gene ID, name and biotype. 
+
+### Mapping to the transcriptome
+
+For Bowtie 2, we use default settings with the `--local` alignment mode. We create indexes for four types of transcripts: miRNA, circRNA, piRNA, tRNA, and then for each of them:
+
+1. We map the processed HiFi-Slide R2 reads `L2R2.trim_front_60.fastq`.
+2. We select the uniquely mapped reads, i.e. reads "aligned exactly 1 time" in the Bowtie 2 log file. This is done by removing reads with auxiliary tag `XS`, i.e. reads that have other valid mappings.
+3. We extract the fields of interest as HiFi-read identifier and transcript identifier.
 
 ```
-bedtools intersect \
--a $L2R2_GENOME_DIR/L2R2_genome.uniquelyAligned.out.bam \
--b $annotation_gtf_file_genes \
--v -bed | cut -f 4 | awk '{print $0, "\tNA", "\tNA", "\tNA"}' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed
+for i in tRNA piRNA miRNA circRNA; do
+
+bowtie2 \
+-x bowtie2_index_$i \
+-U L2R2.trim_front_60.fastq \
+-S L2R2_$i"_mapped.sam" \
+--un L2R2_$i"_unmapped.txt" \
+--no-unal --threads 32 --local 2> L2R2_$i_mapped.log
+
+samtools view L2R2_$i"_mapped.sam" | grep -v "XS:i:" > L2R2_$i"_uniquely_mapped.sam"
+
+cut -f 1,3 L2R2_$i"_uniquely_mapped.sam" > L2R2_$i"_uniquely_mapped.txt"
+
+done
 ```
 
-This allows to concatenate the outputs and sort by read ID to produce the output file `HiFi_L2R2_genome_ALL.sort.bed`.
+We obtain four tab-separated txt files as output (as long as there are valid mapped HiFi-Slide reads for each of them). Example of output for piRNA:
+```
+MN00185:308:000H3YMVH:1:11101:11533:3933        piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:7721:4462         piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:20516:4919        piR-hsa-2277753
+MN00185:308:000H3YMVH:1:11101:8487:6158         piR-hsa-2229595
+```
 
-```
-cat $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed
-```
 
 ## 3. Align HiFi-Slide R1 reads to deduplicated spatial barcodes
 
-Aligner BWA is used to map HiFi-Slide R1 reads (L2R1) `L2R1.fastq` to deduplicated spatial barcodes `L1R1_dedup.fasta`. The BWA alignment seed length is left as default. The output SAM file is processed directly by removing the header and only selecting aligned output reads (SAM flags 0 or 256).
+Aligner BWA is used to map HiFi-Slide R1 reads (L2R1) `L2R1.fastq` to deduplicated spatial barcodes `L1R1_dedup.fasta`. The minimum number of base match between L2R1 and L1R1 (spatial barcodes) `-k` is set at 80% of the length of spatial barcodes.
 
 ```
-bwa_seed_length=19
+temp=$(less L1R1_dedup.fasta | head -2 | sed -n '2p')
+min_base_match=$(echo "scale=4 ; ${#temp} * 0.8" | bc | awk '{printf("%.0f",$1)}')
 
 bwa mem \
 -a \
 -k $min_base_match \
 -t 32 \
-L1R1_dedup L2R1.fastq > 2>L2R1_L1R1_dedup.log | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+L1R1_dedup L2R1.fastq > L2R1_L1R1_dedup.sam 2>L2R1_L1R1_dedup.log
 ```
 
-In the case of a flowcell coming from MiniSeq, there is an additional step where we count the number of HiFi-Slide R1 reads mapped to spatial barcodes on the top (AAAL33WM5:1:1) and bottom surface (AAAL33WM5:1:2) and then select the surface with the highest number of aligned reads. This subsetted SAM file will go to the following steps.
+In the case of a flowcell coming from MiniSeq, there is an additional step where we count the number of HiFi-Slide R1 reads mapped (flag 0 or 256) to spatial barcodes on the top (AAAL33WM5:1:1) and bottom surface (AAAL33WM5:1:2) and then select the surface with the highest number of aligned reads. This subsetted SAM file will go to the following steps.
 
 
-## 4. Select HiFi-Slide R1 reads where R2 reads map over the genome
+## 4. Select HiFi-Slide R1 reads where R2 reads map over genes/transcripts
 
-At this step, we use the HiFi-Slide read ID to select L2R1 reads aligned to spatial barcodes (`L2R1_L1R1_dedup_k19.sam`) that have corresponding R2 ends (L2R2) mapped over the genome using the file generated at step 2 `HiFi_L2R2_genome_ALL.sort.bed`. This step produces a filtered SAM file `L2R1_L1R1_dedup.filter.sam`.
+At this step, we use the HiFi-Slide read ID to select L2R1 reads aligned to spatial barcodes (L2R1_L1R1_dedup.sam) that have corresponding R2 ends (L2R2) mapped over genes/transcripts using the files generated at step 2. This step produces a filtered SAM file `L2R1_L1R1_dedup.filter.sam`.
 
-```
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_L1R1_SAM_FILTER
-```
 
 ## 5. Select HiFi-Slide R1 reads with highest alignment score
 ```
@@ -229,6 +262,54 @@ Tab-separated file `L2R1_L1R1_dedup.hifislida.o` with the following columns:
 - Column 4: Number of all the spatial barcodes aligned at the highest score.  
 - Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.
 
+
+<!-- ## 4. Identify the Region of Interest (ROI)
+
+### Rank the tiles by number of HiFi-Slide read pairs
+
+```
+hifislida2.pl L2R1_L1R1_dedup.hifislida.o L2R1_L1R1_dedup.sam > L2R1_L1R1_dedup.hifislida2.o 2>L2R1_L1R1_dedup.hifislida2.e
+```
+
+**Arguments**  
+1. Output file produced by hifislida.pl.
+2. Output file produced by BWA.
+
+**Purpose**  
+Count the number of univocally resolved HiFi reads per tile. A total of 6 X 11 tiles are available on NextSeq flowcell (sometimes they could be 6 X 14). We hypothesize that spatial barcodes on tiles covered by tissue should be mapped with more HiFi-Slide R1 reads than spatial barcodes outside the tissue covered region. To this end, we count the number of HiFi-Slide R1 reads per tile. To have a simplilified solution, we only consider HiFi-Slide R1 reads that have only one unique spatial barcode with the highest alignment score on the surface, which means considering only rows in `L2R1_L1R1_dedup.hifislida.o` where both columns 3 and 4 are equal to 1.       
+
+**Output**  
+Tab-separated file `L2R1_L1R1_dedup.hifislida2.o` with the following columns:
+
+- Column 1: Identifier ">TILE".
+- Column 2: Tile ID.
+- Column 3: Number of spatially resolved HiFi-Slide read pairs per tile (ranked in descending order).
+- Column 4: Number of mapped barcodes on the tile used for resolving the HiFi-Slide read pairs.
+
+### Select tiles under ROI
+
+For simplicity, we estimate the ROI as rectangular with a certain maximum and minimum size in terms of number of tiles per side. Next, we analyze all the possible ROI configurations between min and max size, and for each of them we perform a statistical test (Kolmogorov-Smirnov) between the number of HiFi-reads within and outside that ROI. ROIs with significant p-value are selected and sorted by avg_log2FC: the ROI with the highest avg_log2FC is selected and the tiles within it are given as output. If no significant ROI comes out, then all the tiles of the surface are considered as ROI.
+
+```
+select_tiles_in_ROI.r \
+-i L2R1_L1R1_dedup.hifislida2.o \
+-o ROI_tile_IDs.txt \
+-f NextSeq \
+--surface 1 \
+--max_size_ROI 4 \
+--min_size_ROI 2 \
+--p_value 0.05
+```
+
+**Arguments**  
+- `-i`: Input file, i.e. output from `hifislida2.pl`, tiles ranked by the number of spatially resolved HiFi-Slide read pairs per tile.
+- `-o`: Output file, tile IDs under ROI.
+- `-f`: Flowcell type, either MiniSeq, NextSeq.
+- `--surface`: Flowcell surface where the tissue is. For NextSeq is `1` for MiniSeq it depends on which surface is the highest number of mapped HiFi-Slide R1 reads to barcodes. This parameter is automatically computed in the script and passed to this function.
+- `--max_size_ROI`: the maximum size of a side of the ROI. For example, `max_size_ROI = 4` indicates that ROI can be at most 4 x 4 tiles.
+- `--min_size_ROI`: the minimum size of a side of the ROI. For example, `min_size_ROI = 2` indicates that ROI shall be at least 2 x 2 tiles.
+- `--p_value`: The p-value threshold to be used for statistical significance.
+ -->
 
 ## 6. Match HiFi-Slide read pairs with spatial location 
 
