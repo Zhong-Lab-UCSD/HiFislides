@@ -6,7 +6,6 @@ RUNNING_LABEL=""
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
 
 N_THREADS=32
-BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not seem that useful.
 
 mkdir -p $OUT_DIR/$SAMPLE_NAME
 
@@ -299,7 +298,8 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with th
 
 $BIN_DIR/hifislidatanalysis0.pl \
 $L2R1_L1R1_SAM_FILTER \
-$L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o
+$L1_DIR/L1R1_dup.txt \
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o
 
 
 

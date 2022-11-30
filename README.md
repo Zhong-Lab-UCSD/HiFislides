@@ -209,77 +209,50 @@ At this step, we use the HiFi-Slide read ID to select L2R1 reads aligned to spat
 awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_L1R1_SAM_FILTER
 ```
 
-## 5. Select HiFi-Slide R1 reads with highest alignment score
+## 5. Match HiFi-Slide read pairs with spatial location
+
+At this step we first select mapped HiFi-Slide R1 reads with the highest alignment score, then we match them with their spatial location.
+
 ```
-hifislida.pl L2R1_L1R1_dedup.filter.sam > L2R1_L1R1_dedup.hifislida.o 2>L2R1_L1R1_dedup.hifislida.e
+hifislidatanalysis0.pl \
+L2R1_L1R1_dedup.filter.sam \
+L1R1_dup.txt \
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o
 ```
 
 **Arguments**  
-1. Output SAM file from BWA.  
+1. Output SAM file from BWA after filtering.  
+2. The second output file from `surfdedup`.
+3. The maximum number of spots (`N_max`) a read can be mapped on the surface.
 
 **Purpose**   
-Read the SAM file output from BWA and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when N > 1,000. Spatial barcodes aligned with lower score would be discarded.
+Read the SAM file output and collect the spatial barcodes aligned with each HiFi-Slide R1 reads at the highest alignment score. If a HiFi-Slide R1 read was aligned with N spatial barcodes that tied at the highest score, all the N spatial barcodes will be outputted except when `N > N_max`. Spatial barcodes aligned with lower score would be discarded. These HiFi-Slide read pairs are considered as spatially resolved. Next, we print out the coordinates of all the aligned spatial barcodes on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, we print out all their coordinates.
 
 **Output**
-Tab-separated file `L2R1_L1R1_dedup.hifislida.o` with the following columns:
-
-- Column 1: HiFi-Slide read ID. 
-- Column 2: Spatial barcode read ID. Each spatial barcode ID provide its spatial coordinates explicitly.  
-- Column 3: Number of non-redundant spatial barcodes aligned at the highest score.  
-- Column 4: Number of all the spatial barcodes aligned at the highest score.  
-- Column 5: Highest alignment score between this HiFi-Slide R1 read and the aligned spatial barcode.
-
-
-## 6. Match HiFi-Slide read pairs with spatial location 
-
-```
-hifislida3.pl \
-L2R1_L1R1_dedup.hifislida.o \
-L1R1_dup.txt > L2R1_L1R1.hifislida3.o
-```
-
-**Arguments**  
-1. Output file produced by hifislida.pl.
-2. The second output file from `surfdedup`. This file provides duplicate spatial barcodes whose IDs were not shown in the output from `hifislida.pl`.
-
-**Purpose**  
-With `hifislida.pl` we obtained aligned deduplicated spatial barcodes with the highest score for each HiFi-Slide read pair. These HiFi-Slide read pairs were considered as spatially resolved. Next, we use `hifislida3.pl` to print out the coordinates of all the aligned spatial barcodes on each tile. Notably, when multiple spatial barcodes share the same sequence but from different coordinates, `hifislida3.pl` prints out all their coordinates.
-
-**Output**  
-Tab-separated file `L2R1_L1R1.hifislida3.o` with the following columns:
+Tab-separated file `L2R1_L1R1.hifislidatanalysis0.sort.o` sorted by read ID and with the following columns:
 
 - Column 1: HiFi-Slide read ID.
 - Column 2: Tile ID (only tiles under the ROI provided as input).
 - Column 3: X-coord on the tile (columns).
 - Column 4: Y-coord on the tile (rows).
 - Column 5: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes. This is used to "weight" HiFi-Slide reads. For example, if a HiFi-Slide read has N = 8, it would be counted as 1/8 at any of these 8 coordinates.
+- Column 6: The highest alignment score for this read.
 
 Example:
 ```
-HiFi_read_id    tile_id col     row     N
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    20557   77594   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    7797    22530   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1209    30647   54019   4
-MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    20557   77594   4   score1
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    7797    22530   4   score2
+MN00185:308:000H3YMVH:1:21104:22534:6585        1209    30647   54019   4   score3
+MN00185:308:000H3YMVH:1:21104:22534:6585        1308    18891   36353   4   score4
 ```
 
 
-## 8. Integrate spatial coordinates and RNA information
+## 6. Integrate spatial coordinates and RNA information
 
-As a final step, we integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (after having sorted them by HiFi-Slide read ID). First, we generate tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a gene/transcript (coming from step 2). Finally, we aggregate those tables to obtain a list of unique "spot-gene" pairs with the corresponding gene expression levels.
-
-The file with HiFi-Slide read spatial coordinates is `L2R1_L1R1.hifislida3.o`, which is sorted first to obtain `L2R1_L1R1.hifislida3.sort.o` which is used below.
+We integrate the outcomes from the sections above to associate a spatial coordinate with each expressed gene/transcript. This is done by performing a `join` of the output tables above using the HiFi-Slide read identifiers (both files were previously sorted by read ID). First, we generate tables where each HiFi-Slide read ID is associated with a spatial coordinate (coming from step 1) and a genomic region (coming from step 2). Finally, we aggregate those tables to obtain a list of unique "spot-gene" pairs with the corresponding gene expression levels.
 
 ```
-cat L2R1_L1R1.hifislida3.o | sort -k 1 --parallel=32 -S 20G > L2R1_L1R1.hifislida3.sort.o
-```
-
-### Genome
-
-```
-cat HiFi_L2R2_genome.bed | sort -k 4 --parallel=32 -S 20G > HiFi_L2R2_genome.sort.bed
-
-join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o HiFi_L2R2_genome.sort.bed | cut -f 2,3,4,5,6,7,8 > HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | cut -f 2,3,4,5,6,7,8 > HiFi_L2R2_genome_spatial.txt
 ```
 
 Without the `cut` the first column would be the HiFi-Slide read ID (field used for `join`), however since we do not need this information anymore we prefer to remove that field before writing to output file to reduce memory occupation.
@@ -317,7 +290,7 @@ Tab-separated txt file `HiFi_L2R2_genome_spatial.final.txt` with the following c
 - Column 4: Gene ID.
 - Column 5: Gene name.
 - Column 6: Gene biotype.
-- Column 7: Gene expression level (counts).
+- Column 7: Gene expression level (weighted counts).
 
 Example:
 
@@ -327,56 +300,34 @@ Example:
 1109    14271   75095   ENSG00000230876.8       LINC00486       lncRNA  0.04545455
 ```
 
-### Transcriptome
+## 7. Select spots in ROI after visual inspection of the image
 
 ```
-for i in tRNA piRNA miRNA circRNA; do
+ROI_TILES=$L2_DIR/ROI_tiles_1.txt
+ROI_label="ROI_1"
 
-cat L2R2_$i"_uniquely_mapped.txt" | sort -k 1 --parallel=32 -S 20G > L2R2_$i"_uniquely_mapped.sort.txt"
-
-join -1 1 -2 1 -t $'\t' L2R1_L1R1.hifislida3.sort.o L2R2_$i"_uniquely_mapped.sort.txt" > HiFi_L2R2_$i"_spatial.txt"
-
-done
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $ROI_TILES HiFi_L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1"_"$2"_"$3, $1, $2, $3, $5, $6, $7}' | awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$4"\t"$5"\t"$6]+=$7} END { for (i in array) {print i"\t" array[i]}}' > HiFi_L2R2_genome_spatial.final.$ROI_label.txt
 ```
 
-Tab-separated txt file with the following columns:
+`ROI_tiles_1.txt` contains the list of tiles (each on a new line) that form the ROI. The output file is the same as `HiFi_L2R2_genome_spatial.final.txt` but only for those specific tiles. This reduces a lot the dimension of the output file to be used for data analysis.
 
-- Column 1: Tile ID (only tiles under the ROI provided as input).
-- Column 2: X-coord on the tile (columns).
-- Column 3: Y-coord on the tile (rows).
-- Column 4: N as the number of total spatial coordinates where this HiFi-Slide read could be aligned to spatial barcodes.
-- Column 5: Transcript identifier.
-
-Example for piRNA:
-```
-1109	29549	34175	15	piR-hsa-2229595
-1109	29549	34175	20	piR-hsa-2229595
-1109	47135	43472	15	piR-hsa-2229595
-1208	16960	53394	10	piR-hsa-2229595
-```
-
-Next, we perform the same aggregation method as above for transcripts.
+## Various statistics
 
 ```
-for i in tRNA piRNA miRNA circRNA; do
+# Calculate the number of spots in each tile
+awk -v OFS='\t' '{print $1, $1"_"$2"_"$3}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk '!seen[$2]++' | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_spot_number_table.txt
 
-awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' HiFi_L2R2_$i"_spatial.txt" > HiFi_L2R2_$i"_spatial.final.txt"
+# Calculate the number of genes in each tile
+awk -v OFS='\t' '{print $1, $1"_"$5}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk '!seen[$2]++' | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_number_table.txt
 
-done
+# Calculate the total gene expression in each tile
+awk -v OFS='\t' '{print $1, $7}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt | awk -F"\t" '{array[$1]+=$2} END { for (i in array) {print i"\t" array[i]}}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_expression_table.txt
 ```
-
-Example for piRNA:
-```
-1109	29549	34175	piR-hsa-2229595 0.1166667
-1109	47135	43472	piR-hsa-2229595 0.06666667
-1208	16960	53394	piR-hsa-2229595 0.1
-```
-
 
 
 ## QC metrics
 
-All the QC metrics listed in section 4 [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit?pli=1#) are saved in tab-separated txt files named respectively:
+Several QC metrics are saved in tab-separated txt files named respectively:
 
 - `flowcell_ID.QC_metrics.txt`.
 - `sample_name.QC_metrics.txt`.
