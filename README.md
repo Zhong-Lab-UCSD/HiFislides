@@ -33,7 +33,7 @@ Note that here we use dummy codes just to provide and overview of the main steps
 The data processing is performed separately with two shell scripts for library 1 of spatial barcodes and library 2 of HiFi-Slide read pairs:
 
 - **`spatial_barcode_processing.sh`**: The output files from this are saved into a folder named `flowcell_ID`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `flowcell_ID.log`
-- **`HiFi_processing_pipeline.sh`**: steps 1-8 below. The output files from this are saved into a folder named `sample_name`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
+- **`HiFi_processing_pipeline.sh`**: steps 1-7 below. The output files from this are saved into a folder named `sample_name`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
 
 
 ## Deduplication of spatial barcodes (L1R1) and BWA index creation
