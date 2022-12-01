@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 ### 2. Load the ST data from squidpy package
 adata_example = sq.datasets.seqfish() # example from documentation
 
-SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow/"
+SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow_3/"
 
 df = pd.read_csv(SAMPLE_DIR + "spaceflow_matrix.txt", sep = "\t")
 counts = np.float32(df.values)
