@@ -16,6 +16,8 @@ adata_example = sq.datasets.seqfish() # example from documentation
 
 SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow_3/"
 
+SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/placenta/HiFi_placenta_1/fastp_filter_k19_ALL/spaceflow_" + "ROI" + "_2/"
+
 df = pd.read_csv(SAMPLE_DIR + "spaceflow_matrix.txt", sep = "\t")
 counts = np.float32(df.values)
 
@@ -36,8 +38,8 @@ sc.pp.filter_genes(adata, min_cells=3)
 adata_coord = pd.read_csv(SAMPLE_DIR + "spaceflow_coord.txt", sep = "\t").values
 adata.obsm['spatial'] = adata_coord
 
-adata_cell_type = pd.read_csv(SAMPLE_DIR + "spaceflow_cell_type.txt", sep = "\t").values.tolist()
-adata.obs['cell_type'] = pd.Categorical(np.array([item for sublist in adata_cell_type for item in sublist]))
+# adata_cell_type = pd.read_csv(SAMPLE_DIR + "spaceflow_cell_type.txt", sep = "\t").values.tolist()
+# adata.obs['cell_type'] = pd.Categorical(np.array([item for sublist in adata_cell_type for item in sublist]))
 
 sf = SpaceFlow.SpaceFlow(adata=adata, spatial_locs=adata.obsm['spatial'])
 
@@ -51,11 +53,13 @@ sf.train(spatial_regularization_strength=0.1, z_dim=50, lr=1e-3, epochs=1000, ma
 ### 6. Domain segmentation of the ST data
 sf.segmentation(domain_label_save_filepath=SAMPLE_DIR + "domains.tsv", n_neighbors=50, resolution=1.0)
 
+
+
 ### 7. Visualization of the annotation and the identified spatial domains
 sf.plot_segmentation(segmentation_figure_save_filepath=SAMPLE_DIR + "domain_segmentation.pdf", colormap="tab20", scatter_sz=1., rsz=4., csz=4., wspace=.4, hspace=.5, left=0.125, right=0.9, bottom=0.1, top=0.9)
 
-sc.pl.spatial(adata, color="cell_type", spot_size=6000, return_fig = True)
-plt.savefig(SAMPLE_DIR + "cell_types.pdf")
+# sc.pl.spatial(adata, color="cell_type", spot_size=6000, return_fig = True)
+# plt.savefig(SAMPLE_DIR + "cell_types.pdf")
 
 ### 8. Idenfify the spatiotemporal patterns of the ST data through pseudo-Spatiotemporal Map (pSM)
 sf.pseudo_Spatiotemporal_Map(pSM_values_save_filepath=SAMPLE_DIR + "pSM_values.tsv", n_neighbors=20, resolution=1.0)
