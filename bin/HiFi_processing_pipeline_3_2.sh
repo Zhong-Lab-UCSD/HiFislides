@@ -209,7 +209,7 @@ bwa mem \
 -a \
 -k $bwa_seed_length \
 -t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.log | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.log | grep -v '^@' | awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 
 ### Method 2
 # bwa mem \
@@ -239,28 +239,28 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." 
 # awk -F"\t" '$2 == "0" || $2 == "256" { print $0 }' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
 # Select reads coming from surface 1 and surface 2
-grep $surface"1" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-grep $surface"2" $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+grep $surface"1" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
+grep $surface"2" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
 
 # rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.temp.sam
 
 # Choose which surface the tissue is based on the number of mapped reads
-n_reads_surface_1=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
-n_reads_surface_2=$(wc -l $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
+n_reads_surface_1=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
+n_reads_surface_2=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
 
 if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 else
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface2.sam
-rm $L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.surface1.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 fi
 
 elif [ "$flowcell_type" == "NextSeq" ]; then
 
-L2R1_L1R1_SAM=$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 
 fi
 
@@ -295,7 +295,7 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with th
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Match HiFi-Slide R1 reads under ROI with their spatial location (hifislida3.pl) complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
-
+### hifislida and hifislida3 together
 $BIN_DIR/hifislidatanalysis0.pl \
 $L2R1_L1R1_SAM_FILTER \
 $L1_DIR/L1R1_dup.txt \

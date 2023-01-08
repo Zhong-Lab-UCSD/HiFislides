@@ -6,7 +6,7 @@ BWA_MEMORY=80000 # memory (in Megabytes) to be used for bwa index. It does not s
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
-flowcell="AAAL33WM5"
+flowcell="AACGLW3M5"
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
@@ -19,8 +19,8 @@ L1_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/$flowcell # spatia
 mkdir -p $L1_DIR
 
 # Directories of the raw fastq files for each library. The full path is used here.
-L1_FASTQ_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/MiniSeq/test_sample/lib1/fastq
-L1_FASTQ_BASENAME=*_L001_R1_001.fastq.gz
+L1_FASTQ_DIR=/home/ftpuser/2022_11_29_NS/fastq
+L1_FASTQ_BASENAME=*_R1_001.fastq.gz
 
 
 ################## PROCESSING
