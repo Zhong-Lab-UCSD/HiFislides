@@ -442,7 +442,8 @@ M15="Average genes per 10 um^2"
 
 rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
-for k in $(1 8 9 3 4 5 6 7 10 11 12 13 14 15); do
+# for k in $(1 8 9 3 4 5 6 7 10 11 12 13 14 15); do
+for k in $(seq 1 15); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
