@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 ### 2. Load the ST data from squidpy package
 adata_example = sq.datasets.seqfish() # example from documentation
 
-SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow_3/"
+SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow_1/"
 
 SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/placenta/HiFi_placenta_1/fastp_filter_k19_ALL/spaceflow_" + "ROI" + "_2/"
 
