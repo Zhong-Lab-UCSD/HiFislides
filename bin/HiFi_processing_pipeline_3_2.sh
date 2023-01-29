@@ -2,16 +2,29 @@
 OUT_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM
 SAMPLE_NAME=HiFi_placenta_1
 RUNNING_LABEL=""
-
 BIN_DIR=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/bin
-
 N_THREADS=32
-
-mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 # Flowcell and surface identifiers
 flowcell_type="NextSeq" # one of: MiniSeq, NextSeq
 flowcell="AAALN5GM5"
+
+# Raw reads of HiFi Slides sequencing
+L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R1_001.fastq.gz
+L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R2_001.fastq.gz
+
+# Annotation file hg38
+annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
+
+### Mapping reference indexes
+STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ
+BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
+BOWTIE2_INDEX_TRANSCRIPT=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation
+
+
+##############################################################################
+
+mkdir -p $OUT_DIR/$SAMPLE_NAME
 
 if [ "$flowcell_type" == "NextSeq" ]; then
 surface=$flowcell:1:1
@@ -28,21 +41,9 @@ L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/L1R1_dedup # bwa index path and base
 L1R1_DEDUP=$L1_DIR/L1R1_dedup.fasta # first output of surfdedup
 L1R1_DUP=$L1_DIR/L1R1_dup.txt # second output of surfdedup
 
-# Raw reads of HiFi Slides sequencing
-L2R1_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R1_001.fastq.gz
-L2R2_FASTQ=/mnt/extraids/SDSC_NFS/rcalandrelli/Lab_sequencing/IGM/fastq/221018_A00953_0641_BHGHWNDRX2/JP_placenta_hifi_05oct22_S2_L002_R2_001.fastq.gz
-
-# Annotation file hg38
-annotation_gtf_file=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf
-
 # Select full gene coordinates only
 annotation_gtf_file_genes=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gene.gtf
 # awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > $annotation_gtf_file_genes
-
-### Mapping reference indexes
-STAR_INDEX=/dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ
-BOWTIE2_INDEX=/mnt/extraids/SDSC_NFS/linpei/genome/HSATR
-BOWTIE2_INDEX_TRANSCRIPT=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation
 
 
 ################## PROCESSING
@@ -105,7 +106,7 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Filtering complete." >> $OUT_DIR/$SAMPLE_NA
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping/genome_fastp_filter
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping
 L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
 
 mkdir -p $L2R2_GENOME_DIR
@@ -327,7 +328,7 @@ mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 ### Genome
 HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed
 
-join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislidatanalysis0.sort.o $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifislida3.sort.o $HiFi_L2R2_genome | cut -f 2,3,4,5,6,7,8 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.final.txt
 
