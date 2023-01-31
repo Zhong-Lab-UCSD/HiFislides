@@ -67,7 +67,7 @@ foreach my $hifi (keys %spot_in_roi) {
 	my @spot = keys %{$spot_in_roi{$hifi}};
 	my $N = scalar @spot;
 	foreach my $spot (@spot) {
-		if($spot=~m/:1:(\d{4,5}):(\d+):(\d+)/) {
+		if($spot=~m/:\d:(\d{4,5}):(\d+):(\d+)/) {
 			# range of y is larger than x.
 			# Y: rows, 119 grids.
 			# X: cols, 85 grids.
