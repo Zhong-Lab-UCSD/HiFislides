@@ -310,9 +310,7 @@ $L1_DIR/L1R1_dup.txt | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DI
 python3 $BIN_DIR/hifiwrangling0.py \
 $L2R1_L1R1_SAM_FILTER \
 $L1_DIR/L1R1_dup.txt \
-1000 > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.o
-
-| sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
 
 
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Processing HiFi-Slide L2R1 complete."
