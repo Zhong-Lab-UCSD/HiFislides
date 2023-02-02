@@ -53,17 +53,15 @@ sf.train(spatial_regularization_strength=0.1, z_dim=50, lr=1e-3, epochs=1000, ma
 ### 6. Domain segmentation of the ST data
 sf.segmentation(domain_label_save_filepath=SAMPLE_DIR + "domains.tsv", n_neighbors=50, resolution=1.0)
 
-
-
 ### 7. Visualization of the annotation and the identified spatial domains
-sf.plot_segmentation(segmentation_figure_save_filepath=SAMPLE_DIR + "domain_segmentation.pdf", colormap="tab20", scatter_sz=1., rsz=4., csz=4., wspace=.4, hspace=.5, left=0.125, right=0.9, bottom=0.1, top=0.9)
+# sf.plot_segmentation(segmentation_figure_save_filepath=SAMPLE_DIR + "domain_segmentation.pdf", colormap="tab20", scatter_sz=1., rsz=4., csz=4., wspace=.4, hspace=.5, left=0.125, right=0.9, bottom=0.1, top=0.9)
 
-# sc.pl.spatial(adata, color="cell_type", spot_size=6000, return_fig = True)
-# plt.savefig(SAMPLE_DIR + "cell_types.pdf")
+# # sc.pl.spatial(adata, color="cell_type", spot_size=6000, return_fig = True)
+# # plt.savefig(SAMPLE_DIR + "cell_types.pdf")
 
-### 8. Idenfify the spatiotemporal patterns of the ST data through pseudo-Spatiotemporal Map (pSM)
-sf.pseudo_Spatiotemporal_Map(pSM_values_save_filepath=SAMPLE_DIR + "pSM_values.tsv", n_neighbors=20, resolution=1.0)
+# ### 8. Idenfify the spatiotemporal patterns of the ST data through pseudo-Spatiotemporal Map (pSM)
+# sf.pseudo_Spatiotemporal_Map(pSM_values_save_filepath=SAMPLE_DIR + "pSM_values.tsv", n_neighbors=20, resolution=1.0)
 
-sf.plot_pSM(pSM_figure_save_filepath=SAMPLE_DIR + "pseudo-Spatiotemporal-Map.pdf", colormap="roma", scatter_sz=1., rsz=4., csz=4., wspace=.4, hspace=.5, left=0.125, right=0.9, bottom=0.1, top=0.9)
+# sf.plot_pSM(pSM_figure_save_filepath=SAMPLE_DIR + "pseudo-Spatiotemporal-Map.pdf", colormap="roma", scatter_sz=1., rsz=4., csz=4., wspace=.4, hspace=.5, left=0.125, right=0.9, bottom=0.1, top=0.9)
 
 
