@@ -14,7 +14,27 @@ Scripts can be found at [./bin/src](./bin/src).
 -o : Parent output directory.
 ```
 
-- `hifi_wrapper.sh`: main processing pipeline.
+- `hifi_wrapper.sh`: main processing pipeline including QC metrics calculation.
+```
+-b : Directory of the scripts.
+-i : Directory of the STAR index.
+-g : GTF annotation file of the reference genome.
+-N : Sample name, used to label the final output files.
+-F : Flowcell ID.
+-f : Flowcell type (NextSeq, MiniSeq).
+-S : Parent directory of the processed spatial barcodes.
+-1 : R1 fastq.gz file of the HiFi library.
+-2 : R2 fastq.gz file of the HiFi library.
+-t : Max CPU threads for parallelized processing, at least 4 (default 8).
+-o : Parent output directory.
+```
+
 - `hifi_extract_roi.sh`: subset final output data to extract only tiles under ROI.
+```
+-R : Path to the txt file with the tiles under ROI (each tile on a new line).
+-r : ROI name to label the output file.
+-N : Sample name, used to label the final output file.
+-o : Parent output directory.
+```
 
 
