@@ -68,6 +68,12 @@ fi
 L1_DIR=$OUT_DIR/$flowcell # spatial barcodes
 mkdir -p $L1_DIR
 
+if [ "$flowcell_type" == "NextSeq" ]; then
+surface=$flowcell:1:1
+elif [ "$flowcell_type" == "MiniSeq" ]; then
+surface=$flowcell:1:
+fi
+
 touch $L1_DIR/$flowcell.log
 
 echo "Processing of "$flowcell

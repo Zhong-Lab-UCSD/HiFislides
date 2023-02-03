@@ -1,5 +1,7 @@
 # Workflow
 
+Scripts can be found at [./bin/src_old](./bin/src_old).
+
 Note that here we use dummy codes just to provide and overview of the main steps of the workflow. More information can be found [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit#).
 
 The data processing is performed separately with the following shell scripts for library 1 of spatial barcodes and library 2 of HiFi-Slide read pairs:
@@ -8,8 +10,6 @@ The data processing is performed separately with the following shell scripts for
 - **`HiFi_init_parameters.sh`**: Includes the input parameters that have to updated for each sample and to be run before `HiFi_processing_pipeline.sh`.
 - **`HiFi_processing_pipeline.sh`**: steps 1-7 below. The output files from this are saved into a folder named `sample_name`. The entire log of this workflow with the executed commands and the timestamps is saved into a file named `sample_name.log`.
 - **`HiFi_extract_ROI.sh`**: allows to subset the final output file from `HiFi_processing_pipeline.sh` to extract only tiles under ROI.
-
-These scripts can be found at [./bin/src_old](./bin/src_old).
 
 ## Deduplication of spatial barcodes (L1R1) and BWA index creation
 
