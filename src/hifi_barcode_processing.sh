@@ -15,7 +15,7 @@ usage() {
     -b : Directory of the scripts.
     -f : Flowcell ID.
     -l : Flowcell lane.
-    -s : Flowcell surface.
+    -s : Flowcell surface (1 or 2).
     -d : Directory of the barcode fastq files.
     -N : Suffix of the fastq file (example R1_001.fastq.gz).
     -t : Max CPU threads for parallelized processing, at least 4 (default 8).
@@ -52,7 +52,7 @@ done
 
 [  -z "$flowcell_lane" ] && echo "Error!! Please provide the flowcell lane with -l" && parameter_error
 
-[  -z "$flowcell_surface" ] && echo "Error!! Please provide the flowcell surface with -s" && parameter_error
+[  -z "$flowcell_surface" ] && echo "Error!! Please provide the flowcell surface (1 or 2) with -s" && parameter_error
 
 [ ! -d "$L1_FASTQ_DIR" ] && echo "Error!! Directory of spatial barcode fastq files does not exist: "$L1_FASTQ_DIR && parameter_error
 
