@@ -60,11 +60,11 @@ done
 
 [  -z "$annotation_gtf_file" ] && echo "Error!! Please provide the GTF annotation file with -g" && parameter_error
 
-[  -z "$SAMPLE_NAME" ] && echo "Error!! Please provide the sample name with -N" && parameter_error
+[  -z "$SAMPLE_NAME" ] && && echo "Error!! Please provide the sample name with -N" && parameter_error
 
-[  -z "$flowcell" ] && echo "Error!! Please provide the flowcell ID with -F" && parameter_error
+[  -z "$flowcell" ] && && echo "Error!! Please provide the flowcell ID with -F" && parameter_error
 
-[  -z "$flowcell_type" ] && echo "Error!! Please provide the flowcell type (NextSeq, MiniSeq) with -f" && parameter_error
+[  -z "$flowcell_type" ] && && echo "Error!! Please provide the flowcell type (NextSeq, MiniSeq) with -f" && parameter_error
 
 [ ! -d "$L1_DIR" ] && echo "Error!! Directory of spatial barcodes does not exist: "$L1_DIR && parameter_error
 
@@ -72,7 +72,7 @@ done
 [ -z "$L2R2_FASTQ" ] && echo "Error!! Please provide fastq.gz files of R2 with -2" && parameter_error
 
 [  -z "$N_THREADS" ] && echo "Use default thread number 8'." && N_THREADS=8
-if ! [[ "$N_THREADS" =~ ^[0-9]+$ ]]; then
+if ! [[ "$threads" =~ ^[0-9]+$ ]]; then
     echo "Error!! Only integer number is acceptable for -t" && parameter_error 
 fi
 

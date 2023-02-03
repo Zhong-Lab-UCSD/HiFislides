@@ -46,16 +46,16 @@ done
 # check parameters
 [ -z "$BIN_DIR" ] &&  echo "Error!! Please provide path to scripts with -b" && parameter_error
 
-[  -z "$flowcell" ] && && echo "Error!! Please provide the flowcell ID with -F" && parameter_error
+[  -z "$flowcell" ] && echo "Error!! Please provide the flowcell ID with -F" && parameter_error
 
-[  -z "$flowcell_type" ] && && echo "Error!! Please provide the flowcell type (NextSeq, MiniSeq) with -f" && parameter_error
+[  -z "$flowcell_type" ] && echo "Error!! Please provide the flowcell type (NextSeq, MiniSeq) with -f" && parameter_error
 
 [ ! -d "$L1_FASTQ_DIR" ] && echo "Error!! Directory of spatial barcode fastq files does not exist: "$L1_FASTQ_DIR && parameter_error
 
 [ -z "$L1_FASTQ_SUFFIX" ] && echo "Error!! Suffix of the fastq file (example R1_001.fastq.gz) with -N" && parameter_error
 
 [  -z "$N_THREADS" ] && echo "Use default thread number 8'." && N_THREADS=8
-if ! [[ "$threads" =~ ^[0-9]+$ ]]; then
+if ! [[ "$N_THREADS" =~ ^[0-9]+$ ]]; then
     echo "Error!! Only integer number is acceptable for -t" && parameter_error 
 fi
 

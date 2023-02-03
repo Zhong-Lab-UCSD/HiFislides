@@ -39,7 +39,7 @@ done
 
 [ -z "$ROI_label" ] && echo "Error!! Please provide the ROI label to be used with -r" && parameter_error
 
-[  -z "$SAMPLE_NAME" ] && && echo "Error!! Please provide the sample name with -N" && parameter_error
+[  -z "$SAMPLE_NAME" ] && echo "Error!! Please provide the sample name with -N" && parameter_error
 
 [ ! -d "$OUT_DIR" ] && echo "Error!! Output directory not exist: "$OUT_DIR && parameter_error
 
