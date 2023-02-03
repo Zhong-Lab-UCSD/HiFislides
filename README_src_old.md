@@ -1,6 +1,6 @@
 # Workflow
 
-Scripts can be found at [./bin/src_old](./bin/src_old).
+Scripts can be found at [./src_old](./src_old).
 
 Note that here we use dummy codes just to provide and overview of the main steps of the workflow. More information can be found [here](https://docs.google.com/document/d/1MvXPgTVzzeAEnmRXDRuaJMY-U_ENorQMPzqpLVOJWA0/edit#).
 

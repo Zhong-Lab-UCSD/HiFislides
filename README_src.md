@@ -1,6 +1,6 @@
 # Workflow
 
-Scripts can be found at [./bin/src](./bin/src).
+Scripts can be found at [./src](./src).
 
 - `hifi_barcode_processing.sh`: deduplicate the barcode reads and generate bwa index of their sequence.
 
