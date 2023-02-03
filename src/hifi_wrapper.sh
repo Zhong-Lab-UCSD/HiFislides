@@ -7,7 +7,6 @@ usage() {
     ---------------------------------------------------------------------------
     Usage: $PROGNAME [-b <bin_dir>] [-i <star_index>] [-g <ref_gtf>]
                      [-N <sample_name>]
-                     [-F <flowcell_id>] [-f <flowcell_type>] 
                      [-S <spatial_barcode_dir>] 
                      [-1 <fastq.gz_R1>] [-2 <fastq.gz_R2>] 
                      [-t <threads>] [-o <output_dir>] 
@@ -18,9 +17,7 @@ usage() {
     -i : Directory of the STAR index.
     -g : GTF annotation file of the reference genome.
     -N : Sample name, used to label the final output files.
-    -F : Flowcell ID.
-    -f : Flowcell type (NextSeq, MiniSeq).
-    -S : Parent directory of the processed spatial barcodes.
+    -S : Directory of the processed spatial barcodes.
     -1 : R1 fastq.gz file of the HiFi library.
     -2 : R2 fastq.gz file of the HiFi library.
     -t : Max CPU threads for parallelized processing, at least 4 (default 8).
@@ -36,14 +33,12 @@ parameter_error() {
     usage
 }
 
-while getopts :b:i:g:N:F:f:S:1:2:t:o:h opt; do
+while getopts :b:i:g:N:S:1:2:t:o:h opt; do
     case $opt in
         b) BIN_DIR=${OPTARG};;
         i) STAR_INDEX=${OPTARG};;
         g) annotation_gtf_file=${OPTARG};;
         N) SAMPLE_NAME=${OPTARG};;
-        F) flowcell=${OPTARG};;
-        f) flowcell_type=${OPTARG};;
         S) L1_DIR=${OPTARG};;
         1) L2R1_FASTQ=${OPTARG};;
         2) L2R2_FASTQ=${OPTARG};;
@@ -61,10 +56,6 @@ done
 [  -z "$annotation_gtf_file" ] && echo "Error!! Please provide the GTF annotation file with -g" && parameter_error
 
 [  -z "$SAMPLE_NAME" ] && echo "Error!! Please provide the sample name with -N" && parameter_error
-
-[  -z "$flowcell" ] && echo "Error!! Please provide the flowcell ID with -F" && parameter_error
-
-[  -z "$flowcell_type" ] && echo "Error!! Please provide the flowcell type (NextSeq, MiniSeq) with -f" && parameter_error
 
 [ ! -d "$L1_DIR" ] && echo "Error!! Directory of spatial barcodes does not exist: "$L1_DIR && parameter_error
 
@@ -84,16 +75,10 @@ fi
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 mkdir -p $L2_DIR
 
-if [ "$flowcell_type" == "NextSeq" ]; then
-surface=$flowcell:1:1
-elif [ "$flowcell_type" == "MiniSeq" ]; then
-surface=$flowcell:1:
-fi
-
 # Spatial barcode files
-L1R1_FASTQ_BWA_INDEX=$L1_DIR/$flowcell/bwa_index_L1R1/$flowcell.L1R1_dedup # bwa index path and basename
-L1R1_DEDUP=$L1_DIR/$flowcell/$flowcell.L1R1_dedup.fasta # first output of surfdedup
-L1R1_DUP=$L1_DIR/$flowcell/$flowcell.L1R1_dup.txt # second output of surfdedup
+FLOWCELL_FULL=$(basename $L1_DIR)
+L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup # bwa index path and basename
+L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
 
 # Select full gene coordinates only
 annotation_gtf_file_genes="$(dirname "${annotation_gtf_file}")"/gencode.v41.annotation.gene.gtf
@@ -261,41 +246,15 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
-### Select flowcell surface if flowcell type is MiniSeq
-if [ "$flowcell_type" == "MiniSeq" ]; then
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selecting the correct flowcell surface..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-
-# Select reads coming from surface 1 and surface 2
-grep $surface"1" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
-grep $surface"2" $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
-
-# Choose which surface the tissue is based on the number of mapped reads
-n_reads_surface_1=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam | cut -d " " -f 1)
-n_reads_surface_2=$(wc -l $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam | cut -d " " -f 1)
-
-if [ $n_reads_surface_1 > $n_reads_surface_2 ]; then
-L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
-rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 1." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-else
-L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface2.sam
-rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.surface1.sam
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Selection of the surface done. Selected surface 2." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
-fi
-
-elif [ "$flowcell_type" == "NextSeq" ]; then
-
-L2R1_L1R1_SAM=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam
-
-fi
-
-
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome..."
 L2R1_L1R1_SAM_FILTER=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_L1R1_SAM > $L2R1_L1R1_SAM_FILTER
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_L1R1_SAM_FILTER
 
-# rm $L2R1_L1R1_SAM
+# rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam
+
+echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome complete."
 
 ### Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..."
@@ -303,7 +262,7 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest ali
 
 python3 $BIN_DIR/hifiwrangling0.py \
 $L2R1_L1R1_SAM_FILTER \
-$L1_DIR/$flowcell/$flowcell.L1R1_dup.txt \
+$L1R1_DUP \
 1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location complete."
@@ -415,7 +374,6 @@ M13="Average spots per 10 um^2"
 M14="Average genes per tile"
 M15="Average genes per 10 um^2"
 
-rm $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".QC_metrics.txt"
 # for k in $(1 8 9 3 4 5 6 7 10 11 12 13 14 15); do
 for k in $(seq 1 15); do

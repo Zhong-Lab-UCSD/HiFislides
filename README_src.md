@@ -8,8 +8,9 @@ A testing script can be found [here](./test_src.sh).
 
 ```
 -b : Directory of the scripts.
--F : Flowcell ID.
--f : Flowcell type (NextSeq, MiniSeq).
+-f : Flowcell ID.
+-l : Flowcell lane.
+-s : Flowcell surface.
 -d : Directory of the barcode fastq files.
 -N : Suffix of the fastq file (example R1_001.fastq.gz).
 -t : Max CPU threads for parallelized processing, at least 4 (default 8).
@@ -22,9 +23,7 @@ A testing script can be found [here](./test_src.sh).
 -i : Directory of the STAR index.
 -g : GTF annotation file of the reference genome.
 -N : Sample name, used to label the final output files.
--F : Flowcell ID.
--f : Flowcell type (NextSeq, MiniSeq).
--S : Parent directory of the processed spatial barcodes.
+-S : Directory of the processed spatial barcodes.
 -1 : R1 fastq.gz file of the HiFi library.
 -2 : R2 fastq.gz file of the HiFi library.
 -t : Max CPU threads for parallelized processing, at least 4 (default 8).

@@ -8,9 +8,7 @@ conda activate hifi
 -i /dataOS/sysbio/Genomes/Homo_sapiens/UCSC/hg38/Sequence/STARindex_withSJ \
 -g /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/hg38_annotation/gencode.v41.annotation.gtf \
 -N data_26_13aughifi_wrapper \
--F AAAL235M5 \
--f NextSeq \
--S /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes \
+-S /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAAL235M5 \
 -1 /mnt/extraids/SDSC_NFS/linpei/hifi/data_26_13aughifi/Data/Intensities/BaseCalls/Undetermined_S0_L001_R1_001.fastq.gz \
 -2 /mnt/extraids/SDSC_NFS/linpei/hifi/data_26_13aughifi/Data/Intensities/BaseCalls/Undetermined_S0_L001_R2_001.fastq.gz \
 -t 32 \
