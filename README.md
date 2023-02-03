@@ -16,10 +16,6 @@ All published computational tools used for HiFi-Slide data analysis are free sof
 - [SAMtools](https://www.htslib.org)
 - [Seqtk](https://github.com/lh3/seqtk)
 
-
-**R packages:**  
-- [ComplexHeatmap](http://bioconductor.org/packages/release/bioc/html/ComplexHeatmap.html)  
-
 # References
 - PEAR: a fast and accurate Illumina Paired-End reAd mergeR
 Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/btt593  
@@ -27,7 +23,7 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
-- [Documentation](./README_src.md) of the latest developed scripts that can be run from the command line using input parameters.
+- [Documentation](./README_src.md) of the latest developed scripts that can be run from the command line using input parameters (USE THIS).
 - [Documentation](./README_src_old.md) of the first developed scripts where parameters have to be inserted manually inside each scripts.
 
 
