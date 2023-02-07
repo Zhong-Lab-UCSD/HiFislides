@@ -54,7 +54,7 @@ with open(spot_to_hifi_sam) as file:
             if i.find("AS:i:") != -1:
                 # this field is the AS score. We will create an instance of class Read using the a[0]. a[0] is a HiFi read identifier.
                 if int(a[1]) == 0:
-                    Read_1 = hifiwrangler0.Read(a[0],i)
+                    Read_1 = Read(a[0],i)
                     # add the mapped spatial coordinate/spot identifer,a[2],to this new instance. 
                     Read_1.add_spot(a[2])
                     #
@@ -89,7 +89,7 @@ with open(spot_to_hifi_sam) as file:
                     else:
                         # in such cases, a hifi read was aligned to spots in a forward/forward way WITHOUT a flag of 0 but only flag(s) of 256.
                         # in the SAM file, aligned spots were ranked by the AS field. 
-                        Read_1 = hifiwrangler0.Read(a[0],i)
+                        Read_1 = Read(a[0],i)
                         Read_1.add_spot(a[2])
                         my_re = re.compile(r'(\S+)_(\d+)')
                         my_re_res = my_re.search(a[2])
@@ -101,7 +101,7 @@ with open(spot_to_hifi_sam) as file:
 
 # the key in Spot_dic has no the '_N' part, they are the raw spot identifier
 for Spot in Spot_dic.keys():
-    Spot_1 = hifiwrangler0.Spot(Spot)   
+    Spot_1 = Spot(Spot)   
     Spot_obj[Spot] = Spot_1
 
 with open(spot_duplic_info) as file:
