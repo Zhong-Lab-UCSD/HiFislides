@@ -92,6 +92,7 @@ with open(spot_duplic_info) as file:
 
 for k in HiFi.keys():
     hifi = HiFi[k]
+    hifias = hifi.AS.strip()
     N = 0
     for s in set(hifi.spots):
         my_re = re.compile(r'(\S+)_(\d+)')
@@ -102,8 +103,8 @@ for k in HiFi.keys():
         for s in set(hifi.raw_spots):
             s0 = s
             s0_fields = s0.split(":")
-            print(hifi.name,s0_fields[4],s0_fields[6],s0_fields[5],N,hifi.AS,end="\n",sep="\t")
+            print(hifi.name,s0_fields[4],s0_fields[6],s0_fields[5],N,hifias,end="\n",sep="\t")
             for s1 in Spot_obj[s0].duplicates:
                 s1_fields = s1.split(":")
-                print(hifi.name,s1_fields[4],s1_fields[6],s1_fields[5],N,hifi.AS,end="\n",sep="\t")
+                print(hifi.name,s1_fields[4],s1_fields[6],s1_fields[5],N,hifias,end="\n",sep="\t")
 
