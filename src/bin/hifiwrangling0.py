@@ -2,8 +2,34 @@ import re
 import sys
 import time
 
-sys.path.insert(0,"/mnt/extraids/SDSC_NFS/linpei/bin/HiFiToolkit")
-import hifiwrangler0
+
+#sys.path.insert(0,"/mnt/extraids/SDSC_NFS/linpei/bin/HiFiToolkit")
+#import hifiwrangler0
+# we have 2 classes to be used 1. Read; 2. Spot
+# Begin of class definition
+class Read:
+    Technique = "HiFi-Slides"    
+    def __init__(self,name,AS0):
+        self.name = name
+        as1 = AS0.replace("AS:i:","")
+        self.AS = as1.strip()
+        self.spots = []
+        self.raw_spots = []
+
+    def add_spot(self,spot):
+        self.spots.append(spot)
+
+    def add_raw_spot(self,raw_spot):
+        self.raw_spots.append(raw_spot)
+
+class Spot:
+    def __init__(self,ident):
+        self.ident = ident
+        self.duplicates = []
+
+    def add_dup_spot(self,spot):
+        self.duplicates.append(spot)
+### End of class definition
 
 spot_to_hifi_sam = sys.argv[1]
 spot_duplic_info = sys.argv[2]
@@ -18,7 +44,7 @@ Spot_obj = {}
 Spot_2_N = {}
 
 # [1] https://www.geeksforgeeks.org/how-to-read-large-text-files-in-python/
-# in [1] I found that this way of reading file (for example, lines 24 - 25) could be faster than readline() and input()
+# in [1] I found that this way of reading file (for example, lines 50 - 51) could possibly be faster than readline() and input()
 # I did not compare this strategy with Pandas.
 
 with open(spot_to_hifi_sam) as file:
