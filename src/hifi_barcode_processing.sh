@@ -95,7 +95,6 @@ $flowcell":"$flowcell_lane":"$flowcell_surface \
 $L1_FASTQ_DIR/$L1_FASTQ_SUFFIX > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
 
 L1R1_DEDUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta
-L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $L1_DIR/$FLOWCELL_FULL.log

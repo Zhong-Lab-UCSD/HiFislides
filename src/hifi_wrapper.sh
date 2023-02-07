@@ -75,6 +75,15 @@ fi
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 mkdir -p $L2_DIR
 
+L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping
+mkdir -p $L2R2_GENOME_DIR
+
+L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping
+mkdir -p $L2R1_MAPPING_DIR
+
+L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate
+mkdir -p $L2R1_L2R2_INTEGRATE_DIR
+
 # Spatial barcode files
 FLOWCELL_FULL=$(basename $L1_DIR)
 L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup # bwa index path and basename
@@ -150,13 +159,9 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Filtering complete." >> $OUT_DIR/$SAMPLE_NA
 ### Align HiFi R2 reads to genome/genes in order to obtain gene annotation for HiFi read pairs.
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Align HiFi-Slide reads R2 (L2R2) to the genome using STAR..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R2_GENOME_DIR=$L2_DIR/L2R2_mapping
-L2R2_FILTER_FASTQ=$L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq
-
-mkdir -p $L2R2_GENOME_DIR
 STAR \
 --genomeDir $STAR_INDEX \
---readFilesIn $L2R2_FILTER_FASTQ \
+--readFilesIn $L2_DIR/L2R2_preprocessing/L2R2.fastp_filter.fastq \
 --outSAMtype BAM Unsorted \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
@@ -232,8 +237,6 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) t
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Start aligning HiFi-Slide R1 reads (L2R1) to spatial barcodes (L1R1)..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Alignment for all the barcodes
-L2R1_MAPPING_DIR=$L2_DIR/L2R1_mapping
-mkdir -p $L2R1_MAPPING_DIR
 bwa_seed_length=19 # default
 
 bwa mem \
@@ -248,9 +251,8 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$
 
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome..."
-L2R1_L1R1_SAM_FILTER=$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
-awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_L1R1_SAM_FILTER
+awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
 # rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup_k$bwa_seed_length.sam
 
@@ -261,7 +263,7 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest ali
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 python3 $BIN_DIR/hifiwrangling0.py \
-$L2R1_L1R1_SAM_FILTER \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
 $L1R1_DUP \
 1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
 
@@ -277,13 +279,8 @@ echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate
-mkdir -p $L2R1_L2R2_INTEGRATE_DIR
-
 ### Genome
-HiFi_L2R2_genome=$L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed
-
-join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o $HiFi_L2R2_genome | cut -f 2,3,4,5,7,8,9 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | cut -f 2,3,4,5,7,8,9 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt
 
