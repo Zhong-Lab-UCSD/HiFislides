@@ -100,9 +100,9 @@ with open(spot_to_hifi_sam) as file:
                         Spot_dic[a_raw_spot] = N
 
 # the key in Spot_dic has no the '_N' part, they are the raw spot identifier
-for Spot in Spot_dic.keys():
-    Spot_1 = Spot(Spot)   
-    Spot_obj[Spot] = Spot_1
+for SpotID in Spot_dic.keys():
+    Spot_1 = Spot(SpotID)   
+    Spot_obj[SpotID] = Spot_1
 
 with open(spot_duplic_info) as file:
     for line in file:
