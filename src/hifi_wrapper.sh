@@ -70,7 +70,7 @@ fi
 [ ! -d "$OUT_DIR" ] && echo "Error!! Output directory not exist: "$OUT_DIR && parameter_error
 
 
-##############################
+################## INITIALIZE VARIABLES
 
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 mkdir -p $L2_DIR
