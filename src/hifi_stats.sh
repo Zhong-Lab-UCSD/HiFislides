@@ -77,10 +77,10 @@ a=$(echo "scale=4 ; $m6 / $m4 * 100" | bc | awk '{printf("%.2f",$1)}')
 m7=$a"%"
 
 ##### Number of HiFi-Slide L2R1 spatially resolved
-m8=$(awk '!seen[$1]++' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam | wc -l)
+# m8=$(awk '!seen[$1]++' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam | wc -l)
 
-a=$(echo "scale=4 ; $m8 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
-m9=$a"%"
+# a=$(echo "scale=4 ; $m8 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
+# m9=$a"%"
 
 ##### Number of HiFi read pairs mapped to the genome and spatially resolved
 m10=$(awk '!seen[$1]++' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o | wc -l)
@@ -111,8 +111,8 @@ M4="Number of read pairs passing PEAR and FASTP filtering"
 M5="Percentage of read pairs passing PEAR and FASTP filtering"
 M6="Number of read pairs genome mapped"
 M7="Percentage of read pairs genome mapped"
-M8="Number of read pairs spatially resolved"
-M9="Percentage of read pairs spatially resolved"
+# M8="Number of read pairs spatially resolved"
+# M9="Percentage of read pairs spatially resolved"
 M10="Number of read pairs genome mapped and spatially resolved"
 M11="Percentage of read pairs genome mapped and spatially resolved"
 M12="Average spots per tile"
@@ -121,8 +121,8 @@ M14="Average genes per tile"
 M15="Average genes per 10 um^2"
 
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".stats.txt"
-# for k in $(1 8 9 3 4 5 6 7 10 11 12 13 14 15); do
-for k in $(seq 1 15); do
+for k in $(1 2 3 4 5 6 7 10 11 12 13 14 15); do
+# for k in $(seq 1 15); do
 Mk=M${k}
 mk=m${k}
 echo -e ${!Mk}'\t'${!mk}>> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".stats.txt"
