@@ -17,7 +17,7 @@ A testing script can be found [here](./test_src.sh).
 -o : Parent output directory.
 ```
 
-- `hifi_wrapper.sh`: main processing pipeline including QC metrics calculation.
+- `hifi_wrapper.sh`: main processing pipeline.
 ```
 -b : Directory of the scripts.
 -i : Directory of the STAR index.
@@ -38,4 +38,9 @@ A testing script can be found [here](./test_src.sh).
 -o : Parent output directory.
 ```
 
+- `hifi_stats.sh`: calculate statistics and QC metrics.
+```
+-N : Sample name.
+-o : Parent output directory.
+```
 

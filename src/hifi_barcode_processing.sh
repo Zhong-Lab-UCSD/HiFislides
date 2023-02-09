@@ -11,7 +11,7 @@ usage() {
                      [-t <threads>] [-o <output_dir>] 
     
     Dependency: bwa
-    This is an all-in-one wrapper script of HiFi Pipeline.
+    This is a script to pre-process spatial barcodes.
     -b : Directory of the scripts.
     -f : Flowcell ID.
     -l : Flowcell lane.
