@@ -252,6 +252,8 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide r
 
 awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
+rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome complete."
 
 ### Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location

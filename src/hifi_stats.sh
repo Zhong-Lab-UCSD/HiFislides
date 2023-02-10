@@ -121,7 +121,7 @@ M14="Average genes per tile"
 M15="Average genes per 10 um^2"
 
 touch $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME".stats.txt"
-for k in $(1 2 3 4 5 6 7 10 11 12 13 14 15); do
+for k in 1 2 3 4 5 6 7 10 11 12 13 14 15; do
 # for k in $(seq 1 15); do
 Mk=M${k}
 mk=m${k}
