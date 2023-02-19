@@ -1,4 +1,5 @@
 # /home/rcalandrelli/anaconda3/envs/spaceflow_env/lib/python3.7/site-packages/SpaceFlow
+# conda activate spaceflow_env
 
 ### 1. Import SpaceFlow and squidpy package
 import squidpy as sq
@@ -12,11 +13,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 ### 2. Load the ST data from squidpy package
-adata_example = sq.datasets.seqfish() # example from documentation
+# adata_example = sq.datasets.seqfish() # example from documentation
 
-SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/brain_organoid/HiFi_organoid_1/fastp_filter_k19_ALL/spaceflow_1/"
-
-SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/placenta/HiFi_placenta_1/fastp_filter_k19_ALL/spaceflow_" + "ROI" + "_2/"
+SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/cortex/HiFi_cortex_AD_3/ROI_1/cortical_layers/spaceflow_2/"
 
 df = pd.read_csv(SAMPLE_DIR + "spaceflow_matrix.txt", sep = "\t")
 counts = np.float32(df.values)

@@ -73,7 +73,7 @@ FLOWCELL_FULL=$flowcell"_"$flowcell_lane"_"$flowcell_surface
 L1_DIR=$OUT_DIR/$FLOWCELL_FULL # spatial barcodes
 mkdir -p $L1_DIR
 
-touch $L1_DIR/$FLOWCELL_FULL.log
+> $L1_DIR/$FLOWCELL_FULL.log
 
 echo "Processing of "$FLOWCELL_FULL
 echo "Processing of "$FLOWCELL_FULL >> $L1_DIR/$FLOWCELL_FULL.log
@@ -94,8 +94,6 @@ $BIN_DIR/surfdedup \
 $flowcell":"$flowcell_lane":"$flowcell_surface \
 $L1_FASTQ_DIR/$L1_FASTQ_SUFFIX > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
 
-L1R1_DEDUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta
-
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete." >> $L1_DIR/$FLOWCELL_FULL.log
 
@@ -108,7 +106,7 @@ mkdir -p $L1_DIR/bwa_index_L1R1
 
 bwa index \
 -p $L1_DIR/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup \
-$L1R1_DEDUP
+$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $L1_DIR/$FLOWCELL_FULL.log
 
@@ -123,7 +121,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculatio
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculation..." >> $L1_DIR/$FLOWCELL_FULL.log
 
 ##### Total number of barcodes (L1R1)
-touch $L1_DIR/$FLOWCELL_FULL.L1R1_stats.txt
+> $L1_DIR/$FLOWCELL_FULL.L1R1_stats.txt
 
 for x in $L1_FASTQ_DIR/$L1_FASTQ_SUFFIX; do
 echo $x
@@ -135,7 +133,7 @@ done
 m1=$(awk '{ sum += $2 } END { print sum }' $L1_DIR/$FLOWCELL_FULL.L1R1_stats.txt)
 
 ##### Number of deduplicated barcodes
-a=$(wc -l $L1R1_DEDUP | cut -d " " -f 1)
+a=$(wc -l $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | cut -d " " -f 1)
 m2=$(($a / 2))
 
 a=$(echo "scale=4 ; $m2 / $m1 * 100" | bc | awk '{printf("%.2f",$1)}')
@@ -147,7 +145,7 @@ M2="Number of deduplicated barcodes"
 M3="Percentage of deduplicated barcodes"
 
 rm $L1_DIR/$FLOWCELL_FULL".QC_metrics.txt"
-touch $L1_DIR/$FLOWCELL_FULL".QC_metrics.txt"
+> $L1_DIR/$FLOWCELL_FULL".QC_metrics.txt"
 for k in $(seq 1 3); do
 Mk=M${k}
 mk=m${k}
@@ -158,15 +156,58 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." >> $L1_DIR/$FLOWCELL_FULL.log
 
 
+######## Test flowcell splitting
+n_row_flowcell=14
+n_col_flowcell=6
 
+if [ $(($n_row_flowcell%2)) -eq 0 ]; then
+end_row_top=$(($n_row_flowcell / 2))
+start_row_bottom=$(($n_row_flowcell / 2 + 1))
+elif [ $(($n_row_flowcell%2)) -eq 1 ]; then
+end_row_top=$(($n_row_flowcell / 2))
+start_row_bottom=$(($n_row_flowcell / 2 + 2))
+fi
 
+# Tiles in the top portion of the flowcell
+> $L1_DIR/tiles_top.txt
+for col in $(seq 1100 100 $((1000 + $n_col_flowcell * 100))); do
+for row in $(seq 1 $end_row_top); do
+echo $(($col+$row)) >> $L1_DIR/tiles_top.txt
+done
+done
 
+cut -f5 -d ":" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | grep -A 1 -n -f $L1_DIR/tiles_top.txt | sed "s/\-/\:/" | cut -f1 -d: | awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' - $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.top.fasta
 
+mkdir -p $L1_DIR/bwa_index_L1R1_top
 
+bwa index \
+-p $L1_DIR/bwa_index_L1R1_top/$FLOWCELL_FULL.L1R1_dedup.top \
+$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.top.fasta
 
+# Tiles in the bottom portion of the flowcell
+> $L1_DIR/tiles_bottom.txt
+for col in $(seq 1100 100 $((1000 + $n_col_flowcell * 100))); do
+for row in $(seq $start_row_bottom $n_row_flowcell); do
+echo $(($col+$row)) >> $L1_DIR/tiles_bottom.txt
+done
+done
 
+cut -f5 -d ":" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | grep -A 1 -n -f $L1_DIR/tiles_bottom.txt | sed "s/\-/\:/" | cut -f1 -d: | awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' - $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.bottom.fasta
 
+mkdir -p $L1_DIR/bwa_index_L1R1_bottom
 
+bwa index \
+-p $L1_DIR/bwa_index_L1R1_bottom/$FLOWCELL_FULL.L1R1_dedup.bottom \
+$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.bottom.fasta
+
+#######
+cut -f1 $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | grep -n -f $L1_DIR/tiles_bottom.txt | cut -f1 -d: > $L1_DIR/dup_bottom1.txt
+
+cut -f2 $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | grep -n -f $L1_DIR/tiles_bottom.txt | cut -f1 -d: > $L1_DIR/dup_bottom2.txt
+
+comm -12 $L1_DIR/dup_bottom1.txt $L1_DIR/dup_bottom2.txt > $L1_DIR/dup_bottom.txt
+
+awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' $L1_DIR/dup_bottom.txt $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt > $L1_DIR/$FLOWCELL_FULL.L1R1_dup.bottom.txt
 
 
 
