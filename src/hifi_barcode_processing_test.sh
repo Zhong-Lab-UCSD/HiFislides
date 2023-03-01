@@ -18,7 +18,7 @@ usage() {
     -s : Flowcell surface (1 or 2).
     -d : Directory of the barcode fastq files.
     -N : Suffix of the fastq file (example R1_001.fastq.gz).
-    -T : Tiles to be used, one per line (if empty, all the tiles in the flowcell are used).
+    -T : Tiles to be used (if empty, all the tiles in the flowcell are used).
     -t : Max CPU threads for parallelized processing, at least 4 (default 8).
     -o : Output directory.
     -h : Show usage help
@@ -58,7 +58,7 @@ done
 
 [ ! -d "$L1_FASTQ_DIR" ] && echo "Error!! Directory of spatial barcode fastq files does not exist: "$L1_FASTQ_DIR && parameter_error
 
-[ -z "$L1_FASTQ_SUFFIX" ] && echo "Error!! Suffix of the fastq file (example *R1_001.fastq.gz) with -N" && parameter_error
+[ -z "$L1_FASTQ_SUFFIX" ] && echo "Error!! Suffix of the fastq file (example R1_001.fastq.gz) with -N" && parameter_error
 
 [  -z "$N_THREADS" ] && echo "Use default thread number 8'." && N_THREADS=8
 if ! [[ "$N_THREADS" =~ ^[0-9]+$ ]]; then
@@ -116,23 +116,6 @@ $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] BWA index creation complete." >> $L1_DIR/$FLOWCELL_FULL.log
 
-### Count the number of barcodes in each tile
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Count the number of barcodes in each tile..."
-
-grep ">" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | cut -f5 -d ":" | awk -v OFS='\t' '{A[$1]++}END{for(i in A)print i,A[i]}' > $L1_DIR/tile_barcode_number_temp1.txt
-awk -v OFS='\t' '{print $2}' $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | awk -v OFS='\t' '{A[$1]++}END{for(i in A)print i,A[i]}' > $L1_DIR/tile_barcode_number_temp2.txt
-
-cat $L1_DIR/tile_barcode_number_temp1.txt $L1_DIR/tile_barcode_number_temp2.txt | awk -v OFS='\t' '{a[$1]+=$2}END{for(i in a) print i,a[i]}' > $L1_DIR/tile_barcode_number.txt
-
-rm $L1_DIR/tile_barcode_number_temp1.txt
-rm $L1_DIR/tile_barcode_number_temp2.txt
-
-# Uniquely located barcodes
-grep "_1" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | cut -f5 -d ":" | awk -v OFS='\t' '{A[$1]++}END{for(i in A)print i,A[i]}' > $L1_DIR/tile_barcode_number_N1.txt
-
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Count the number of barcodes in each tile complete."
-
-
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Finished processing HiFi-Slide L1R1."
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Finished processing HiFi-Slide L1R1." >> $L1_DIR/$FLOWCELL_FULL.log
 echo "------------------------------" >> $L1_DIR/$FLOWCELL_FULL.log
@@ -179,14 +162,63 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation finished." >> $L1_DIR/$FLOWCELL_FULL.log
 
 
+######## Test flowcell splitting
+n_row_flowcell=14
+n_col_flowcell=6
+
+if [ $(($n_row_flowcell%2)) -eq 0 ]; then
+end_row_top=$(($n_row_flowcell / 2))
+start_row_bottom=$(($n_row_flowcell / 2 + 1))
+elif [ $(($n_row_flowcell%2)) -eq 1 ]; then
+end_row_top=$(($n_row_flowcell / 2))
+start_row_bottom=$(($n_row_flowcell / 2 + 2))
+fi
+
+# Tiles in the top portion of the flowcell
+> $L1_DIR/tiles_top.txt
+for col in $(seq 1100 100 $((1000 + $n_col_flowcell * 100))); do
+for row in $(seq 1 $end_row_top); do
+echo $(($col+$row)) >> $L1_DIR/tiles_top.txt
+done
+done
+
+cut -f5 -d ":" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | grep -A 1 -n -f $L1_DIR/tiles_top.txt | sed "s/\-/\:/" | cut -f1 -d: | awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' - $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.top.fasta
+
+mkdir -p $L1_DIR/bwa_index_L1R1_top
+
+bwa index \
+-p $L1_DIR/bwa_index_L1R1_top/$FLOWCELL_FULL.L1R1_dedup.top \
+$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.top.fasta
+
+# Tiles in the bottom portion of the flowcell
+> $L1_DIR/tiles_bottom.txt
+for col in $(seq 1100 100 $((1000 + $n_col_flowcell * 100))); do
+for row in $(seq $start_row_bottom $n_row_flowcell); do
+echo $(($col+$row)) >> $L1_DIR/tiles_bottom.txt
+done
+done
+
+cut -f5 -d ":" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | grep -A 1 -n -f $L1_DIR/tiles_bottom.txt | sed "s/\-/\:/" | cut -f1 -d: | awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' - $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.bottom.fasta
+
+mkdir -p $L1_DIR/bwa_index_L1R1_bottom
+
+bwa index \
+-p $L1_DIR/bwa_index_L1R1_bottom/$FLOWCELL_FULL.L1R1_dedup.bottom \
+$L1_DIR/$FLOWCELL_FULL.L1R1_dedup.bottom.fasta
+
 #######
+cut -f1 $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | grep -n -f $L1_DIR/tiles_bottom.txt | cut -f1 -d: > $L1_DIR/dup_bottom1.txt
 
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
-AAANLCHHV:1:1 \
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_top_14x6.txt \
-/mnt/extraids/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dup.txt
+cut -f2 $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | grep -n -f $L1_DIR/tiles_bottom.txt | cut -f1 -d: > $L1_DIR/dup_bottom2.txt
 
-/mnt/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
-AAANLCHHV:1:1 \
-/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
-/mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dup.txt
+comm -12 $L1_DIR/dup_bottom1.txt $L1_DIR/dup_bottom2.txt > $L1_DIR/dup_bottom.txt
+
+awk 'FNR==NR{h[$1]; c++; next} FNR in h{print; if (!--c) exit}' $L1_DIR/dup_bottom.txt $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt > $L1_DIR/$FLOWCELL_FULL.L1R1_dup.bottom.txt
+
+
+##### Count the number of barcodes in each tile
+grep ">" $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta | cut -f5 -d ":" | awk '{A[$1]++}END{for(i in A)print i,A[i]}' > $L1_DIR/tile_barcode_number_1.txt
+awk -v OFS='\t' '{print $2}' $L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt | cut -f5 -d ":" | awk '{A[$1]++}END{for(i in A)print i,A[i]}' > $L1_DIR/tile_barcode_number_2.txt
+
+
+

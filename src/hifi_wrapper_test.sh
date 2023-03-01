@@ -86,12 +86,15 @@ mkdir -p $L2R1_MAPPING_DIR
 
 # Spatial barcode files
 FLOWCELL_FULL=$(basename $L1_DIR)
-L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
 SEQ_MACHINE_ID=$(cut -f1 $L1R1_DUP | head -1 | cut -f1 -d ":")
 
+L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
+L1R1_DUP_TOP=$L1_DIR/top/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
+L1R1_DUP_BOTTOM=$L1_DIR/bottom/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
+
 L1R1_FASTQ_BWA_INDEX=$L1_DIR/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup # bwa index path and basename
-L1R1_FASTQ_BWA_INDEX_TOP=$L1_DIR/bwa_index_L1R1_top/$FLOWCELL_FULL.L1R1_dedup.top # bwa index path and basename
-L1R1_FASTQ_BWA_INDEX_BOTTOM=$L1_DIR/bwa_index_L1R1_bottom/$FLOWCELL_FULL.L1R1_dedup.bottom # bwa index path and basename
+L1R1_FASTQ_BWA_INDEX_TOP=$L1_DIR/top/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup # bwa index path and basename
+L1R1_FASTQ_BWA_INDEX_BOTTOM=$L1_DIR/bottom/bwa_index_L1R1/$FLOWCELL_FULL.L1R1_dedup # bwa index path and basename
 
 # Select full gene coordinates only
 annotation_gtf_file_genes="$(dirname "${annotation_gtf_file}")"/gencode.v41.annotation.gene.gtf
@@ -264,53 +267,50 @@ bwa mem \
 $L1R1_FASTQ_BWA_INDEX_BOTTOM $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.bottom.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam
 
 
-bwa mem \
--a \
--k 19 \
--t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX_TOP $L2R1_FASTQ > $L2R1_MAPPING_DIR/top.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.top.log
+# bwa mem \
+# -a \
+# -k 19 \
+# -t $N_THREADS \
+# $L1R1_FASTQ_BWA_INDEX_TOP $L2R1_FASTQ > $L2R1_MAPPING_DIR/top.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.top.log
 
-bwa mem \
--a \
--k 19 \
--t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX_BOTTOM $L2R1_FASTQ > $L2R1_MAPPING_DIR/bottom.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.bottom.log
+# bwa mem \
+# -a \
+# -k 19 \
+# -t $N_THREADS \
+# $L1R1_FASTQ_BWA_INDEX_BOTTOM $L2R1_FASTQ > $L2R1_MAPPING_DIR/bottom.sam 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.bottom.log
 
-grep -v '^@' $L2R1_MAPPING_DIR/top.sam | grep -P"\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.sam
-grep -v '^@' $L2R1_MAPPING_DIR/bottom.sam | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.sam
+# grep -v '^@' $L2R1_MAPPING_DIR/top.sam | grep -P"\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.sam
+# grep -v '^@' $L2R1_MAPPING_DIR/bottom.sam | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.sam
 
-grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.toph.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.sam
-grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottomh.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.sam
+# grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.toph.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.sam
+# grep -v '^@' $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottomh.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.sam
 
 
-samtools view -F 4095 -o sam0.sam $L2R1_MAPPING_DIR/bottom.sam 
-samtools view -f 256 -o sam256.sam $L2R1_MAPPING_DIR/bottom.sam 
-samtools view -F 4095 -f 256 -o sam0256.sam $L2R1_MAPPING_DIR/bottom.sam
+# samtools view -F 4095 -o sam0.sam $L2R1_MAPPING_DIR/bottom.sam 
+# samtools view -f 256 -o sam256.sam $L2R1_MAPPING_DIR/bottom.sam 
+# samtools view -F 4095 -f 256 -o sam0256.sam $L2R1_MAPPING_DIR/bottom.sam
 
-samtools view -F 4095 $L2R1_MAPPING_DIR/bottom.sam | wc -l
-samtools view -f 256 $L2R1_MAPPING_DIR/bottom.sam | wc -l
-samtools view -F 4095 -f 256 $L2R1_MAPPING_DIR/bottom.sam | wc -l
+# samtools view -F 4095 $L2R1_MAPPING_DIR/bottom.sam | wc -l
+# samtools view -f 256 $L2R1_MAPPING_DIR/bottom.sam | wc -l
+# samtools view -F 4095 -f 256 $L2R1_MAPPING_DIR/bottom.sam | wc -l
+
+# bwa mem \
+# -a \
+# -k 19 \
+# -t $N_THREADS \
+# $L1R1_FASTQ_BWA_INDEX_TOP $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.top.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam
+
+
+# grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" $L2R1_MAPPING_DIR/top.sam | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam
+
+# grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" $L2R1_MAPPING_DIR/bottom.sam | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-## To be tested for Cortex_4
-bwa mem \
--a \
--k 19 \
--t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX_TOP $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.top.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam
-
-
-grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" $L2R1_MAPPING_DIR/top.sam | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam
-
-grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" $L2R1_MAPPING_DIR/bottom.sam | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam
-
-
-
 
 ### Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome (samf: "SAM filter" custom format)
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome..."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome..."
 
 # awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.sam > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
@@ -322,41 +322,41 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide r
 # rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.sam
 # rm $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.sam
 
-echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome complete."
+# echo "[$(date '+%m-%d-%y %H:%M:%S')] Filter SAM file to select only HiFi-Slide reads mapped to genome/transcriptome complete."
 
 ### Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-python3 $BIN_DIR/hifiwrangling0.py \
-$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
-$L1R1_DUP \
-1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
+# python3 $BIN_DIR/hifiwrangling0.py \
+# $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
+# $L1R1_DUP \
+# 1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
 
-python3 $BIN_DIR/hifiwrangling0.py \
-$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
-$L1R1_DUP \
-1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.sort.o
-
-python3 $BIN_DIR/hifiwrangling0.py \
-$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam \
-$L1R1_DUP \
-1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.top.sort.o
-
-python3 $BIN_DIR/hifiwrangling0.py \
-$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam \
-$L1R1_DUP \
-1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.bottom.sort.o
+# python3 $BIN_DIR/hifiwrangling0.py \
+# $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
+# $L1R1_DUP \
+# 1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.sort.o
 
 python3 $BIN_DIR/hifiwrangling0.py \
 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam \
-$L1R1_DUP \
+$L1R1_DUP_TOP \
 1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.top.sort.o
 
 python3 $BIN_DIR/hifiwrangling0.py \
 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam \
-$L1R1_DUP \
+$L1R1_DUP_BOTTOM \
 1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.bottom.sort.o
+
+python3 $BIN_DIR/hifiwrangling0.py \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam \
+$L1R1_DUP_TOP \
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.top.sort.o
+
+python3 $BIN_DIR/hifiwrangling0.py \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam \
+$L1R1_DUP_BOTTOM \
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.bottom.sort.o
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -372,6 +372,8 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 
 for i in "." ".N1." ".top." ".bottom." ".N1.top." ".N1.bottom."; do
 
+for i in ".top." ".bottom." ".N1.top." ".N1.bottom."; do
+
 L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate$i
 mkdir -p $L2R1_L2R2_INTEGRATE_DIR
 
@@ -386,12 +388,11 @@ awk -v OFS='\t' '{print $1}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.t
 # Calculate the number of spots in each tile
 awk -v OFS='\t' '{print $1, $1"_"$2"_"$3}' $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt | awk '!seen[$2]++' | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_spot_number_table.txt
 
-# TO BE TESTED AND COPIED TO THE MAIN WRAPPER
-# # Calculate the number of genes in each tile
-# grep -v -P "\tNA\tNA\tNA\t" $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1, $1"_"$5}' | awk '!seen[$2]++' | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_number_table.txt
+# Calculate the number of genes in each tile
+grep -v -P "\tNA\tNA\tNA\t" $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1, $1"_"$5}' | awk '!seen[$2]++' | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_number_table.txt
 
-# # Calculate the total gene expression in each tile
-# grep -v -P "\tNA\tNA\tNA\t" $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1, $7}' | awk -F"\t" '{array[$1]+=$2} END { for (i in array) {print i"\t" array[i]}}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_expression_table.txt
+# Calculate the total gene expression in each tile
+grep -v -P "\tNA\tNA\tNA\t" $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt | awk -v OFS='\t' '{print $1, $7}' | awk -F"\t" '{array[$1]+=$2} END { for (i in array) {print i"\t" array[i]}}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_gene_expression_table.txt
 
 done
 
