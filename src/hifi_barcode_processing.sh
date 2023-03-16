@@ -7,7 +7,7 @@ usage() {
     ---------------------------------------------------------------------------
     Usage: $PROGNAME [-b <bin_dir>]
                      [-f <flowcell_id>] [-l <flowcell_lane>] [-s <flowcell_surface>]
-                     [-d <spatial_barcode_dir>] [-N <suffix_fastq.gz>] [-T <tiles.txt>]
+                     [-d <spatial_barcode_dir>] [-N <name_fastq.gz>] [-T <tiles.txt>]
                      [-t <threads>] [-o <output_dir>]
     
     Dependency: bwa
@@ -17,7 +17,7 @@ usage() {
     -l : Flowcell lane.
     -s : Flowcell surface (1 or 2).
     -d : Directory of the barcode fastq files.
-    -N : Suffix of the fastq file (example R1_001.fastq.gz).
+    -N : Name of the fastq file (also *R1_001.fastq.gz is accepted).
     -T : Tiles to be used, one per line (if empty, all the tiles in the flowcell are used).
     -t : Max CPU threads for parallelized processing, at least 4 (default 8).
     -o : Output directory.
@@ -39,7 +39,7 @@ while getopts :b:f:l:s:d:N:T:t:o:h opt; do
         l) flowcell_lane=${OPTARG};;
         s) flowcell_surface=${OPTARG};;
         d) L1_FASTQ_DIR=${OPTARG};;
-        N) L1_FASTQ_SUFFIX=${OPTARG};;
+        N) L1_FASTQ_FILENAME=${OPTARG};;
         T) tiles=${OPTARG};;
         t) N_THREADS=${OPTARG};;
         o) L1_DIR=${OPTARG};;
@@ -58,7 +58,7 @@ done
 
 [ ! -d "$L1_FASTQ_DIR" ] && echo "Error!! Directory of spatial barcode fastq files does not exist: "$L1_FASTQ_DIR && parameter_error
 
-[ -z "$L1_FASTQ_SUFFIX" ] && echo "Error!! Suffix of the fastq file (example *R1_001.fastq.gz) with -N" && parameter_error
+[ -z "$L1_FASTQ_FILENAME" ] && echo "Error!! Filename of the fastq file (you can also use for example *R1_001.fastq.gz if multiple there are multiple files) with -N" && parameter_error
 
 [  -z "$N_THREADS" ] && echo "Use default thread number 8'." && N_THREADS=8
 if ! [[ "$N_THREADS" =~ ^[0-9]+$ ]]; then
@@ -92,12 +92,12 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Start deduplication of L1R1 reads..." >> $L
 if [ -z "$tiles" ]; then
 $BIN_DIR/surfdedup \
 $flowcell":"$flowcell_lane":"$flowcell_surface \
-$L1_FASTQ_DIR/$L1_FASTQ_SUFFIX > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
+$L1_FASTQ_DIR/$L1_FASTQ_FILENAME > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
 else
 $BIN_DIR/surfdedup \
 $flowcell":"$flowcell_lane":"$flowcell_surface \
 $tiles \
-$L1_FASTQ_DIR/$L1_FASTQ_SUFFIX > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
+$L1_FASTQ_DIR/$L1_FASTQ_FILENAME > $L1_DIR/$FLOWCELL_FULL.L1R1_dedup.fasta 2>$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt
 fi
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Deduplication of L1R1 reads complete."
@@ -146,7 +146,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Start QC metrics calculatio
 ##### Total number of barcodes (L1R1)
 > $L1_DIR/$FLOWCELL_FULL.L1R1_stats.txt
 
-for x in $L1_FASTQ_DIR/$L1_FASTQ_SUFFIX; do
+for x in $L1_FASTQ_DIR/$L1_FASTQ_FILENAME; do
 echo $x
 a=$(unpigz -p $N_THREADS -c $x | wc -l)
 out=$(($a / 4))
@@ -167,7 +167,6 @@ M1="Total number of barcodes"
 M2="Number of deduplicated barcodes"
 M3="Percentage of deduplicated barcodes"
 
-rm $L1_DIR/$FLOWCELL_FULL".QC_metrics.txt"
 > $L1_DIR/$FLOWCELL_FULL".QC_metrics.txt"
 for k in $(seq 1 3); do
 Mk=M${k}
@@ -181,12 +180,24 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 
 #######
 
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
-AAANLCHHV:1:1 \
-/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_top_14x6.txt \
-/mnt/extraids/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dup.txt
+# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
+# AAANLCHHV:1:1 \
+# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_top_14x6.txt \
+# /mnt/extraids/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/top/AAANLCHHV_1_1.L1R1_dup.txt
 
-/mnt/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
-AAANLCHHV:1:1 \
-/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
-/mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dup.txt
+# /mnt/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
+# AAANLCHHV:1:1 \
+# /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
+# /mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_1_1/bottom/AAANLCHHV_1_1.L1R1_dup.txt
+
+
+# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
+# AAANLCHHV:2:1 \
+# /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_top_14x6.txt \
+# /mnt/extraids/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/top/AAANLCHHV_2_1.L1R1_dedup.fasta 2>/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/top/AAANLCHHV_2_1.L1R1_dup.txt
+
+# /mnt/SDSC_NFS/rcalandrelli/HiFi/data/src/bin/surfdedup \
+# AAANLCHHV:2:1 \
+# /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
+# /mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dup.txt
+

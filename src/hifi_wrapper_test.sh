@@ -328,16 +328,6 @@ echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment done." >> $OUT_DIR/$SAMPLE_NAME/$
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
-# python3 $BIN_DIR/hifiwrangling0.py \
-# $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
-# $L1R1_DUP \
-# 1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
-
-# python3 $BIN_DIR/hifiwrangling0.py \
-# $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
-# $L1R1_DUP \
-# 1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.sort.o
-
 python3 $BIN_DIR/hifiwrangling0.py \
 $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.top.filter.sam \
 $L1R1_DUP_TOP \
@@ -358,6 +348,16 @@ $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.bottom.filter.sam \
 $L1R1_DUP_BOTTOM \
 1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.bottom.sort.o
 
+python3 $BIN_DIR/hifiwrangling0.py \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
+$L1R1_DUP \
+1000 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o
+
+python3 $BIN_DIR/hifiwrangling0.py \
+$L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam \
+$L1R1_DUP \
+1 | sort -k 1 --parallel=$N_THREADS -S 20G > $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.N1.sort.o
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location complete."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Select HiFi-Slide R1 reads with highest alignment score and match HiFi-Slide read pairs with spatial location complete." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
@@ -372,7 +372,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 
 for i in "." ".N1." ".top." ".bottom." ".N1.top." ".N1.bottom."; do
 
-for i in ".top." ".bottom." ".N1.top." ".N1.bottom."; do
+# for i in ".top." ".bottom." ".N1.top." ".N1.bottom."; do
 
 L2R1_L2R2_INTEGRATE_DIR=$L2_DIR/L2R1_L2R2_integrate$i
 mkdir -p $L2R1_L2R2_INTEGRATE_DIR
