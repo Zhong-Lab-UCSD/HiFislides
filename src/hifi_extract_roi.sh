@@ -6,14 +6,13 @@ usage() {
     cat << EOF >&2
     ---------------------------------------------------------------------------
     Usage: $PROGNAME [-R <roi_tiles>] [-r <roi_label>] [-N <sample_name>]
-                     [-i <integrate_dir>] [-o <output_dir>]
+                     [-i <integrate_dir>]
     
     This is a script to extract the tiles under ROI from the final outpur file of the HiFi Pipeline.
     -R : Path to the txt file with the tiles under ROI (each tile on a new line).
     -r : ROI name to label the output file.
     -N : Sample name, used to label the final output file.
     -i : Input directory where integrated data are.
-    -o : Parent output directory.
     -h : Show usage help
     ---------------------------------------------------------------------------
 EOF
@@ -25,13 +24,12 @@ parameter_error() {
     usage
 }
 
-while getopts :R:r:N:i:o:h opt; do
+while getopts :R:r:N:i:h opt; do
     case $opt in
         R) ROI_TILES=${OPTARG};;
         r) ROI_label=${OPTARG};;
         N) SAMPLE_NAME=${OPTARG};;
         i) INTEGRATE_DIR=${OPTARG};;
-        o) OUT_DIR=${OPTARG};;
         h) usage;;
     esac
 done
@@ -43,9 +41,7 @@ done
 
 [  -z "$SAMPLE_NAME" ] && echo "Error!! Please provide the sample name with -N" && parameter_error
 
-[ ! -d "$INTEGRATE_DIR" ] && echo "Error!! Input directory not exist: "$INTEGRATE_DIR && parameter_error
-
-[ ! -d "$OUT_DIR" ] && echo "Error!! Output directory not exist: "$OUT_DIR && parameter_error
+[ ! -d "$INTEGRATE_DIR" ] && echo "Error!! Input directory not exist: "$INTEGRATE_DIR && parameter_erro
 
 
 ##############################
