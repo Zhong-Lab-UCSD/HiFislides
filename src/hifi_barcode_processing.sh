@@ -42,7 +42,7 @@ while getopts :b:f:l:s:d:N:T:t:o:h opt; do
         N) L1_FASTQ_FILENAME=${OPTARG};;
         T) tiles=${OPTARG};;
         t) N_THREADS=${OPTARG};;
-        o) L1_DIR=${OPTARG};;
+        o) OUT_DIR=${OPTARG};;
         h) usage;;
     esac
 done
@@ -70,6 +70,7 @@ fi
 FLOWCELL_FULL=$flowcell"_"$flowcell_lane"_"$flowcell_surface
 
 # Directories of the processed data
+L1_DIR=$OUT_DIR/$FLOWCELL_FULL
 mkdir -p $L1_DIR
 
 > $L1_DIR/$FLOWCELL_FULL.log
@@ -200,4 +201,17 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 # AAANLCHHV:2:1 \
 # /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
 # /mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dup.txt
+
+
+tile_matrix_expanded=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tile_matrix_expanded_14x6.txt
+input_file_dup=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAAV7J7HV_1_1/temp_dup.txt
+
+barcode_id=$(awk -v OFS='\t' '{print $2}' $input_file_dup)
+tile_id=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f5)
+col=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f6)
+row=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f7)
+paste <(echo "$barcode_id") <(echo "$tile_id") <(echo "$col") <(echo "$row") --delimiters '\t' | sort -k 2 > temp.txt
+
+
+join -1 3 -2 2 -o 2.1,2.2,2.3,2.4,1.4,1.5 <(sort -k 3 $tile_matrix_expanded) <(sort -k 2 temp.txt) -t $'\t'
 
