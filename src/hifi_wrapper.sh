@@ -91,7 +91,7 @@ L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
 SEQ_MACHINE_ID=$(cut -f1 $L1R1_DUP | head -1 | cut -f1 -d ":")
 
 # Select full gene coordinates only
-annotation_gtf_file_genes="$(dirname "${annotation_gtf_file}")"/gencode.v41.annotation.gene.gtf
+annotation_gtf_file_genes="$(dirname "${annotation_gtf_file}")"/"${annotation_gtf_file%.*}".gene."${annotation_gtf_file##*.}"
 awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > $annotation_gtf_file_genes
 
 

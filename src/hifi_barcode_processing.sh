@@ -202,16 +202,17 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] QC metrics calculation fini
 # /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tiles_bottom_14x6.txt \
 # /mnt/SDSC_NFS/linpei/hifi/recycled_flowcell/2022_09_06_NS/*R1_001.fastq.gz > /mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dedup.fasta 2>/mnt/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAANLCHHV_2_1/bottom/AAANLCHHV_2_1.L1R1_dup.txt
 
+### To extract coordinates of all the barcodes (USELESS)
+# tile_matrix_expanded=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tile_matrix_expanded_14x6.txt
+# input_file_dup=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAAV7J7HV_1_1/AAAV7J7HV_1_1.L1R1_dup.txt
 
-tile_matrix_expanded=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/tile_matrix_expanded_14x6.txt
-input_file_dup=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAAV7J7HV_1_1/temp_dup.txt
+# input_file_dup=/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/barcodes/AAAV7J7HV_1_1/temp_dup.txt
 
-barcode_id=$(awk -v OFS='\t' '{print $2}' $input_file_dup)
-tile_id=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f5)
-col=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f6)
-row=$(awk -v OFS='\t' '{print $2}' $input_file_dup | cut -d':' -f7)
-paste <(echo "$barcode_id") <(echo "$tile_id") <(echo "$col") <(echo "$row") --delimiters '\t' | sort -k 2 > temp.txt
+# barcode_id=$(awk -v OFS='\t' '{print $2}' $input_file_dup)
+# tile_id=$(cut -d':' -f5 $barcode_id)
+# col=$(cut -d':' -f6 $barcode_id)
+# row=$(cut -d':' -f7 $barcode_id)
+# paste <(echo "$barcode_id") <(echo "$tile_id") <(echo "$col") <(echo "$row") --delimiters '\t' | sort -k 2 > temp.txt
 
 
-join -1 3 -2 2 -o 2.1,2.2,2.3,2.4,1.4,1.5 <(sort -k 3 $tile_matrix_expanded) <(sort -k 2 temp.txt) -t $'\t'
-
+# join -1 3 -2 2 -o 2.1,2.2,2.3,2.4,1.4,1.5 <(sort -k 3 $tile_matrix_expanded) <(sort -k 2 temp.txt) -t $'\t' | awk -v OFS='\t' '{print $1, $3+$5, $4+$6}' > AAAV7J7HV_1_1.L1R1_dup.coord.txt
