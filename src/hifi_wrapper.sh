@@ -38,7 +38,7 @@ while getopts :b:i:g:N:S:f:1:2:t:o:h opt; do
     case $opt in
         b) BIN_DIR=${OPTARG};;
         i) STAR_INDEX=${OPTARG};;
-        g) annotation_gtf_file=${OPTARG};;
+        g) ANNOTATION_GTF_FILE=${OPTARG};;
         N) SAMPLE_NAME=${OPTARG};;
         S) L1_DIR=${OPTARG};;
         f) FLOWCELL_FULL=${OPTARG};;
@@ -55,7 +55,7 @@ done
 
 [ -z "$STAR_INDEX" ] && echo "Error!! Please provide path to the STAR index files with -i" && parameter_error
 
-[  -z "$annotation_gtf_file" ] && echo "Error!! Please provide the GTF annotation file with -g" && parameter_error
+[  -z "$ANNOTATION_GTF_FILE" ] && echo "Error!! Please provide the GTF annotation file with -g" && parameter_error
 
 [  -z "$SAMPLE_NAME" ] && echo "Error!! Please provide the sample name with -N" && parameter_error
 
@@ -91,8 +91,8 @@ L1R1_DUP=$L1_DIR/$FLOWCELL_FULL.L1R1_dup.txt # second output of surfdedup
 SEQ_MACHINE_ID=$(cut -f1 $L1R1_DUP | head -1 | cut -f1 -d ":")
 
 # Select full gene coordinates only
-annotation_gtf_file_genes="${annotation_gtf_file%.*}".gene."${annotation_gtf_file##*.}"
-awk -v OFS='\t' '$3=="gene"' $annotation_gtf_file > $annotation_gtf_file_genes
+annotation_gtf_file_genes="${ANNOTATION_GTF_FILE%.*}".gene."${ANNOTATION_GTF_FILE##*.}"
+awk -v OFS='\t' '$3=="gene"' $ANNOTATION_GTF_FILE > $annotation_gtf_file_genes
 
 
 ################## PROCESSING
@@ -167,7 +167,7 @@ STAR \
 --outReadsUnmapped Fastx \
 --outSAMattributes All \
 --outFileNamePrefix $L2R2_GENOME_DIR/L2R2_genome. \
---sjdbGTFfile $annotation_gtf_file \
+--sjdbGTFfile $ANNOTATION_GTF_FILE \
 --outFilterScoreMinOverLread 0 \
 --outFilterMatchNminOverLread 0 \
 --runThreadN $N_THREADS
