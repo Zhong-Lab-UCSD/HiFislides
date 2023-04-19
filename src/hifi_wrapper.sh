@@ -243,6 +243,8 @@ bwa mem \
 -t $N_THREADS \
 $L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
+# grep -P "^[^\t]*\t0\t|^[^\t]*\t256\t" temp.sam > temp1.sam
+
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment and filtering done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment and filtering done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 

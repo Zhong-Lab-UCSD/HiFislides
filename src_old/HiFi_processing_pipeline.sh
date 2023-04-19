@@ -1,5 +1,8 @@
 ### 1) First run "HiFi_init_parameters.sh" to initialize parameters for each sample
 
+fastqc -t 24 -o /mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/data/IGM/HiFi_mouse_brain_k/fastqc /mnt/extraids/SDSC_NFS/linpei/hifi/deepseq/mousebrain/igm-storage2.ucsd.edu/230407_A00953_0719_AH5K2YDRX3/FASTQ/*L001*
+
+
 ##############################################################################
 
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
