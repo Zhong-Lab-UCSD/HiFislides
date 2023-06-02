@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 ### 2. Load the ST data from squidpy package
 # adata_example = sq.datasets.seqfish() # example from documentation
 
-SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/cortex/HiFi_cortex_AD_3/ROI_1/cortical_layers/spaceflow_2/"
+SAMPLE_DIR = "/mnt/extraids/SDSC_NFS/rcalandrelli/HiFi/result/cortex/HiFi_cortex_4/ROI_2/cell_types/spaceflow_1/"
 
 df = pd.read_csv(SAMPLE_DIR + "spaceflow_matrix.txt", sep = "\t")
 counts = np.float32(df.values)
