@@ -3,7 +3,7 @@ ENV TIMEZONE America/Los_Angeles
 
 RUN apt-get update && \
     apt-get install -y \
-    git build-essential curl libz-dev libbz2-dev libcurl4-gnutls-dev libgsl0-dev liblzma-dev libncurses5-dev libperl-dev libssl-dev zlib1g-dev autoconf automake wget gawk parallel python-dev python-pip
+    git bc build-essential curl libz-dev libbz2-dev libcurl4-gnutls-dev libgsl0-dev liblzma-dev libncurses5-dev libperl-dev libssl-dev zlib1g-dev autoconf automake wget gawk parallel pigz python-dev python-pip
 
 # Star aligner 
 ENV star_version 2.5.4b

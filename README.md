@@ -23,7 +23,6 @@ Zhang et al (2014) Bioinformatics 30(5): 614-620 | doi:10.1093/bioinformatics/bt
 
 # Workflow
 
-- [Documentation](./README_src.md) of the latest developed scripts that can be run from the command line using input parameters (USE THIS).
-- [Documentation](./README_src_old.md) of the first developed scripts where parameters have to be inserted manually inside each scripts.
+- [Documentation](./README_src.md) of the latest developed scripts that can be run from the command line using input parameters.
 
 

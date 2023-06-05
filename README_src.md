@@ -4,7 +4,7 @@ Scripts can be found at [./src](./src). The scripts must be run in the order bel
 
 A testing script can be found [here](./test_src.sh).
 
-- `hifi_barcode_processing.sh`: deduplicate the barcode reads and generate bwa index of their sequence.
+- `hifi_barcode_processing.sh`: Deduplicate the barcode reads and generate bwa index of their sequence. 
 
 ```
 -b : Directory of the scripts.
@@ -12,25 +12,26 @@ A testing script can be found [here](./test_src.sh).
 -l : Flowcell lane.
 -s : Flowcell surface.
 -d : Directory of the barcode fastq files.
--N : Suffix of the fastq file (example R1_001.fastq.gz).
+-N : Suffix of the fastq file (example R1.fastq.gz, or *R1.fastq.gz if multiple input fastq files).
 -t : Max CPU threads for parallelized processing, at least 4 (default 8).
 -o : Parent output directory.
 ```
 
-- `hifi_wrapper.sh`: main processing pipeline.
+- `hifi_wrapper.sh`: Main processing pipeline.
 ```
 -b : Directory of the scripts.
 -i : Directory of the STAR index.
 -g : GTF annotation file of the reference genome.
 -N : Sample name, used to label the final output files.
 -S : Directory of the processed spatial barcodes.
+-f : Flowcell ID, including lane and surface (example: XXX_1_1).
 -1 : R1 fastq.gz file of the HiFi library.
 -2 : R2 fastq.gz file of the HiFi library.
 -t : Max CPU threads for parallelized processing, at least 4 (default 8).
 -o : Parent output directory.
 ```
 
-- `hifi_extract_roi.sh`: subset final output data to extract only tiles under ROI.
+- `hifi_extract_roi.sh`: Subset final output data to extract only tiles under ROI.
 ```
 -R : Path to the txt file with the tiles under ROI (each tile on a new line).
 -r : ROI name to label the output file.
@@ -38,7 +39,7 @@ A testing script can be found [here](./test_src.sh).
 -o : Parent output directory.
 ```
 
-- `hifi_stats.sh`: calculate statistics and QC metrics.
+- `hifi_stats.sh`: Calculate statistics and QC metrics.
 ```
 -N : Sample name.
 -o : Parent output directory.
