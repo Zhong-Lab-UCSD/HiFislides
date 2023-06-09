@@ -5,7 +5,7 @@ RUN apt-get update && \
     apt-get install -y \
     git bc build-essential curl libz-dev libbz2-dev libcurl4-gnutls-dev libgsl0-dev liblzma-dev libncurses5-dev libperl-dev libssl-dev zlib1g-dev autoconf automake wget gawk parallel pigz python-dev python-pip
 
-# Star aligner 
+# STAR aligner 
 ENV star_version 2.5.4b
 ADD https://github.com/alexdobin/STAR/archive/${star_version}.tar.gz /usr/bin/
 RUN tar -xzf /usr/bin/${star_version}.tar.gz -C /usr/bin/ && \
