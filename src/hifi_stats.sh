@@ -37,6 +37,7 @@ done
 
 
 ################## INITIALIZE VARIABLES
+START_DATE=$(date) # start processing date
 
 L2_DIR=$OUT_DIR/$SAMPLE_NAME # HiFi library
 mkdir -p $L2_DIR
@@ -133,8 +134,8 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] stats calculation finished.
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] stats calculation finished." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 
-echo "Data processing started: "$START_DATE
-echo "Data processing ended: "$(date)
+echo "Stats calculation started: "$START_DATE
+echo "Stats calculation ended: "$(date)
 
 echo "------------------------------" >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 echo "Data processing started: "$START_DATE >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
