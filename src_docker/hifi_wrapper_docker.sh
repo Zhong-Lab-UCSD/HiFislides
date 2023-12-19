@@ -235,7 +235,7 @@ bedtools intersect \
 -v -bed | cut -f 4 | awk -v OFS='\t' '{print $1, "NA", "NA", "NA"}' > $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed
 
 ### Concatenate and sort
-cat $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed | sort -k 1 --parallel=$N_THREADS > $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed
+cat $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed | sort -k 1 --parallel=$N_THREADS > $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.txt
 
 rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_1.bed
 rm $L2R2_GENOME_DIR/HiFi_L2R2_genome_temp_2.bed
@@ -260,7 +260,7 @@ bwa mem \
 -a \
 -k 19 \
 -t $N_THREADS \
-$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
+$L1R1_FASTQ_BWA_INDEX $L2R1_FASTQ 2>$L2_DIR/L2R1_mapping/L2R1_L1R1_dedup.log | grep -P "\t0\t$SEQ_MACHINE_ID|\t256\t$SEQ_MACHINE_ID" | awk -F"\t" 'NR==FNR{a[$1]; next} FNR==0 || $1 in a' $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.txt - > $L2R1_MAPPING_DIR/L2R1_L1R1_dedup.filter.sam
 
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment and filtering done."
 echo "[$(date '+%m-%d-%y %H:%M:%S')] Alignment and filtering done." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
@@ -288,7 +288,7 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinates and gene expression information..." >> $OUT_DIR/$SAMPLE_NAME/$SAMPLE_NAME.log
 
 ### Genome
-join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.bed | cut -f 2,3,4,5,7,8,9 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
+join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.txt | cut -f 2,3,4,5,7,8,9 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt
 
