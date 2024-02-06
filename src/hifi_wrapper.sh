@@ -273,7 +273,11 @@ echo ">>>>>>>>>>>>>>>>[$(date '+%m-%d-%y %H:%M:%S')] Integrate spatial coordinat
 ### Genome
 join -1 1 -2 1 -t $'\t' $L2R1_MAPPING_DIR/L2R1_L1R1.hifiwrangling0.sort.o $L2R2_GENOME_DIR/HiFi_L2R2_genome_ALL.sort.tsv | cut -f 2,3,4,5,7,8,9 > $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt
 
+# Scaled read number
 awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1/$4} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.txt
+
+# Raw read number
+awk -F"\t" '{array[$1"\t"$2"\t"$3"\t"$5"\t"$6"\t"$7]+=1} END { for (i in array) {print i"\t" array[i]}}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt > $L2R1_L2R2_INTEGRATE_DIR/$SAMPLE_NAME.L2R2_genome_spatial.final.raw.txt
 
 # Calculate the number of read pairs in each tile
 awk -v OFS='\t' '{print $1}' $L2R1_L2R2_INTEGRATE_DIR/HiFi_L2R2_genome_spatial.txt | awk '{A[$1]++}END{for(i in A)print i,A[i]}' | awk -v OFS='\t' '{print $1, $2, $2/10000}' > $L2R1_L2R2_INTEGRATE_DIR/tile_read_number_table.txt
